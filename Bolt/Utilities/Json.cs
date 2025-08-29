@@ -37,6 +37,7 @@ namespace Bolt.Utilities
             {
                 // Display error message if something goes wrong
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 return null;
             }
         }
@@ -60,7 +61,7 @@ namespace Bolt.Utilities
                 // Save the updated JSON back to the file
                 File.WriteAllText(_userSettings, jsonObject.ToString());
 
-                return true; // Successfully updated the file
+                return true;
             }
 
             catch (Exception ex)
@@ -68,7 +69,7 @@ namespace Bolt.Utilities
                 // Display an error message if something goes wrong
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                return false; // Indicate failure
+                return false;
             }
         }
     }
