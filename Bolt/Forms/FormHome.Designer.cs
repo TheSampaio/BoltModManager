@@ -1,6 +1,6 @@
-﻿namespace Bolt
+﻿namespace Bolt.Forms
 {
-    partial class FormGames
+    partial class FormHome
     {
         /// <summary>
         /// Required designer variable.
@@ -28,17 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            SuspendLayout();
-            // 
-            // FormGames
-            // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(30, 30, 30);
-            ClientSize = new Size(784, 561);
-            Name = "FormGames";
-            Text = "FormGames";
-            ResumeLayout(false);
+            this.components = new System.ComponentModel.Container();
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Text = "FormMain";
         }
 
         #endregion
