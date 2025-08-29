@@ -64,7 +64,7 @@
             label1.Name = "label1";
             label1.Size = new Size(98, 21);
             label1.TabIndex = 0;
-            label1.Text = "Drop FIle(s)";
+            label1.Text = "Drop File(s)";
             label1.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // Dgv_ModsTable
