@@ -1,4 +1,4 @@
-namespace Bolt.Source
+namespace Bolt
 {
     internal static class Program
     {

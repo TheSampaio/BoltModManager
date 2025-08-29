@@ -1,12 +1,12 @@
-﻿using Bolt.Source.Tools;
+﻿using Bolt.Utilities;
 using System.Diagnostics;
 
-namespace Bolt.Source
+namespace Bolt
 {
     public partial class FormMods : Form
     {
-        private readonly string? _pathToGame = JsonManager.ReadJson("GameDirectory");
-        private readonly string? _pathToMods = JsonManager.ReadJson("ModsDirectory");
+        private readonly string? _pathToGame = Json.Read("GameDirectory");
+        private readonly string? _pathToMods = Json.Read("ModsDirectory");
 
         public FormMods()
         {

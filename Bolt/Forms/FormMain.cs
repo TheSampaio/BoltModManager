@@ -1,5 +1,3 @@
-using Bolt.Source;
-
 namespace Bolt
 {
     public struct ButtonActionMap

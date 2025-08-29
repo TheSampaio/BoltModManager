@@ -1,6 +1,6 @@
-﻿using Bolt.Source.Tools;
+﻿using Bolt.Utilities;
 
-namespace Bolt.Source
+namespace Bolt
 {
     public partial class FormSettings : Form
     {
@@ -14,8 +14,8 @@ namespace Bolt.Source
             try
             {
                 // Load settings from JSON and populate the text fields
-                Txt_GameDirectory.Text = JsonManager.ReadJson("GameDirectory") ?? string.Empty;
-                Txt_ModsDirectory.Text = JsonManager.ReadJson("ModsDirectory") ?? string.Empty;
+                Txt_GameDirectory.Text = Json.Read("GameDirectory") ?? string.Empty;
+                Txt_ModsDirectory.Text = Json.Read("ModsDirectory") ?? string.Empty;
             }
 
             catch (Exception ex)
@@ -42,8 +42,8 @@ namespace Bolt.Source
             try
             {
                 // Save the settings to the JSON file
-                bool gameDirectorySaved = JsonManager.WriteJason("GameDirectory", Txt_GameDirectory.Text);
-                bool modsDirectorySaved = JsonManager.WriteJason("ModsDirectory", Txt_ModsDirectory.Text);
+                bool gameDirectorySaved = Json.Write("GameDirectory", Txt_GameDirectory.Text);
+                bool modsDirectorySaved = Json.Write("ModsDirectory", Txt_ModsDirectory.Text);
 
                 if (gameDirectorySaved && modsDirectorySaved)
                     MessageBox.Show("Settings saved successfully.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);

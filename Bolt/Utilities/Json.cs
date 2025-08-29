@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace Bolt.Source.Tools
+namespace Bolt.Utilities
 {
-    internal class JsonManager
+    internal class Json
     {
         private static readonly string _userSettings = "Prefs.json";
 
@@ -13,7 +13,7 @@ namespace Bolt.Source.Tools
                 File.WriteAllText(_userSettings, "{}");
         }
 
-        public static string? ReadJson(string key)
+        public static string? Read(string key)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace Bolt.Source.Tools
             }
         }
 
-        public static bool WriteJason(string key, string value)
+        public static bool Write(string key, string value)
         {
             try
             {

@@ -1,5 +1,4 @@
-﻿
-namespace Bolt.Source
+﻿namespace Bolt
 {
     public partial class FormGames : Form
     {

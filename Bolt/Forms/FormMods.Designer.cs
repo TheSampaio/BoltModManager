@@ -1,4 +1,4 @@
-﻿namespace Bolt.Source
+﻿namespace Bolt
 {
     partial class FormMods
     {
