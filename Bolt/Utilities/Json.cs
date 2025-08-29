@@ -67,6 +67,7 @@ namespace Bolt.Utilities
             {
                 // Display an error message if something goes wrong
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 return false; // Indicate failure
             }
         }

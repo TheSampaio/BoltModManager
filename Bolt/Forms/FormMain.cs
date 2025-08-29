@@ -40,7 +40,7 @@ namespace Bolt
                 {
                     Cursor = Cursors.Hand,
                     FlatStyle = FlatStyle.Flat,
-                    Font = new Font("Segoe UI", 14),
+                    Font = new Font("Segoe UI", 12),
                     ForeColor = Color.White,
                     Margin = new Padding(0),
                     Size = new Size(200, 50),
@@ -53,7 +53,7 @@ namespace Bolt
                 // Associate the click event for the button
                 buttonGeneric.Click += (sender, e) =>
                 {
-                    if (buttonAction.Click != null && buttonGeneric.Text != null)
+                    if (buttonAction.Click is not null && buttonGeneric.Text is not null)
                         buttonAction.Click.Invoke(buttonGeneric.Text);
                 };
 
