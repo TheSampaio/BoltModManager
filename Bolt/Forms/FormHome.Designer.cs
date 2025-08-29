@@ -43,7 +43,7 @@
             panel1.Dock = DockStyle.Left;
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(200, 561);
+            panel1.Size = new Size(200, 600);
             panel1.TabIndex = 0;
             // 
             // PnlGameImage
@@ -72,17 +72,17 @@
             FlpSurface.Dock = DockStyle.Fill;
             FlpSurface.Location = new Point(200, 0);
             FlpSurface.Name = "FlpSurface";
-            FlpSurface.Size = new Size(584, 561);
+            FlpSurface.Size = new Size(800, 600);
             FlpSurface.TabIndex = 1;
             // 
             // FormHome
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(784, 561);
+            ClientSize = new Size(1000, 600);
             Controls.Add(FlpSurface);
             Controls.Add(panel1);
-            MinimumSize = new Size(800, 600);
+            MinimumSize = new Size(1016, 639);
             Name = "FormHome";
             Text = "Bolt Mod Manager";
             panel1.ResumeLayout(false);
