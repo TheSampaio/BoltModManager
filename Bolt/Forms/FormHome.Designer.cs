@@ -81,7 +81,7 @@
             // clearHistoryToolStripMenuItem
             // 
             clearHistoryToolStripMenuItem.Name = "clearHistoryToolStripMenuItem";
-            clearHistoryToolStripMenuItem.Size = new Size(180, 22);
+            clearHistoryToolStripMenuItem.Size = new Size(140, 22);
             clearHistoryToolStripMenuItem.Text = "Clear history";
             // 
             // toolStripSeparator1
@@ -113,6 +113,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = SystemColors.ControlLight;
             ClientSize = new Size(784, 561);
             Controls.Add(MnsHome);
             MainMenuStrip = MnsHome;
