@@ -28,51 +28,51 @@
         /// </summary>
         private void InitializeComponent()
         {
-            textEntry1 = new Bolt.Controls.TextEntry();
-            textEntry2 = new Bolt.Controls.TextEntry();
-            textEntry3 = new Bolt.Controls.TextEntry();
-            textEntry4 = new Bolt.Controls.TextEntry();
+            TxeGameName = new Bolt.Controls.TextEntry();
+            TxeExecutablePath = new Bolt.Controls.TextEntry();
+            TxeGameDirectory = new Bolt.Controls.TextEntry();
+            TxeResultPath = new Bolt.Controls.TextEntry();
             BtnCancel = new Button();
             BtnSave = new Button();
             panel1 = new Panel();
             SuspendLayout();
             // 
-            // textEntry1
+            // TxeGameName
             // 
-            textEntry1.Location = new Point(12, 24);
-            textEntry1.Name = "textEntry1";
-            textEntry1.ReadOnly = false;
-            textEntry1.Size = new Size(360, 59);
-            textEntry1.TabIndex = 0;
-            textEntry1.Text = "Game name:";
+            TxeGameName.Location = new Point(12, 24);
+            TxeGameName.Name = "TxeGameName";
+            TxeGameName.ReadOnly = false;
+            TxeGameName.Size = new Size(360, 59);
+            TxeGameName.TabIndex = 0;
+            TxeGameName.Text = "Game name:";
             // 
-            // textEntry2
+            // TxeExecutablePath
             // 
-            textEntry2.Location = new Point(12, 89);
-            textEntry2.Name = "textEntry2";
-            textEntry2.ReadOnly = false;
-            textEntry2.Size = new Size(360, 59);
-            textEntry2.TabIndex = 1;
-            textEntry2.Text = "Game executable path:";
+            TxeExecutablePath.Location = new Point(12, 89);
+            TxeExecutablePath.Name = "TxeExecutablePath";
+            TxeExecutablePath.ReadOnly = false;
+            TxeExecutablePath.Size = new Size(360, 59);
+            TxeExecutablePath.TabIndex = 1;
+            TxeExecutablePath.Text = "Game executable path:";
             // 
-            // textEntry3
+            // TxeGameDirectory
             // 
-            textEntry3.Location = new Point(12, 154);
-            textEntry3.Name = "textEntry3";
-            textEntry3.ReadOnly = false;
-            textEntry3.Size = new Size(360, 59);
-            textEntry3.TabIndex = 2;
-            textEntry3.Text = "Where to create game home directory :";
+            TxeGameDirectory.Location = new Point(12, 154);
+            TxeGameDirectory.Name = "TxeGameDirectory";
+            TxeGameDirectory.ReadOnly = false;
+            TxeGameDirectory.Size = new Size(360, 59);
+            TxeGameDirectory.TabIndex = 2;
+            TxeGameDirectory.Text = "Where to create game home directory :";
             // 
-            // textEntry4
+            // TxeResultPath
             // 
-            textEntry4.Location = new Point(12, 219);
-            textEntry4.Name = "textEntry4";
-            textEntry4.ReadOnly = true;
-            textEntry4.Size = new Size(360, 59);
-            textEntry4.TabIndex = 3;
-            textEntry4.TabStop = false;
-            textEntry4.Text = "Resulting game home directory:";
+            TxeResultPath.Location = new Point(12, 219);
+            TxeResultPath.Name = "TxeResultPath";
+            TxeResultPath.ReadOnly = true;
+            TxeResultPath.Size = new Size(360, 59);
+            TxeResultPath.TabIndex = 3;
+            TxeResultPath.TabStop = false;
+            TxeResultPath.Text = "Resulting game home directory:";
             // 
             // BtnCancel
             // 
@@ -110,10 +110,10 @@
             Controls.Add(panel1);
             Controls.Add(BtnSave);
             Controls.Add(BtnCancel);
-            Controls.Add(textEntry4);
-            Controls.Add(textEntry3);
-            Controls.Add(textEntry2);
-            Controls.Add(textEntry1);
+            Controls.Add(TxeResultPath);
+            Controls.Add(TxeGameDirectory);
+            Controls.Add(TxeExecutablePath);
+            Controls.Add(TxeGameName);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -125,10 +125,10 @@
 
         #endregion
 
-        private Controls.TextEntry textEntry1;
-        private Controls.TextEntry textEntry2;
-        private Controls.TextEntry textEntry3;
-        private Controls.TextEntry textEntry4;
+        private Controls.TextEntry TxeGameName;
+        private Controls.TextEntry TxeExecutablePath;
+        private Controls.TextEntry TxeGameDirectory;
+        private Controls.TextEntry TxeResultPath;
         private Button BtnCancel;
         private Button BtnSave;
         private Panel panel1;
