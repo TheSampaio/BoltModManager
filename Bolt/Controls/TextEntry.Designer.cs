@@ -36,19 +36,19 @@
             // 
             LblTextEntry.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             LblTextEntry.AutoSize = true;
-            LblTextEntry.Location = new Point(10, 5);
+            LblTextEntry.Location = new Point(1, 2);
             LblTextEntry.Name = "LblTextEntry";
-            LblTextEntry.Size = new Size(38, 15);
+            LblTextEntry.Size = new Size(59, 15);
             LblTextEntry.TabIndex = 0;
-            LblTextEntry.Text = "label1";
+            LblTextEntry.Text = "textEntry1";
             // 
             // TxtTextEntry
             // 
-            TxtTextEntry.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            TxtTextEntry.Location = new Point(10, 25);
-            TxtTextEntry.Margin = new Padding(10, 5, 10, 10);
+            TxtTextEntry.Dock = DockStyle.Bottom;
+            TxtTextEntry.Location = new Point(0, 21);
+            TxtTextEntry.Margin = new Padding(0, 5, 0, 0);
             TxtTextEntry.Name = "TxtTextEntry";
-            TxtTextEntry.Size = new Size(400, 23);
+            TxtTextEntry.Size = new Size(421, 23);
             TxtTextEntry.TabIndex = 1;
             // 
             // TextEntry
@@ -58,7 +58,7 @@
             Controls.Add(TxtTextEntry);
             Controls.Add(LblTextEntry);
             Name = "TextEntry";
-            Size = new Size(421, 59);
+            Size = new Size(421, 44);
             ResumeLayout(false);
             PerformLayout();
         }

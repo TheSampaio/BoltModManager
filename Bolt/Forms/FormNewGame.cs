@@ -1,6 +1,4 @@
-﻿using Bolt.Utilities;
-
-namespace Bolt.Forms
+﻿namespace Bolt.Forms
 {
     public partial class FrmNewGame : Form
     {
