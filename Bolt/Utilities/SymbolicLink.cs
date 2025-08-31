@@ -8,8 +8,8 @@ namespace Bolt.Utilities
         public static bool Create(string symlinkFileName, string targetFileName, SymbolicLinkType type) =>
             CreateSymbolicLink(symlinkFileName, targetFileName, (int)type);
 
-#pragma warning disable IDE0079 // Remove unnecessary suppression
-#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
+#pragma warning disable IDE0079     // Remove unnecessary suppression
+#pragma warning disable SYSLIB1054  // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, int dwFlags);
