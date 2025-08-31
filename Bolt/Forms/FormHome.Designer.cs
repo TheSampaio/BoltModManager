@@ -33,11 +33,11 @@
             newGameToolStripMenuItem = new ToolStripMenuItem();
             openGameToolStripMenuItem = new ToolStripMenuItem();
             recentToolStripMenuItem = new ToolStripMenuItem();
+            clearHistoryToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator1 = new ToolStripSeparator();
             quitGameToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator2 = new ToolStripSeparator();
             quitToolStripMenuItem = new ToolStripMenuItem();
-            clearHistoryToolStripMenuItem = new ToolStripMenuItem();
             MnsHome.SuspendLayout();
             SuspendLayout();
             // 
@@ -78,6 +78,12 @@
             recentToolStripMenuItem.Size = new Size(182, 22);
             recentToolStripMenuItem.Text = "Recent";
             // 
+            // clearHistoryToolStripMenuItem
+            // 
+            clearHistoryToolStripMenuItem.Name = "clearHistoryToolStripMenuItem";
+            clearHistoryToolStripMenuItem.Size = new Size(180, 22);
+            clearHistoryToolStripMenuItem.Text = "Clear history";
+            // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
@@ -101,12 +107,7 @@
             quitToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.Q;
             quitToolStripMenuItem.Size = new Size(182, 22);
             quitToolStripMenuItem.Text = "Quit";
-            // 
-            // clearHistoryToolStripMenuItem
-            // 
-            clearHistoryToolStripMenuItem.Name = "clearHistoryToolStripMenuItem";
-            clearHistoryToolStripMenuItem.Size = new Size(180, 22);
-            clearHistoryToolStripMenuItem.Text = "Clear history";
+            quitToolStripMenuItem.Click += Quit_ToolStripMenuItem_Click;
             // 
             // FormHome
             // 
