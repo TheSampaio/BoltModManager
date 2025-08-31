@@ -41,6 +41,7 @@
             // 
             textEntry1.Location = new Point(12, 24);
             textEntry1.Name = "textEntry1";
+            textEntry1.ReadOnly = false;
             textEntry1.Size = new Size(360, 59);
             textEntry1.TabIndex = 0;
             textEntry1.Text = "Game name:";
@@ -49,6 +50,7 @@
             // 
             textEntry2.Location = new Point(12, 89);
             textEntry2.Name = "textEntry2";
+            textEntry2.ReadOnly = false;
             textEntry2.Size = new Size(360, 59);
             textEntry2.TabIndex = 1;
             textEntry2.Text = "Game executable path:";
@@ -57,16 +59,19 @@
             // 
             textEntry3.Location = new Point(12, 154);
             textEntry3.Name = "textEntry3";
+            textEntry3.ReadOnly = false;
             textEntry3.Size = new Size(360, 59);
             textEntry3.TabIndex = 2;
-            textEntry3.Text = "Where to create Hub home directory :";
+            textEntry3.Text = "Where to create game home directory :";
             // 
             // textEntry4
             // 
             textEntry4.Location = new Point(12, 219);
             textEntry4.Name = "textEntry4";
+            textEntry4.ReadOnly = true;
             textEntry4.Size = new Size(360, 59);
             textEntry4.TabIndex = 3;
+            textEntry4.TabStop = false;
             textEntry4.Text = "Resulting game home directory:";
             // 
             // BtnCancel

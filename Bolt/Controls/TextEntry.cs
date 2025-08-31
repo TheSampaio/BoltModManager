@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace Bolt.Controls
 {
@@ -15,21 +16,38 @@ namespace Bolt.Controls
 
 #pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
             set
+#pragma warning restore CS8765
             {
-                if (LblTextEntry != null)
+                if (LblTextEntry is not null)
                     LblTextEntry.Text = value;
 
-                // also call base.Text so the designer and accessibility tools 
-                // still have the correct value
+                // Also call base.Text so the designer and accessibility tools
+                // Still have the correct value
                 base.Text = value;
             }
-#pragma warning restore CS8765
+        }
+
+        [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        [Bindable(true)]
+        [Category("Behavior")]
+        [Description("Indicates whether the text box is read-only.")]
+        public bool ReadOnly
+        {
+            get => TxtTextEntry?.ReadOnly ?? false;
+            set
+            {
+                if (TxtTextEntry is not null)
+                    TxtTextEntry.ReadOnly = value;
+            }
         }
 
         public TextEntry()
         {
             InitializeComponent();
-            base.Text = LblTextEntry.Text; // sync initial value
+
+            // Sync initial value
+            base.Text = LblTextEntry.Text;
         }
     }
 }
