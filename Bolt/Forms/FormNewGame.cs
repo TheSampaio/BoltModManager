@@ -1,4 +1,6 @@
-﻿namespace Bolt.Forms
+﻿using Bolt.Utilities;
+
+namespace Bolt.Forms
 {
     public partial class FrmNewGame : Form
     {
@@ -9,6 +11,7 @@
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
+            // TODO: Validade entries
             // TODO: Save button logic...
         }
 
