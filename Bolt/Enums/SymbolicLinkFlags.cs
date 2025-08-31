@@ -1,8 +1,8 @@
 ﻿namespace Bolt.Enums
 {
-    internal enum SymbolicLinkFlags
+    internal enum SymbolicLinkType
     {
-        DirectoryMode = 0x1,
-        FileMode = 0x0,
+        Directory = 0x1,
+        File = 0x0,
     }
 }
