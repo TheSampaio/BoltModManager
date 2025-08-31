@@ -1,6 +1,6 @@
 ﻿namespace Bolt.Forms
 {
-    partial class FormHome
+    partial class FrmHome
     {
         /// <summary>
         /// Required designer variable.
@@ -63,6 +63,7 @@
             newGameToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.N;
             newGameToolStripMenuItem.Size = new Size(182, 22);
             newGameToolStripMenuItem.Text = "New Game";
+            newGameToolStripMenuItem.Click += NewGame_ToolStripMenuItem_Click;
             // 
             // openGameToolStripMenuItem
             // 
@@ -109,7 +110,7 @@
             quitToolStripMenuItem.Text = "Quit";
             quitToolStripMenuItem.Click += Quit_ToolStripMenuItem_Click;
             // 
-            // FormHome
+            // FrmHome
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -118,7 +119,7 @@
             Controls.Add(MnsHome);
             MainMenuStrip = MnsHome;
             MinimumSize = new Size(800, 600);
-            Name = "FormHome";
+            Name = "FrmHome";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Bolt Mod Manager";
             MnsHome.ResumeLayout(false);
