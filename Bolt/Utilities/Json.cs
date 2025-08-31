@@ -4,13 +4,13 @@ namespace Bolt.Utilities
 {
     internal class Json
     {
-        private static readonly string _userSettings = "Prefs.json";
+        private static readonly string _settings = "settings.json";
 
         private static void EnsureFileExists()
         {
             // Create an empty JSON file if it doesn't exist
-            if (!File.Exists(_userSettings))
-                File.WriteAllText(_userSettings, "{}");
+            if (!File.Exists(_settings))
+                File.WriteAllText(_settings, "{}");
         }
 
         public static string? Read(string key)
@@ -21,7 +21,7 @@ namespace Bolt.Utilities
                 EnsureFileExists();
 
                 // Read the JSON content from the file
-                string content = File.ReadAllText(_userSettings);
+                string content = File.ReadAllText(_settings);
 
                 // Parse the JSON content into a JObject
                 JObject jsonObject = JObject.Parse(content);
@@ -50,7 +50,7 @@ namespace Bolt.Utilities
                 EnsureFileExists();
 
                 // Read the existing JSON content
-                string content = File.ReadAllText(_userSettings);
+                string content = File.ReadAllText(_settings);
 
                 // Parse the JSON content into a JObject
                 JObject jsonObject = JObject.Parse(content);
@@ -59,7 +59,7 @@ namespace Bolt.Utilities
                 jsonObject[key] = value;
 
                 // Save the updated JSON back to the file
-                File.WriteAllText(_userSettings, jsonObject.ToString());
+                File.WriteAllText(_settings, jsonObject.ToString());
 
                 return true;
             }
