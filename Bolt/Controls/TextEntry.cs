@@ -12,9 +12,9 @@ namespace Bolt.Controls
         public override string Text
         {
             get => LblTextEntry?.Text ?? string.Empty;
+
 #pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
             set
-#pragma warning restore CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
             {
                 if (LblTextEntry != null)
                     LblTextEntry.Text = value;
@@ -23,6 +23,7 @@ namespace Bolt.Controls
                 // still have the correct value
                 base.Text = value;
             }
+#pragma warning restore CS8765
         }
 
         public TextEntry()
