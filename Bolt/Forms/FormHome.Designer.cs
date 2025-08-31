@@ -32,18 +32,21 @@
             fileToolStripMenuItem = new ToolStripMenuItem();
             newGameToolStripMenuItem = new ToolStripMenuItem();
             openGameToolStripMenuItem = new ToolStripMenuItem();
+            quitGameToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator1 = new ToolStripSeparator();
             recentToolStripMenuItem = new ToolStripMenuItem();
             clearHistoryToolStripMenuItem = new ToolStripMenuItem();
-            toolStripSeparator1 = new ToolStripSeparator();
-            quitGameToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator2 = new ToolStripSeparator();
             quitToolStripMenuItem = new ToolStripMenuItem();
+            editToolStripMenuItem = new ToolStripMenuItem();
+            settingsToolStripMenuItem = new ToolStripMenuItem();
             MnsHome.SuspendLayout();
             SuspendLayout();
             // 
             // MnsHome
             // 
-            MnsHome.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem });
+            MnsHome.BackColor = SystemColors.ControlLightLight;
+            MnsHome.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, editToolStripMenuItem });
             MnsHome.Location = new Point(0, 0);
             MnsHome.Name = "MnsHome";
             MnsHome.Size = new Size(784, 24);
@@ -52,7 +55,7 @@
             // 
             // fileToolStripMenuItem
             // 
-            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newGameToolStripMenuItem, openGameToolStripMenuItem, recentToolStripMenuItem, toolStripSeparator1, quitGameToolStripMenuItem, toolStripSeparator2, quitToolStripMenuItem });
+            fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newGameToolStripMenuItem, openGameToolStripMenuItem, quitGameToolStripMenuItem, toolStripSeparator1, recentToolStripMenuItem, toolStripSeparator2, quitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             fileToolStripMenuItem.Size = new Size(37, 20);
             fileToolStripMenuItem.Text = "File";
@@ -72,6 +75,18 @@
             openGameToolStripMenuItem.Size = new Size(182, 22);
             openGameToolStripMenuItem.Text = "Open Game";
             // 
+            // quitGameToolStripMenuItem
+            // 
+            quitGameToolStripMenuItem.Name = "quitGameToolStripMenuItem";
+            quitGameToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.W;
+            quitGameToolStripMenuItem.Size = new Size(182, 22);
+            quitGameToolStripMenuItem.Text = "Close Game";
+            // 
+            // toolStripSeparator1
+            // 
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new Size(179, 6);
+            // 
             // recentToolStripMenuItem
             // 
             recentToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { clearHistoryToolStripMenuItem });
@@ -84,18 +99,6 @@
             clearHistoryToolStripMenuItem.Name = "clearHistoryToolStripMenuItem";
             clearHistoryToolStripMenuItem.Size = new Size(140, 22);
             clearHistoryToolStripMenuItem.Text = "Clear history";
-            // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(179, 6);
-            // 
-            // quitGameToolStripMenuItem
-            // 
-            quitGameToolStripMenuItem.Name = "quitGameToolStripMenuItem";
-            quitGameToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.W;
-            quitGameToolStripMenuItem.Size = new Size(182, 22);
-            quitGameToolStripMenuItem.Text = "Close Game";
             // 
             // toolStripSeparator2
             // 
@@ -110,11 +113,26 @@
             quitToolStripMenuItem.Text = "Quit";
             quitToolStripMenuItem.Click += Quit_ToolStripMenuItem_Click;
             // 
+            // editToolStripMenuItem
+            // 
+            editToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { settingsToolStripMenuItem });
+            editToolStripMenuItem.Name = "editToolStripMenuItem";
+            editToolStripMenuItem.Size = new Size(50, 20);
+            editToolStripMenuItem.Text = "Editor";
+            // 
+            // settingsToolStripMenuItem
+            // 
+            settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            settingsToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.P;
+            settingsToolStripMenuItem.Size = new Size(185, 22);
+            settingsToolStripMenuItem.Text = "Preferences...";
+            settingsToolStripMenuItem.Click += Settings_ToolStripMenuItem_Click;
+            // 
             // FrmHome
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.ControlLight;
+            BackColor = SystemColors.Control;
             ClientSize = new Size(784, 561);
             Controls.Add(MnsHome);
             MainMenuStrip = MnsHome;
@@ -140,5 +158,7 @@
         private ToolStripSeparator toolStripSeparator2;
         private ToolStripMenuItem quitToolStripMenuItem;
         private ToolStripMenuItem clearHistoryToolStripMenuItem;
+        private ToolStripMenuItem editToolStripMenuItem;
+        private ToolStripMenuItem settingsToolStripMenuItem;
     }
 }

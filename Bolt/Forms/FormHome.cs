@@ -9,13 +9,23 @@
 
         private void NewGame_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var frmNewGame = new FrmNewGame();
-            frmNewGame.ShowDialog();
+            ShowModalWindow(new FrmNewGame());
         }
 
         private void Quit_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void Settings_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ShowModalWindow(new FrmPreferences());
+        }
+
+        private static void ShowModalWindow(Form form)
+        {
+            var frmModal = form;
+            frmModal.ShowDialog();
         }
     }
 }

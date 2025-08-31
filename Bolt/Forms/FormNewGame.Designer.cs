@@ -31,11 +31,11 @@
             BtnCancel = new Button();
             BtnSave = new Button();
             panel1 = new Panel();
-            openFileDialog1 = new OpenFileDialog();
-            button1 = new Button();
-            textEntry1 = new Bolt.Controls.TextEntry();
-            textEntry2 = new Bolt.Controls.TextEntry();
-            textEntry3 = new Bolt.Controls.TextEntry();
+            OfdExecutable = new OpenFileDialog();
+            BtnExecutable = new Button();
+            TxyName = new Bolt.Controls.TextEntry();
+            TxyExecutable = new Bolt.Controls.TextEntry();
+            TxyLocation = new Bolt.Controls.TextEntry();
             SuspendLayout();
             // 
             // BtnCancel
@@ -67,60 +67,60 @@
             panel1.Size = new Size(360, 1);
             panel1.TabIndex = 0;
             // 
-            // openFileDialog1
+            // OfdExecutable
             // 
-            openFileDialog1.FileName = "openFileDialog1";
+            OfdExecutable.FileName = "openFileDialog1";
             // 
-            // button1
+            // BtnExecutable
             // 
-            button1.Location = new Point(343, 108);
-            button1.Name = "button1";
-            button1.Size = new Size(24, 24);
-            button1.TabIndex = 2;
-            button1.Text = "...";
-            button1.UseVisualStyleBackColor = true;
+            BtnExecutable.Location = new Point(343, 108);
+            BtnExecutable.Name = "BtnExecutable";
+            BtnExecutable.Size = new Size(24, 24);
+            BtnExecutable.TabIndex = 2;
+            BtnExecutable.Text = "...";
+            BtnExecutable.UseVisualStyleBackColor = true;
             // 
-            // textEntry1
+            // TxyName
             // 
-            textEntry1.Location = new Point(17, 28);
-            textEntry1.Margin = new Padding(8);
-            textEntry1.Name = "textEntry1";
-            textEntry1.ReadOnly = false;
-            textEntry1.Size = new Size(350, 44);
-            textEntry1.TabIndex = 0;
-            textEntry1.Text = "Name:";
+            TxyName.Location = new Point(17, 28);
+            TxyName.Margin = new Padding(8);
+            TxyName.Name = "TxyName";
+            TxyName.ReadOnly = false;
+            TxyName.Size = new Size(350, 44);
+            TxyName.TabIndex = 0;
+            TxyName.Text = "Name:";
             // 
-            // textEntry2
+            // TxyExecutable
             // 
-            textEntry2.Location = new Point(17, 88);
-            textEntry2.Margin = new Padding(8, 8, 4, 8);
-            textEntry2.Name = "textEntry2";
-            textEntry2.ReadOnly = false;
-            textEntry2.Size = new Size(319, 44);
-            textEntry2.TabIndex = 1;
-            textEntry2.Text = "Executable:";
+            TxyExecutable.Location = new Point(17, 88);
+            TxyExecutable.Margin = new Padding(8, 8, 4, 8);
+            TxyExecutable.Name = "TxyExecutable";
+            TxyExecutable.ReadOnly = false;
+            TxyExecutable.Size = new Size(319, 44);
+            TxyExecutable.TabIndex = 1;
+            TxyExecutable.Text = "Executable:";
             // 
-            // textEntry3
+            // TxyLocation
             // 
-            textEntry3.Location = new Point(17, 148);
-            textEntry3.Margin = new Padding(8);
-            textEntry3.Name = "textEntry3";
-            textEntry3.ReadOnly = true;
-            textEntry3.Size = new Size(350, 44);
-            textEntry3.TabIndex = 3;
-            textEntry3.TabStop = false;
-            textEntry3.Text = "Location:";
+            TxyLocation.Location = new Point(17, 148);
+            TxyLocation.Margin = new Padding(8);
+            TxyLocation.Name = "TxyLocation";
+            TxyLocation.ReadOnly = true;
+            TxyLocation.Size = new Size(350, 44);
+            TxyLocation.TabIndex = 3;
+            TxyLocation.TabStop = false;
+            TxyLocation.Text = "Location:";
             // 
             // FrmNewGame
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.ControlLight;
+            BackColor = SystemColors.Control;
             ClientSize = new Size(384, 293);
-            Controls.Add(textEntry2);
-            Controls.Add(textEntry3);
-            Controls.Add(textEntry1);
-            Controls.Add(button1);
+            Controls.Add(TxyExecutable);
+            Controls.Add(TxyLocation);
+            Controls.Add(TxyName);
+            Controls.Add(BtnExecutable);
             Controls.Add(panel1);
             Controls.Add(BtnSave);
             Controls.Add(BtnCancel);
@@ -128,6 +128,7 @@
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmNewGame";
+            ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "New Game";
             ResumeLayout(false);
@@ -137,10 +138,10 @@
         private Button BtnCancel;
         private Button BtnSave;
         private Panel panel1;
-        private OpenFileDialog openFileDialog1;
-        private Button button1;
-        private Controls.TextEntry textEntry1;
-        private Controls.TextEntry textEntry2;
-        private Controls.TextEntry textEntry3;
+        private OpenFileDialog OfdExecutable;
+        private Button BtnExecutable;
+        private Controls.TextEntry TxyName;
+        private Controls.TextEntry TxyExecutable;
+        private Controls.TextEntry TxyLocation;
     }
 }
