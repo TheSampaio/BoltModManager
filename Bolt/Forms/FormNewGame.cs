@@ -10,6 +10,31 @@ namespace Bolt.Forms
             InitializeComponent();
         }
 
+        private void BtnExecutable_Click(object sender, EventArgs e)
+        {
+            OfdExecutable.Title = "Select Executable";
+            OfdExecutable.FileName = string.Empty;
+            OfdExecutable.Filter = "Executable File (*.exe)|*.exe";
+
+            if (OfdExecutable.ShowDialog(this) == DialogResult.OK)
+            {
+                // Validate if it's really an .exe file
+                if (!(Path.GetExtension(OfdExecutable.FileName)?.ToLower() == ".exe"))
+                {
+                    MessageBox.Show(
+                        "Please select a valid game executable file.",
+                        "Invalid File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+
+                    return;
+                }
+
+                TxyExecutable.Value = OfdExecutable.FileName;
+            }
+        }
+
         private void BtnSave_Click(object sender, EventArgs e)
         {
             // TODO: Validade entries

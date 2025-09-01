@@ -24,7 +24,7 @@ namespace Bolt.Forms
             if (TxyModsDir.Value == string.Empty)
             {
                 MessageBox.Show(
-                    "The mods directory cannot be empty.",
+                    "Please select a valid mods directory before continuing.",
                     "Warning",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning

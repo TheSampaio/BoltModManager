@@ -79,6 +79,7 @@
             BtnExecutable.TabIndex = 2;
             BtnExecutable.Text = "...";
             BtnExecutable.UseVisualStyleBackColor = true;
+            BtnExecutable.Click += BtnExecutable_Click;
             // 
             // TxyName
             // 
