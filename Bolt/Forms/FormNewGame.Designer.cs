@@ -35,7 +35,10 @@
             BtnExecutable = new Button();
             TxyName = new Bolt.Controls.TextEntry();
             TxyExecutable = new Bolt.Controls.TextEntry();
-            TxyLocation = new Bolt.Controls.TextEntry();
+            TxyResultLocation = new Bolt.Controls.TextEntry();
+            BtnTarget = new Button();
+            TxyTarget = new Bolt.Controls.TextEntry();
+            FbdTarget = new FolderBrowserDialog();
             SuspendLayout();
             // 
             // BtnClose
@@ -43,7 +46,7 @@
             BtnClose.Location = new Point(297, 258);
             BtnClose.Name = "BtnClose";
             BtnClose.Size = new Size(75, 23);
-            BtnClose.TabIndex = 5;
+            BtnClose.TabIndex = 6;
             BtnClose.Text = "Close";
             BtnClose.UseVisualStyleBackColor = true;
             BtnClose.Click += BtnClose_Click;
@@ -53,7 +56,7 @@
             BtnSave.Location = new Point(216, 258);
             BtnSave.Name = "BtnSave";
             BtnSave.Size = new Size(75, 23);
-            BtnSave.TabIndex = 4;
+            BtnSave.TabIndex = 5;
             BtnSave.Text = "Save";
             BtnSave.UseVisualStyleBackColor = true;
             BtnSave.Click += BtnSave_Click;
@@ -73,18 +76,18 @@
             // 
             // BtnExecutable
             // 
-            BtnExecutable.Location = new Point(343, 108);
+            BtnExecutable.Location = new Point(343, 147);
             BtnExecutable.Name = "BtnExecutable";
             BtnExecutable.Size = new Size(24, 24);
-            BtnExecutable.TabIndex = 2;
+            BtnExecutable.TabIndex = 4;
             BtnExecutable.Text = "...";
             BtnExecutable.UseVisualStyleBackColor = true;
             BtnExecutable.Click += BtnExecutable_Click;
             // 
             // TxyName
             // 
-            TxyName.Location = new Point(17, 28);
-            TxyName.Margin = new Padding(8);
+            TxyName.Location = new Point(17, 15);
+            TxyName.Margin = new Padding(8, 6, 8, 6);
             TxyName.Name = "TxyName";
             TxyName.ReadOnly = false;
             TxyName.Size = new Size(350, 44);
@@ -95,26 +98,47 @@
             // 
             // TxyExecutable
             // 
-            TxyExecutable.Location = new Point(17, 88);
-            TxyExecutable.Margin = new Padding(8, 8, 4, 8);
+            TxyExecutable.Location = new Point(17, 127);
+            TxyExecutable.Margin = new Padding(8, 6, 4, 6);
             TxyExecutable.Name = "TxyExecutable";
             TxyExecutable.ReadOnly = false;
             TxyExecutable.Size = new Size(319, 44);
-            TxyExecutable.TabIndex = 1;
-            TxyExecutable.Text = "Executable:";
+            TxyExecutable.TabIndex = 3;
+            TxyExecutable.Text = "Executable file:";
             TxyExecutable.Value = "";
             // 
-            // TxyLocation
+            // TxyResultLocation
             // 
-            TxyLocation.Location = new Point(17, 148);
-            TxyLocation.Margin = new Padding(8);
-            TxyLocation.Name = "TxyLocation";
-            TxyLocation.ReadOnly = true;
-            TxyLocation.Size = new Size(350, 44);
-            TxyLocation.TabIndex = 3;
-            TxyLocation.TabStop = false;
-            TxyLocation.Text = "Location:";
-            TxyLocation.Value = "";
+            TxyResultLocation.Location = new Point(17, 183);
+            TxyResultLocation.Margin = new Padding(8, 6, 8, 6);
+            TxyResultLocation.Name = "TxyResultLocation";
+            TxyResultLocation.ReadOnly = true;
+            TxyResultLocation.Size = new Size(350, 44);
+            TxyResultLocation.TabIndex = 0;
+            TxyResultLocation.TabStop = false;
+            TxyResultLocation.Text = "Result location:";
+            TxyResultLocation.Value = "";
+            // 
+            // BtnTarget
+            // 
+            BtnTarget.Location = new Point(343, 91);
+            BtnTarget.Name = "BtnTarget";
+            BtnTarget.Size = new Size(24, 24);
+            BtnTarget.TabIndex = 2;
+            BtnTarget.Text = "...";
+            BtnTarget.UseVisualStyleBackColor = true;
+            BtnTarget.Click += BtnTarget_Click;
+            // 
+            // TxyTarget
+            // 
+            TxyTarget.Location = new Point(17, 71);
+            TxyTarget.Margin = new Padding(8, 6, 4, 6);
+            TxyTarget.Name = "TxyTarget";
+            TxyTarget.ReadOnly = false;
+            TxyTarget.Size = new Size(319, 44);
+            TxyTarget.TabIndex = 1;
+            TxyTarget.Text = "Target directory:";
+            TxyTarget.Value = "";
             // 
             // FrmNewGame
             // 
@@ -122,8 +146,10 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             ClientSize = new Size(384, 293);
+            Controls.Add(TxyTarget);
             Controls.Add(TxyExecutable);
-            Controls.Add(TxyLocation);
+            Controls.Add(TxyResultLocation);
+            Controls.Add(BtnTarget);
             Controls.Add(TxyName);
             Controls.Add(BtnExecutable);
             Controls.Add(panel1);
@@ -148,6 +174,9 @@
         private Button BtnExecutable;
         private Controls.TextEntry TxyName;
         private Controls.TextEntry TxyExecutable;
-        private Controls.TextEntry TxyLocation;
+        private Controls.TextEntry TxyResultLocation;
+        private Button BtnTarget;
+        private Controls.TextEntry TxyTarget;
+        private FolderBrowserDialog FbdTarget;
     }
 }
