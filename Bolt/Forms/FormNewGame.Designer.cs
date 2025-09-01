@@ -90,6 +90,7 @@
             TxyName.TabIndex = 0;
             TxyName.Text = "Name:";
             TxyName.Value = "";
+            TxyName.ValueChanged += TxyName_ValueChanged;
             // 
             // TxyExecutable
             // 

@@ -25,5 +25,10 @@ namespace Bolt.Forms
         {
             TxyLocation.Value = $"{Json.Read(AppDbContext.MODS_DIRECTORY)!}\\";
         }
+
+        private void TxyName_ValueChanged(object sender, EventArgs e)
+        {
+            TxyLocation.Value = $"{Json.Read(AppDbContext.MODS_DIRECTORY)!}\\{TxyName.Value}";
+        }
     }
 }
