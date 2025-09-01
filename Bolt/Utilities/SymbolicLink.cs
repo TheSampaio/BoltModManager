@@ -5,8 +5,8 @@ namespace Bolt.Utilities
 {
     internal class SymbolicLink
     {
-        public static bool Create(string symlinkFileName, string targetFileName, SymbolicLinkType type) =>
-            CreateSymbolicLink(symlinkFileName, targetFileName, (int)type);
+        public static bool Create(string symlinkPath, string targetPath, SymbolicLinkType type) =>
+            CreateSymbolicLink(symlinkPath, targetPath, (int)type);
 
 #pragma warning disable IDE0079     // Remove unnecessary suppression
 #pragma warning disable SYSLIB1054  // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
