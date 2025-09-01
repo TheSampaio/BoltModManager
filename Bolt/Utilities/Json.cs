@@ -4,24 +4,22 @@ namespace Bolt.Utilities
 {
     internal class Json
     {
-        private static readonly string _settings = "settings.json";
-
-        private static void EnsureFileExists()
+        private static void EnsureFileExists(string jsonFile)
         {
             // Create an empty JSON file if it doesn't exist
-            if (!File.Exists(_settings))
-                File.WriteAllText(_settings, "{}");
+            if (!File.Exists(jsonFile))
+                File.WriteAllText(jsonFile, "{}");
         }
 
-        public static string? Read(string key)
+        public static string? Read(string key, string jsonFile)
         {
             try
             {
                 // Ensure the file exists before reading
-                EnsureFileExists();
+                EnsureFileExists(jsonFile);
 
                 // Read the JSON content from the file
-                string content = File.ReadAllText(_settings);
+                string content = File.ReadAllText(jsonFile);
 
                 // Parse the JSON content into a JObject
                 JObject jsonObject = JObject.Parse(content);
@@ -42,15 +40,15 @@ namespace Bolt.Utilities
             }
         }
 
-        public static bool Write(string key, string value)
+        public static bool Write(string key, string value, string jsonFile)
         {
             try
             {
                 // Ensure the file exists before writing
-                EnsureFileExists();
+                EnsureFileExists(jsonFile);
 
                 // Read the existing JSON content
-                string content = File.ReadAllText(_settings);
+                string content = File.ReadAllText(jsonFile);
 
                 // Parse the JSON content into a JObject
                 JObject jsonObject = JObject.Parse(content);
@@ -59,7 +57,7 @@ namespace Bolt.Utilities
                 jsonObject[key] = value;
 
                 // Save the updated JSON back to the file
-                File.WriteAllText(_settings, jsonObject.ToString());
+                File.WriteAllText(jsonFile, jsonObject.ToString());
 
                 return true;
             }

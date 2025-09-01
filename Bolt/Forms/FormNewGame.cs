@@ -47,12 +47,12 @@ namespace Bolt.Forms
 
         private void FrmNewGame_Load(object sender, EventArgs e)
         {
-            TxyLocation.Value = $"{AppDbContext.ModsDirectoryValue}\\";
+            TxyLocation.Value = $"{AppDbContext.PackagesDirectoryValue}\\";
         }
 
         private void TxyName_ValueChanged(object sender, EventArgs e)
         {
-            TxyLocation.Value = $"{AppDbContext.ModsDirectoryValue}\\{TxyName.Value}";
+            TxyLocation.Value = $"{AppDbContext.PackagesDirectoryValue}\\{TxyName.Value}";
         }
     }
 }
