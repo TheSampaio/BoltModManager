@@ -9,19 +9,19 @@ namespace Bolt.Forms
             InitializeComponent();
         }
 
-        private void BtnModsDir_Click(object sender, EventArgs e)
+        private void BtnPackagesDir_Click(object sender, EventArgs e)
         {
             if (FbdLibrary.ShowDialog(this) == DialogResult.OK)
-                TxyModsDir.Value = FbdLibrary.SelectedPath;
+                TxyPackagesDir.Value = FbdLibrary.SelectedPath;
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
             // Validate entry
-            if (string.IsNullOrWhiteSpace(TxyModsDir.Value))
+            if (string.IsNullOrWhiteSpace(TxyPackagesDir.Value))
             {
                 MessageBox.Show(
-                    "Please select a valid mods directory before continuing.",
+                    "Please select a valid packages directory before continuing.",
                     "Warning",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
@@ -31,7 +31,7 @@ namespace Bolt.Forms
             }
 
             // Ensure directory exists
-            if (!Directory.Exists(TxyModsDir.Value))
+            if (!Directory.Exists(TxyPackagesDir.Value))
             {
                 MessageBox.Show(
                     "The selected directory does not exist. Please choose a valid folder.",
@@ -43,12 +43,12 @@ namespace Bolt.Forms
                 return;
             }
 
-            // Save mods directory path
-            AppDbContext.ModsDirectoryValue = TxyModsDir.Value;
+            // Save packages directory path
+            AppDbContext.PackagesDirectoryValue = TxyPackagesDir.Value;
 
             MessageBox.Show(
-                $"Mods directory set to:\n{TxyModsDir.Value}",
-                "Mods Directory Saved",
+                $"Packages directory set to:\n{TxyPackagesDir.Value}",
+                "Packages Directory Saved",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
             );
@@ -62,7 +62,7 @@ namespace Bolt.Forms
 
         private void FrmPreferences_Load(object sender, EventArgs e)
         {
-            TxyModsDir.Value = AppDbContext.ModsDirectoryValue;
+            TxyPackagesDir.Value = AppDbContext.PackagesDirectoryValue;
         }
     }
 }

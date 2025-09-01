@@ -8,11 +8,11 @@ namespace Bolt.Data
         public static string PreferencesFile { get; } = "preferences.json";
 
         // Keys and values
-        public static string ModsDirectoryKey { get; } = "ModsDirectory";
-        public static string ModsDirectoryValue
+        public static string PackagesDirectoryKey { get; } = "PackagesDirectory";
+        public static string PackagesDirectoryValue
         {
-            get => Json.Read(ModsDirectoryKey, PreferencesFile)!;
-            set => Json.Write(ModsDirectoryKey, value, PreferencesFile);
+            get => Json.Read(PackagesDirectoryKey, PreferencesFile)!;
+            set => Json.Write(PackagesDirectoryKey, value, PreferencesFile);
         }
     }
 }
