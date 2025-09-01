@@ -5,6 +5,7 @@ namespace Bolt.Data
     internal class AppDbContext
     {
         // Contexts
+        public static string GameFile { get; } = "game.json";
         public static string PreferencesFile { get; } = "preferences.json";
 
         // Keys and values
