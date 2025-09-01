@@ -134,6 +134,7 @@
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "New Game";
+            Load += FrmNewGame_Load;
             ResumeLayout(false);
         }
 

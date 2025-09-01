@@ -1,4 +1,7 @@
-﻿namespace Bolt.Forms
+﻿using Bolt.Data;
+using Bolt.Utilities;
+
+namespace Bolt.Forms
 {
     public partial class FrmNewGame : Form
     {
@@ -16,6 +19,11 @@
         private void BtnClose_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void FrmNewGame_Load(object sender, EventArgs e)
+        {
+            TxyLocation.Value = $"{Json.Read(AppDbContext.MODS_DIRECTORY)!}\\";
         }
     }
 }
