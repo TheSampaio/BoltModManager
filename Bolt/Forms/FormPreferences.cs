@@ -1,11 +1,10 @@
-﻿using Bolt.Utilities;
+﻿using Bolt.Data;
+using Bolt.Utilities;
 
 namespace Bolt.Forms
 {
     public partial class FrmPreferences : Form
     {
-        private const string MODS_DIR = "ModsDirectory";
-
         public FrmPreferences()
         {
             InitializeComponent();
@@ -35,7 +34,7 @@ namespace Bolt.Forms
             }
 
             // Save mods directory path
-            Json.Write(MODS_DIR, TxyModsDir.Value);
+            Json.Write(AppDbContext.MODS_DIRECTORY, TxyModsDir.Value);
 
             MessageBox.Show(
                 $"The directory \"{TxyModsDir.Value}\" has been successfully saved as the mods folder.",
@@ -52,7 +51,7 @@ namespace Bolt.Forms
 
         private void FrmPreferences_Load(object sender, EventArgs e)
         {
-            TxyModsDir.Value = Json.Read(MODS_DIR)!;
+            TxyModsDir.Value = Json.Read(AppDbContext.MODS_DIRECTORY)!;
         }
     }
 }
