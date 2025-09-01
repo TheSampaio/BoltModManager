@@ -40,13 +40,16 @@
             quitToolStripMenuItem = new ToolStripMenuItem();
             editToolStripMenuItem = new ToolStripMenuItem();
             settingsToolStripMenuItem = new ToolStripMenuItem();
+            helpToolStripMenuItem = new ToolStripMenuItem();
+            donateToolStripMenuItem = new ToolStripMenuItem();
+            aboutToolStripMenuItem = new ToolStripMenuItem();
             MnsHome.SuspendLayout();
             SuspendLayout();
             // 
             // MnsHome
             // 
             MnsHome.BackColor = SystemColors.ControlLightLight;
-            MnsHome.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, editToolStripMenuItem });
+            MnsHome.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, editToolStripMenuItem, helpToolStripMenuItem });
             MnsHome.Location = new Point(0, 0);
             MnsHome.Name = "MnsHome";
             MnsHome.Size = new Size(784, 24);
@@ -128,6 +131,25 @@
             settingsToolStripMenuItem.Text = "Preferences...";
             settingsToolStripMenuItem.Click += Settings_ToolStripMenuItem_Click;
             // 
+            // helpToolStripMenuItem
+            // 
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { donateToolStripMenuItem, aboutToolStripMenuItem });
+            helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            helpToolStripMenuItem.Size = new Size(44, 20);
+            helpToolStripMenuItem.Text = "Help";
+            // 
+            // donateToolStripMenuItem
+            // 
+            donateToolStripMenuItem.Name = "donateToolStripMenuItem";
+            donateToolStripMenuItem.Size = new Size(180, 22);
+            donateToolStripMenuItem.Text = "Donate";
+            // 
+            // aboutToolStripMenuItem
+            // 
+            aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+            aboutToolStripMenuItem.Size = new Size(180, 22);
+            aboutToolStripMenuItem.Text = "About...";
+            // 
             // FrmHome
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -160,5 +182,8 @@
         private ToolStripMenuItem clearHistoryToolStripMenuItem;
         private ToolStripMenuItem editToolStripMenuItem;
         private ToolStripMenuItem settingsToolStripMenuItem;
+        private ToolStripMenuItem helpToolStripMenuItem;
+        private ToolStripMenuItem donateToolStripMenuItem;
+        private ToolStripMenuItem aboutToolStripMenuItem;
     }
 }
