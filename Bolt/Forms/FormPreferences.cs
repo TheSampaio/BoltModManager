@@ -1,5 +1,4 @@
 ﻿using Bolt.Data;
-using Bolt.Utilities;
 
 namespace Bolt.Forms
 {
@@ -45,7 +44,7 @@ namespace Bolt.Forms
             }
 
             // Save mods directory path
-            Json.Write(AppDbContext.ModsDirectoryKey, TxyModsDir.Value);
+            AppDbContext.ModsDirectoryValue = TxyModsDir.Value;
 
             MessageBox.Show(
                 $"Mods directory set to:\n{TxyModsDir.Value}",
