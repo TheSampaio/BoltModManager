@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            BtnCancel = new Button();
+            BtnClose = new Button();
             BtnSave = new Button();
             panel1 = new Panel();
             OfdExecutable = new OpenFileDialog();
@@ -38,15 +38,15 @@
             TxyLocation = new Bolt.Controls.TextEntry();
             SuspendLayout();
             // 
-            // BtnCancel
+            // BtnClose
             // 
-            BtnCancel.Location = new Point(297, 258);
-            BtnCancel.Name = "BtnCancel";
-            BtnCancel.Size = new Size(75, 23);
-            BtnCancel.TabIndex = 5;
-            BtnCancel.Text = "Cancel";
-            BtnCancel.UseVisualStyleBackColor = true;
-            BtnCancel.Click += BtnCancel_Click;
+            BtnClose.Location = new Point(297, 258);
+            BtnClose.Name = "BtnClose";
+            BtnClose.Size = new Size(75, 23);
+            BtnClose.TabIndex = 5;
+            BtnClose.Text = "Close";
+            BtnClose.UseVisualStyleBackColor = true;
+            BtnClose.Click += BtnClose_Click;
             // 
             // BtnSave
             // 
@@ -89,6 +89,7 @@
             TxyName.Size = new Size(350, 44);
             TxyName.TabIndex = 0;
             TxyName.Text = "Name:";
+            TxyName.Value = "";
             // 
             // TxyExecutable
             // 
@@ -99,6 +100,7 @@
             TxyExecutable.Size = new Size(319, 44);
             TxyExecutable.TabIndex = 1;
             TxyExecutable.Text = "Executable:";
+            TxyExecutable.Value = "";
             // 
             // TxyLocation
             // 
@@ -110,6 +112,7 @@
             TxyLocation.TabIndex = 3;
             TxyLocation.TabStop = false;
             TxyLocation.Text = "Location:";
+            TxyLocation.Value = "";
             // 
             // FrmNewGame
             // 
@@ -123,7 +126,7 @@
             Controls.Add(BtnExecutable);
             Controls.Add(panel1);
             Controls.Add(BtnSave);
-            Controls.Add(BtnCancel);
+            Controls.Add(BtnClose);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -135,7 +138,7 @@
         }
 
         #endregion
-        private Button BtnCancel;
+        private Button BtnClose;
         private Button BtnSave;
         private Panel panel1;
         private OpenFileDialog OfdExecutable;

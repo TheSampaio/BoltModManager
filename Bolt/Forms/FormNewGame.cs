@@ -13,7 +13,7 @@
             // TODO: Save button logic...
         }
 
-        private void BtnCancel_Click(object sender, EventArgs e)
+        private void BtnClose_Click(object sender, EventArgs e)
         {
             Close();
         }
