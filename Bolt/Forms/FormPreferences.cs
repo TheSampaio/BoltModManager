@@ -29,6 +29,7 @@ namespace Bolt.Forms
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
                 );
+
                 return;
             }
 
@@ -41,6 +42,7 @@ namespace Bolt.Forms
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
                 );
+
                 return;
             }
 
