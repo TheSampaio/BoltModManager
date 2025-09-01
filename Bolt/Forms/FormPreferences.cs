@@ -20,8 +20,8 @@ namespace Bolt.Forms
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            // Validade entry
-            if (TxyModsDir.Value == string.Empty)
+            // Validate entry
+            if (string.IsNullOrWhiteSpace(TxyModsDir.Value))
             {
                 MessageBox.Show(
                     "Please select a valid mods directory before continuing.",
@@ -29,7 +29,18 @@ namespace Bolt.Forms
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
                 );
+                return;
+            }
 
+            // Ensure directory exists
+            if (!Directory.Exists(TxyModsDir.Value))
+            {
+                MessageBox.Show(
+                    "The selected directory does not exist. Please choose a valid folder.",
+                    "Invalid Directory",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
                 return;
             }
 
@@ -37,12 +48,13 @@ namespace Bolt.Forms
             Json.Write(AppDbContext.MODS_DIRECTORY, TxyModsDir.Value);
 
             MessageBox.Show(
-                $"The directory \"{TxyModsDir.Value}\" has been successfully saved as the mods folder.",
+                $"Mods directory set to:\n{TxyModsDir.Value}",
                 "Mods Directory Saved",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
             );
         }
+
 
         private void BtnClose_Click(object sender, EventArgs e)
         {
