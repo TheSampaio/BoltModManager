@@ -48,12 +48,12 @@ namespace Bolt.Forms
 
         private void FrmNewGame_Load(object sender, EventArgs e)
         {
-            TxyLocation.Value = $"{Json.Read(AppDbContext.MODS_DIRECTORY)!}\\";
+            TxyLocation.Value = $"{AppDbContext.ModsDirectoryValue}\\";
         }
 
         private void TxyName_ValueChanged(object sender, EventArgs e)
         {
-            TxyLocation.Value = $"{Json.Read(AppDbContext.MODS_DIRECTORY)!}\\{TxyName.Value}";
+            TxyLocation.Value = $"{AppDbContext.ModsDirectoryValue}\\{TxyName.Value}";
         }
     }
 }

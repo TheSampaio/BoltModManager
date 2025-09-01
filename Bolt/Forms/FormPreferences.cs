@@ -12,9 +12,7 @@ namespace Bolt.Forms
 
         private void BtnModsDir_Click(object sender, EventArgs e)
         {
-            FbdLibrary.ShowDialog(this);
-
-            if (FbdLibrary.SelectedPath != string.Empty)
+            if (FbdLibrary.ShowDialog(this) == DialogResult.OK)
                 TxyModsDir.Value = FbdLibrary.SelectedPath;
         }
 
@@ -47,7 +45,7 @@ namespace Bolt.Forms
             }
 
             // Save mods directory path
-            Json.Write(AppDbContext.MODS_DIRECTORY, TxyModsDir.Value);
+            Json.Write(AppDbContext.ModsDirectoryKey, TxyModsDir.Value);
 
             MessageBox.Show(
                 $"Mods directory set to:\n{TxyModsDir.Value}",
@@ -65,7 +63,7 @@ namespace Bolt.Forms
 
         private void FrmPreferences_Load(object sender, EventArgs e)
         {
-            TxyModsDir.Value = Json.Read(AppDbContext.MODS_DIRECTORY)!;
+            TxyModsDir.Value = AppDbContext.ModsDirectoryValue;
         }
     }
 }
