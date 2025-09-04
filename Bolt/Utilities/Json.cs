@@ -1,111 +1,72 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Text.Json;
 
 namespace Bolt.Utilities
 {
-    internal class Json
+    internal static class Json
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true
+        };
+
+        /// <summary>
+        /// Reads a value by key from a JSON file.
+        /// Returns null if the key doesn't exist.
+        /// </summary>
         public static string? Read(string key, string jsonFile)
         {
-            try
-            {
-                // Parse the Json content into a JObject
-                var jsonObject = ParseContent(jsonFile);
-
-                // Get the value associated with the specified key
-                JToken? value = jsonObject[key];
-
-                // Return the value as a string, or null if the key doesn't exist
-                return value?.ToString();
-            }
-
-            catch (Exception ex)
-            {
-                // Display an error message if something goes wrong
-                MessageBox.Show(
-                    $"An error occurred: {ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-
-                return null;
-            }
-        }
-
-        public static bool Write(string key, string value, string jsonFile)
-        {
-            try
-            {
-                // Parse the Json content into a JObject
-                var jsonObject = ParseContent(jsonFile);
-
-                // Update or add the key-value pair
-                jsonObject[key] = value;
-
-                // Save the updated JSON back to the file
-                File.WriteAllText(jsonFile, jsonObject.ToString());
-
-                return true;
-            }
-
-            catch (Exception ex)
-            {
-                // Display an error message if something goes wrong
-                MessageBox.Show(
-                    $"An error occurred: {ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-
-                return false;
-            }
-        }
-
-        public static bool SerializeAndSave(object obj, string jsonFile)
-        {
-            try
-            {
-                // Cria o JObject a partir do objeto
-                JObject jsonObject = JObject.FromObject(obj);
-
-                // Escreve no arquivo (formatado)
-                File.WriteAllText(jsonFile, jsonObject.ToString());
-
-                return true;
-            }
-
-            catch (Exception ex)
-            {
-                // Display an error message if something goes wrong
-                MessageBox.Show(
-                    $"An error occurred: {ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-
-                return false;
-            }
-        }
-
-        private static void EnsureFileExists(string jsonFile)
-        {
-            // Create an empty JSON file if it doesn't exist
-            if (!File.Exists(jsonFile))
-                File.WriteAllText(jsonFile, "{}");
-        }
-
-        private static JObject ParseContent(string jsonFile)
-        {
-            // Ensure the file exists before writing
             EnsureFileExists(jsonFile);
 
-            // Read the existing JSON content
-            string content = File.ReadAllText(jsonFile);
+            var dict = Deserialize<Dictionary<string, string>>(jsonFile) ?? [];
 
-            // Parse the JSON content into a JObject
-            return JObject.Parse(content);
+            return dict.TryGetValue(key, out var value) ? value : null;
+        }
+
+        /// <summary>
+        /// Writes or updates a key-value pair in a JSON file.
+        /// </summary>
+        public static void Write(string key, string value, string jsonFile)
+        {
+            EnsureFileExists(jsonFile);
+
+            var dict = Deserialize<Dictionary<string, string>>(jsonFile) ?? [];
+
+            dict[key] = value;
+
+            Serialize(dict, jsonFile);
+        }
+
+        /// <summary>
+        /// Serializes an object and saves it to a JSON file.
+        /// </summary>
+        public static void Serialize<T>(T obj, string jsonFile)
+        {
+            EnsureFileExists(jsonFile);
+
+            var json = JsonSerializer.Serialize(obj, SerializerOptions);
+            File.WriteAllText(jsonFile, json);
+        }
+
+        /// <summary>
+        /// Deserializes a JSON file into an object of type T.
+        /// </summary>
+        public static T? Deserialize<T>(string jsonFile)
+        {
+            EnsureFileExists(jsonFile);
+
+            var content = File.ReadAllText(jsonFile);
+
+            return JsonSerializer.Deserialize<T>(content, SerializerOptions);
+        }
+
+        /// <summary>
+        /// Ensures that the file exists; creates an empty JSON object if not.
+        /// </summary>
+        private static void EnsureFileExists(string jsonFile)
+        {
+            if (!File.Exists(jsonFile))
+                File.WriteAllText(jsonFile, "{}");
         }
     }
 }

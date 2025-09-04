@@ -99,7 +99,7 @@ namespace Bolt.Forms
 
             // Save the gameModel as Json file
             string gameFilePath = Path.Combine(TxyResultLocation.Value, AppData.GameFile);
-            Json.SerializeAndSave(gameModel, gameFilePath);
+            GameData.Save(gameModel, gameFilePath);
 
             // Feedback the user and close the form
             MessageBox.Show(
