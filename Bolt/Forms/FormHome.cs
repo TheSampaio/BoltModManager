@@ -23,7 +23,34 @@ namespace Bolt.Forms
 
             if (OfdOpenGame.ShowDialog() == DialogResult.OK)
             {
-                // TODO: Load game logic...
+                // Validate if it's really an .exe file
+                if (!(Path.GetExtension(OfdOpenGame.FileName)?.ToLower() == ".bltg"))
+                {
+                    MessageBox.Show(
+                        "Please select a valid Bolt game file.",
+                        "Invalid File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+
+                    return;
+                }
+
+                var gameModel = GameData.Load(OfdOpenGame.FileName);
+
+                if (gameModel is null)
+                {
+                    MessageBox.Show(
+                        $"Failure to load the game file \"{OfdOpenGame.FileName}\".",
+                        "Invalid File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+
+                    return;
+                }
+
+                TxtGameTitle.Text = $"{gameModel.Name} ({gameModel.ExecutablePath})";
             }
         }
 

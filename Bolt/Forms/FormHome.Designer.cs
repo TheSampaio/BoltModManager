@@ -44,7 +44,10 @@
             donateToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
             OfdOpenGame = new OpenFileDialog();
+            panel1 = new Panel();
+            TxtGameTitle = new TextBox();
             MnsHome.SuspendLayout();
+            panel1.SuspendLayout();
             SuspendLayout();
             // 
             // MnsHome
@@ -156,12 +159,37 @@
             // 
             OfdOpenGame.FileName = "OfdOpenGame";
             // 
+            // panel1
+            // 
+            panel1.Controls.Add(TxtGameTitle);
+            panel1.Location = new Point(12, 36);
+            panel1.Margin = new Padding(3, 12, 3, 3);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(760, 513);
+            panel1.TabIndex = 1;
+            // 
+            // TxtGameTitle
+            // 
+            TxtGameTitle.BackColor = SystemColors.ControlLightLight;
+            TxtGameTitle.Dock = DockStyle.Top;
+            TxtGameTitle.Font = new Font("Segoe UI", 12F);
+            TxtGameTitle.Location = new Point(0, 0);
+            TxtGameTitle.Margin = new Padding(0);
+            TxtGameTitle.Name = "TxtGameTitle";
+            TxtGameTitle.PlaceholderText = "No Game Open";
+            TxtGameTitle.ReadOnly = true;
+            TxtGameTitle.Size = new Size(760, 29);
+            TxtGameTitle.TabIndex = 0;
+            TxtGameTitle.TabStop = false;
+            TxtGameTitle.TextAlign = HorizontalAlignment.Center;
+            // 
             // FrmHome
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             ClientSize = new Size(784, 561);
+            Controls.Add(panel1);
             Controls.Add(MnsHome);
             MainMenuStrip = MnsHome;
             MinimumSize = new Size(800, 600);
@@ -170,6 +198,8 @@
             Text = "Bolt Mod Manager";
             MnsHome.ResumeLayout(false);
             MnsHome.PerformLayout();
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -192,5 +222,7 @@
         private ToolStripMenuItem donateToolStripMenuItem;
         private ToolStripMenuItem aboutToolStripMenuItem;
         private OpenFileDialog OfdOpenGame;
+        private Panel panel1;
+        private TextBox TxtGameTitle;
     }
 }
