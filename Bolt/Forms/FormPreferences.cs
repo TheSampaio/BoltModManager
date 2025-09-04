@@ -56,7 +56,6 @@ namespace Bolt.Forms
             Close();
         }
 
-
         private void BtnClose_Click(object sender, EventArgs e)
         {
             Close();

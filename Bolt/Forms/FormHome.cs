@@ -49,8 +49,6 @@ namespace Bolt.Forms
 
                     return;
                 }
-
-                TxtGameTitle.Text = $"{gameModel.Name} ({gameModel.ExecutablePath})";
             }
         }
 
