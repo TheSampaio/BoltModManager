@@ -52,6 +52,8 @@ namespace Bolt.Forms
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
             );
+
+            Close();
         }
 
 
