@@ -44,7 +44,7 @@ namespace Bolt.Forms
             }
 
             // Save packages directory path
-            AppDbContext.PackagesDirectoryValue = TxyPackagesDir.Value;
+            PackageData.DirectoryValue = TxyPackagesDir.Value;
 
             MessageBox.Show(
                 $"Packages directory set to:\n{TxyPackagesDir.Value}",
@@ -62,7 +62,7 @@ namespace Bolt.Forms
 
         private void FrmPreferences_Load(object sender, EventArgs e)
         {
-            TxyPackagesDir.Value = AppDbContext.PackagesDirectoryValue;
+            TxyPackagesDir.Value = PackageData.DirectoryValue;
         }
     }
 }

@@ -98,7 +98,7 @@ namespace Bolt.Forms
             Directory.CreateDirectory(gameModel.Profiles[0].PackagesPath);
 
             // Save the gameModel as Json file
-            string gameFilePath = Path.Combine(TxyResultLocation.Value, AppDbContext.GameFile);
+            string gameFilePath = Path.Combine(TxyResultLocation.Value, AppData.GameFile);
             Json.SerializeAndSave(gameModel, gameFilePath);
 
             // Feedback the user and close the form
@@ -119,12 +119,12 @@ namespace Bolt.Forms
 
         private void FrmNewGame_Load(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{AppDbContext.PackagesDirectoryValue}\\";
+            TxyResultLocation.Value = $"{PackageData.DirectoryValue}\\";
         }
 
         private void TxyName_ValueChanged(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{AppDbContext.PackagesDirectoryValue}\\{TxyName.Value}";
+            TxyResultLocation.Value = $"{PackageData.DirectoryValue}\\{TxyName.Value}";
         }
     }
 }
