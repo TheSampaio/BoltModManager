@@ -43,6 +43,7 @@
             helpToolStripMenuItem = new ToolStripMenuItem();
             donateToolStripMenuItem = new ToolStripMenuItem();
             aboutToolStripMenuItem = new ToolStripMenuItem();
+            OfdOpenGame = new OpenFileDialog();
             MnsHome.SuspendLayout();
             SuspendLayout();
             // 
@@ -77,6 +78,7 @@
             openGameToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.O;
             openGameToolStripMenuItem.Size = new Size(182, 22);
             openGameToolStripMenuItem.Text = "Open Game";
+            openGameToolStripMenuItem.Click += OpenGame_ToolStripMenuItem_Click;
             // 
             // quitGameToolStripMenuItem
             // 
@@ -141,14 +143,18 @@
             // donateToolStripMenuItem
             // 
             donateToolStripMenuItem.Name = "donateToolStripMenuItem";
-            donateToolStripMenuItem.Size = new Size(180, 22);
+            donateToolStripMenuItem.Size = new Size(116, 22);
             donateToolStripMenuItem.Text = "Donate";
             // 
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(180, 22);
+            aboutToolStripMenuItem.Size = new Size(116, 22);
             aboutToolStripMenuItem.Text = "About...";
+            // 
+            // OfdOpenGame
+            // 
+            OfdOpenGame.FileName = "OfdOpenGame";
             // 
             // FrmHome
             // 
@@ -185,5 +191,6 @@
         private ToolStripMenuItem helpToolStripMenuItem;
         private ToolStripMenuItem donateToolStripMenuItem;
         private ToolStripMenuItem aboutToolStripMenuItem;
+        private OpenFileDialog OfdOpenGame;
     }
 }
