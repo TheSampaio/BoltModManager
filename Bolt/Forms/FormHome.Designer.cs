@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            ListViewItem listViewItem1 = new ListViewItem("");
             MnsHome = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             newGameToolStripMenuItem = new ToolStripMenuItem();
@@ -47,9 +48,15 @@
             splitContainer1 = new SplitContainer();
             splitContainer3 = new SplitContainer();
             BtnRun = new Button();
-            dataGridView2 = new DataGridView();
+            listView2 = new ListView();
             splitContainer2 = new SplitContainer();
             dataGridView1 = new DataGridView();
+            Column1 = new DataGridViewTextBoxColumn();
+            Column2 = new DataGridViewTextBoxColumn();
+            Column3 = new DataGridViewTextBoxColumn();
+            Column4 = new DataGridViewTextBoxColumn();
+            Column5 = new DataGridViewTextBoxColumn();
+            Column6 = new DataGridViewTextBoxColumn();
             listView1 = new ListView();
             panel1 = new Panel();
             panel2 = new Panel();
@@ -62,7 +69,6 @@
             splitContainer3.Panel1.SuspendLayout();
             splitContainer3.Panel2.SuspendLayout();
             splitContainer3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
@@ -182,7 +188,6 @@
             // 
             // splitContainer1
             // 
-            splitContainer1.BorderStyle = BorderStyle.FixedSingle;
             splitContainer1.Dock = DockStyle.Fill;
             splitContainer1.Location = new Point(0, 0);
             splitContainer1.Name = "splitContainer1";
@@ -196,12 +201,12 @@
             splitContainer1.Panel2.Controls.Add(splitContainer2);
             splitContainer1.Size = new Size(762, 478);
             splitContainer1.SplitterDistance = 252;
+            splitContainer1.SplitterWidth = 8;
             splitContainer1.TabIndex = 0;
             splitContainer1.TabStop = false;
             // 
             // splitContainer3
             // 
-            splitContainer3.BorderStyle = BorderStyle.FixedSingle;
             splitContainer3.Dock = DockStyle.Fill;
             splitContainer3.FixedPanel = FixedPanel.Panel1;
             splitContainer3.Location = new Point(0, 0);
@@ -214,14 +219,16 @@
             // 
             // splitContainer3.Panel2
             // 
-            splitContainer3.Panel2.Controls.Add(dataGridView2);
+            splitContainer3.Panel2.Controls.Add(listView2);
             splitContainer3.Size = new Size(252, 478);
             splitContainer3.SplitterDistance = 38;
+            splitContainer3.SplitterWidth = 8;
             splitContainer3.TabIndex = 0;
             splitContainer3.TabStop = false;
             // 
             // BtnRun
             // 
+            BtnRun.BackColor = SystemColors.Window;
             BtnRun.Cursor = Cursors.Hand;
             BtnRun.Dock = DockStyle.Fill;
             BtnRun.Enabled = false;
@@ -229,26 +236,24 @@
             BtnRun.FlatStyle = FlatStyle.Flat;
             BtnRun.Location = new Point(0, 0);
             BtnRun.Name = "BtnRun";
-            BtnRun.Size = new Size(250, 36);
+            BtnRun.Size = new Size(252, 38);
             BtnRun.TabIndex = 0;
             BtnRun.Text = "Run";
-            BtnRun.UseVisualStyleBackColor = true;
+            BtnRun.UseVisualStyleBackColor = false;
             // 
-            // dataGridView2
+            // listView2
             // 
-            dataGridView2.BackgroundColor = SystemColors.Control;
-            dataGridView2.BorderStyle = BorderStyle.None;
-            dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView2.Dock = DockStyle.Fill;
-            dataGridView2.Location = new Point(0, 0);
-            dataGridView2.Name = "dataGridView2";
-            dataGridView2.Size = new Size(250, 434);
-            dataGridView2.TabIndex = 0;
-            dataGridView2.TabStop = false;
+            listView2.BorderStyle = BorderStyle.None;
+            listView2.Dock = DockStyle.Fill;
+            listView2.Items.AddRange(new ListViewItem[] { listViewItem1 });
+            listView2.Location = new Point(0, 0);
+            listView2.Name = "listView2";
+            listView2.Size = new Size(252, 432);
+            listView2.TabIndex = 0;
+            listView2.UseCompatibleStateImageBehavior = false;
             // 
             // splitContainer2
             // 
-            splitContainer2.BorderStyle = BorderStyle.FixedSingle;
             splitContainer2.Dock = DockStyle.Fill;
             splitContainer2.Location = new Point(0, 0);
             splitContainer2.Name = "splitContainer2";
@@ -261,31 +266,66 @@
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(listView1);
-            splitContainer2.Size = new Size(506, 478);
+            splitContainer2.Size = new Size(502, 478);
             splitContainer2.SplitterDistance = 334;
+            splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
             // 
             // dataGridView1
             // 
-            dataGridView1.BackgroundColor = SystemColors.Control;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.BackgroundColor = SystemColors.Window;
             dataGridView1.BorderStyle = BorderStyle.None;
+            dataGridView1.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2, Column3, Column4, Column5, Column6 });
             dataGridView1.Dock = DockStyle.Fill;
             dataGridView1.Location = new Point(0, 0);
             dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(504, 332);
+            dataGridView1.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            dataGridView1.Size = new Size(502, 334);
             dataGridView1.TabIndex = 0;
             dataGridView1.TabStop = false;
             // 
+            // Column1
+            // 
+            Column1.HeaderText = "Name";
+            Column1.Name = "Column1";
+            // 
+            // Column2
+            // 
+            Column2.HeaderText = "Version";
+            Column2.Name = "Column2";
+            // 
+            // Column3
+            // 
+            Column3.HeaderText = "Type";
+            Column3.Name = "Column3";
+            // 
+            // Column4
+            // 
+            Column4.HeaderText = "Size";
+            Column4.Name = "Column4";
+            // 
+            // Column5
+            // 
+            Column5.HeaderText = "Installation";
+            Column5.Name = "Column5";
+            // 
+            // Column6
+            // 
+            Column6.HeaderText = "Activate";
+            Column6.Name = "Column6";
+            // 
             // listView1
             // 
-            listView1.BackColor = SystemColors.Control;
+            listView1.BackColor = SystemColors.Window;
             listView1.BorderStyle = BorderStyle.None;
             listView1.Dock = DockStyle.Fill;
             listView1.Location = new Point(0, 0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(504, 138);
+            listView1.Size = new Size(502, 136);
             listView1.TabIndex = 2;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -333,7 +373,6 @@
             splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
             splitContainer3.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dataGridView2).EndInit();
             splitContainer2.Panel1.ResumeLayout(false);
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
@@ -370,6 +409,12 @@
         private Button BtnRun;
         private Panel panel1;
         private Panel panel2;
-        private DataGridView dataGridView2;
+        private ListView listView2;
+        private DataGridViewTextBoxColumn Column1;
+        private DataGridViewTextBoxColumn Column2;
+        private DataGridViewTextBoxColumn Column3;
+        private DataGridViewTextBoxColumn Column4;
+        private DataGridViewTextBoxColumn Column5;
+        private DataGridViewTextBoxColumn Column6;
     }
 }
