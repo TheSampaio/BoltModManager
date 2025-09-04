@@ -103,10 +103,10 @@ namespace Bolt.Forms
 
             // Feedback the user and close the form
             MessageBox.Show(
-                    $"Game saved into \"{gameFilePath}\" directory.",
-                    "Game File Saved",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
+                $"Game saved into \"{gameFilePath}\" directory.",
+                "Game File Saved",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
             );
 
             Close();
