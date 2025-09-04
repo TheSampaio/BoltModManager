@@ -119,12 +119,12 @@ namespace Bolt.Forms
 
         private void FrmNewGame_Load(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{PackageData.DirectoryValue}\\";
+            TxyResultLocation.Value = $"{PackageData.Load()}\\";
         }
 
         private void TxyName_ValueChanged(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{PackageData.DirectoryValue}\\{TxyName.Value}";
+            TxyResultLocation.Value = $"{PackageData.Load()}\\{TxyName.Value}";
         }
     }
 }

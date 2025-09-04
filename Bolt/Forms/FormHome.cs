@@ -19,7 +19,7 @@ namespace Bolt.Forms
             OfdOpenGame.Title = "Open Game";
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Bolt Game File (*.bltg)|*.bltg";
-            OfdOpenGame.InitialDirectory = PackageData.DirectoryValue;
+            OfdOpenGame.InitialDirectory = PackageData.Load();
 
             if (OfdOpenGame.ShowDialog() == DialogResult.OK)
             {
