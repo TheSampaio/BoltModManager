@@ -31,9 +31,9 @@
             panel1 = new Panel();
             BtnSave = new Button();
             BtnClose = new Button();
-            TxyPackagesDir = new Bolt.Controls.TextEntry();
+            TxyPackages = new Bolt.Controls.TextEntry();
             BtnLibrary = new Button();
-            FbdLibrary = new FolderBrowserDialog();
+            FbdPackages = new FolderBrowserDialog();
             SuspendLayout();
             // 
             // panel1
@@ -67,14 +67,14 @@
             // 
             // TxyModsDir
             // 
-            TxyPackagesDir.Location = new Point(17, 28);
-            TxyPackagesDir.Margin = new Padding(8, 8, 4, 8);
-            TxyPackagesDir.Name = "TxyModsDir";
-            TxyPackagesDir.ReadOnly = false;
-            TxyPackagesDir.Size = new Size(319, 44);
-            TxyPackagesDir.TabIndex = 0;
-            TxyPackagesDir.Text = "Mods directory:";
-            TxyPackagesDir.Value = "";
+            TxyPackages.Location = new Point(17, 28);
+            TxyPackages.Margin = new Padding(8, 8, 4, 8);
+            TxyPackages.Name = "TxyModsDir";
+            TxyPackages.ReadOnly = false;
+            TxyPackages.Size = new Size(319, 44);
+            TxyPackages.TabIndex = 0;
+            TxyPackages.Text = "Mods directory:";
+            TxyPackages.Value = "";
             // 
             // BtnLibrary
             // 
@@ -84,7 +84,7 @@
             BtnLibrary.TabIndex = 1;
             BtnLibrary.Text = "...";
             BtnLibrary.UseVisualStyleBackColor = true;
-            BtnLibrary.Click += BtnPackagesDir_Click;
+            BtnLibrary.Click += BtnPackages_Click;
             // 
             // FrmPreferences
             // 
@@ -92,7 +92,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             ClientSize = new Size(384, 293);
-            Controls.Add(TxyPackagesDir);
+            Controls.Add(TxyPackages);
             Controls.Add(BtnLibrary);
             Controls.Add(panel1);
             Controls.Add(BtnSave);
@@ -113,8 +113,8 @@
         private Panel panel1;
         private Button BtnSave;
         private Button BtnClose;
-        private Controls.TextEntry TxyPackagesDir;
+        private Controls.TextEntry TxyPackages;
         private Button BtnLibrary;
-        private FolderBrowserDialog FbdLibrary;
+        private FolderBrowserDialog FbdPackages;
     }
 }

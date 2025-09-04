@@ -9,16 +9,16 @@ namespace Bolt.Forms
             InitializeComponent();
         }
 
-        private void BtnPackagesDir_Click(object sender, EventArgs e)
+        private void BtnPackages_Click(object sender, EventArgs e)
         {
-            if (FbdLibrary.ShowDialog(this) == DialogResult.OK)
-                TxyPackagesDir.Value = FbdLibrary.SelectedPath;
+            if (FbdPackages.ShowDialog(this) == DialogResult.OK)
+                TxyPackages.Value = FbdPackages.SelectedPath;
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
             // Validate entry
-            if (string.IsNullOrWhiteSpace(TxyPackagesDir.Value))
+            if (string.IsNullOrWhiteSpace(TxyPackages.Value))
             {
                 MessageBox.Show(
                     "Please select a valid packages directory before continuing.",
@@ -31,7 +31,7 @@ namespace Bolt.Forms
             }
 
             // Ensure directory exists
-            if (!Directory.Exists(TxyPackagesDir.Value))
+            if (!Directory.Exists(TxyPackages.Value))
             {
                 MessageBox.Show(
                     "The selected directory does not exist. Please choose a valid folder.",
@@ -44,10 +44,10 @@ namespace Bolt.Forms
             }
 
             // Save packages directory path
-            PackageData.DirectoryValue = TxyPackagesDir.Value;
+            PackageData.DirectoryValue = TxyPackages.Value;
 
             MessageBox.Show(
-                $"Packages directory set to:\n{TxyPackagesDir.Value}",
+                $"Packages directory set to:\n{TxyPackages.Value}",
                 "Packages Directory Saved",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
@@ -62,7 +62,7 @@ namespace Bolt.Forms
 
         private void FrmPreferences_Load(object sender, EventArgs e)
         {
-            TxyPackagesDir.Value = PackageData.DirectoryValue;
+            TxyPackages.Value = PackageData.DirectoryValue;
         }
     }
 }
