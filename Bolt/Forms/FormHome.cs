@@ -44,6 +44,11 @@ namespace Bolt.Forms
             }
         }
 
+        private void QuitGame_ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UnloadGameModel();
+        }
+
         private void Quit_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Close();
@@ -119,7 +124,6 @@ namespace Bolt.Forms
             BtnRun.Text = $"  {_currentGameModel.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
             BtnRun.Image = Icon.ExtractAssociatedIcon(_currentGameModel.ExecutablePath)!.ToBitmap();
-            BtnRun.Padding = new(10);
 
             CmbProfiles.Enabled = true;
         }
@@ -133,7 +137,8 @@ namespace Bolt.Forms
             BtnRun.Text = "No Game Loaded";
             BtnRun.TextAlign = ContentAlignment.MiddleCenter;
             BtnRun.Image = null;
-            CmbProfiles.Enabled = true;
+
+            CmbProfiles.Enabled = false;
         }
 
         private static void ShowModalWindow(Form form)

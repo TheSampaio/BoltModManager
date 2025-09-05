@@ -122,6 +122,7 @@
             quitGameToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.W;
             quitGameToolStripMenuItem.Size = new Size(182, 22);
             quitGameToolStripMenuItem.Text = "Close Game";
+            quitGameToolStripMenuItem.Click += QuitGame_ToolStripMenuItem_Click;
             // 
             // toolStripSeparator1
             // 
@@ -269,7 +270,7 @@
             BtnRun.Location = new Point(0, 0);
             BtnRun.Margin = new Padding(0);
             BtnRun.Name = "BtnRun";
-            BtnRun.Padding = new Padding(16);
+            BtnRun.Padding = new Padding(10);
             BtnRun.Size = new Size(300, 65);
             BtnRun.TabIndex = 0;
             BtnRun.Text = "No Game Loaded";
