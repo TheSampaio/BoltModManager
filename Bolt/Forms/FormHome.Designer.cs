@@ -597,7 +597,6 @@
             Name = "FrmHome";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Bolt Mod Manager";
-            FormClosing += FrmHome_FormClosing;
             MnsHome.ResumeLayout(false);
             MnsHome.PerformLayout();
             splitContainer1.Panel1.ResumeLayout(false);

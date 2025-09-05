@@ -1,18 +1,18 @@
-﻿using Bolt.Data;
+﻿using Bolt.Base;
+using Bolt.Data;
 using Bolt.Models;
 using Bolt.Services;
 
 namespace Bolt.Forms
 {
-    public partial class FrmHome : Form
+    public partial class FrmHome : EventfulForm
     {
         public FrmHome()
         {
             InitializeComponent();
-            InitializeEvents();
         }
 
-        private void InitializeEvents()
+        protected override void InitializeEvents()
         {
             // Game session
             GameSessionService.Instance.GameLoaded += OnGameLoaded;
@@ -23,7 +23,7 @@ namespace Bolt.Forms
             GameProcessService.Instance.GameExited += OnGameExited;
         }
 
-        private void TerminateEvents()
+        protected override void TerminateEvents()
         {
             // Game process
             GameProcessService.Instance.GameStarted -= OnGameStarted;
@@ -177,10 +177,5 @@ namespace Bolt.Forms
         }
 
         private static void ShowModalWindow(Form form) => form.ShowDialog();
-
-        private void FrmHome_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            TerminateEvents();
-        }
     }
 }
