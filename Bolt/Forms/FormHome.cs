@@ -40,6 +40,9 @@ namespace Bolt.Forms
                     return;
                 }
 
+                if (_currentGameModel is not null)
+                    UnloadGameModel();
+
                 LoadGameModel(GameData.Load(OfdOpenGame.FileName)!);
             }
         }
@@ -99,9 +102,8 @@ namespace Bolt.Forms
         private void EnableComponents(bool value)
         {
             MnsHome.Enabled = value;
-
             PnlHomeSurface.Enabled = value;
-            PnlHomeSurface.Visible = value;
+            DgvPackages.Visible = value;
         }
 
         private void LoadGameModel(GameModel gameModel)
@@ -120,12 +122,16 @@ namespace Bolt.Forms
                 return;
             }
 
+            // Button Run
             BtnRun.Enabled = true;
             BtnRun.Text = $"  {_currentGameModel.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
             BtnRun.Image = Icon.ExtractAssociatedIcon(_currentGameModel.ExecutablePath)!.ToBitmap();
 
+            // Combo Box Profiles
             CmbProfiles.Enabled = true;
+            CmbProfiles.Items.AddRange([.. _currentGameModel.Profiles.Select(p => p.Name)]);
+            CmbProfiles.SelectedIndex = 0;
         }
 
         private void UnloadGameModel()
@@ -139,6 +145,7 @@ namespace Bolt.Forms
             BtnRun.Image = null;
 
             CmbProfiles.Enabled = false;
+            CmbProfiles.Items.Clear();
         }
 
         private static void ShowModalWindow(Form form)

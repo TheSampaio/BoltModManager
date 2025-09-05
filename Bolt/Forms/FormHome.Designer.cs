@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            ListViewItem listViewItem1 = new ListViewItem("");
+            ListViewItem listViewItem2 = new ListViewItem("");
             MnsHome = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             newGameToolStripMenuItem = new ToolStripMenuItem();
@@ -52,7 +52,7 @@
             CmbProfiles = new ComboBox();
             listView2 = new ListView();
             splitContainer2 = new SplitContainer();
-            dataGridView1 = new DataGridView();
+            DgvPackages = new DataGridView();
             Column1 = new DataGridViewCheckBoxColumn();
             Column2 = new DataGridViewTextBoxColumn();
             Column3 = new DataGridViewTextBoxColumn();
@@ -79,7 +79,7 @@
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)DgvPackages).BeginInit();
             PnlHomeSurface.SuspendLayout();
             SuspendLayout();
             // 
@@ -231,7 +231,7 @@
             // 
             splitContainer3.Panel2.Controls.Add(listView2);
             splitContainer3.Size = new Size(300, 480);
-            splitContainer3.SplitterDistance = 111;
+            splitContainer3.SplitterDistance = 97;
             splitContainer3.SplitterWidth = 8;
             splitContainer3.TabIndex = 0;
             splitContainer3.TabStop = false;
@@ -239,7 +239,7 @@
             // splitContainer4
             // 
             splitContainer4.Dock = DockStyle.Fill;
-            splitContainer4.IsSplitterFixed = true;
+            splitContainer4.FixedPanel = FixedPanel.Panel1;
             splitContainer4.Location = new Point(0, 0);
             splitContainer4.Margin = new Padding(0);
             splitContainer4.Name = "splitContainer4";
@@ -252,8 +252,8 @@
             // splitContainer4.Panel2
             // 
             splitContainer4.Panel2.Controls.Add(CmbProfiles);
-            splitContainer4.Size = new Size(300, 111);
-            splitContainer4.SplitterDistance = 65;
+            splitContainer4.Size = new Size(300, 97);
+            splitContainer4.SplitterDistance = 64;
             splitContainer4.SplitterWidth = 8;
             splitContainer4.TabIndex = 0;
             splitContainer4.TabStop = false;
@@ -269,9 +269,10 @@
             BtnRun.ImageAlign = ContentAlignment.MiddleLeft;
             BtnRun.Location = new Point(0, 0);
             BtnRun.Margin = new Padding(0);
+            BtnRun.MinimumSize = new Size(300, 64);
             BtnRun.Name = "BtnRun";
             BtnRun.Padding = new Padding(10);
-            BtnRun.Size = new Size(300, 65);
+            BtnRun.Size = new Size(300, 64);
             BtnRun.TabIndex = 0;
             BtnRun.Text = "No Game Loaded";
             BtnRun.TextImageRelation = TextImageRelation.ImageBeforeText;
@@ -284,23 +285,23 @@
             CmbProfiles.DropDownStyle = ComboBoxStyle.DropDownList;
             CmbProfiles.DropDownWidth = 256;
             CmbProfiles.Enabled = false;
-            CmbProfiles.Font = new Font("Segoe UI", 16F);
+            CmbProfiles.Font = new Font("Segoe UI", 10F);
             CmbProfiles.FormattingEnabled = true;
             CmbProfiles.IntegralHeight = false;
             CmbProfiles.Location = new Point(0, 0);
             CmbProfiles.Margin = new Padding(0);
             CmbProfiles.Name = "CmbProfiles";
-            CmbProfiles.Size = new Size(300, 38);
+            CmbProfiles.Size = new Size(300, 25);
             CmbProfiles.TabIndex = 0;
             // 
             // listView2
             // 
             listView2.BorderStyle = BorderStyle.None;
             listView2.Dock = DockStyle.Fill;
-            listView2.Items.AddRange(new ListViewItem[] { listViewItem1 });
+            listView2.Items.AddRange(new ListViewItem[] { listViewItem2 });
             listView2.Location = new Point(0, 0);
             listView2.Name = "listView2";
-            listView2.Size = new Size(300, 361);
+            listView2.Size = new Size(300, 375);
             listView2.TabIndex = 0;
             listView2.UseCompatibleStateImageBehavior = false;
             // 
@@ -314,7 +315,7 @@
             // 
             // splitContainer2.Panel1
             // 
-            splitContainer2.Panel1.Controls.Add(dataGridView1);
+            splitContainer2.Panel1.Controls.Add(DgvPackages);
             // 
             // splitContainer2.Panel2
             // 
@@ -325,22 +326,22 @@
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
             // 
-            // dataGridView1
+            // DgvPackages
             // 
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridView1.BackgroundColor = SystemColors.Window;
-            dataGridView1.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2, Column3, Column4, Column5, Column6 });
-            dataGridView1.Dock = DockStyle.Fill;
-            dataGridView1.GridColor = SystemColors.ControlDark;
-            dataGridView1.Location = new Point(0, 0);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.ReadOnly = true;
-            dataGridView1.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridView1.Size = new Size(454, 335);
-            dataGridView1.TabIndex = 0;
+            DgvPackages.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            DgvPackages.BackgroundColor = SystemColors.Window;
+            DgvPackages.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            DgvPackages.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            DgvPackages.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2, Column3, Column4, Column5, Column6 });
+            DgvPackages.Dock = DockStyle.Fill;
+            DgvPackages.GridColor = SystemColors.ControlDark;
+            DgvPackages.Location = new Point(0, 0);
+            DgvPackages.Name = "DgvPackages";
+            DgvPackages.ReadOnly = true;
+            DgvPackages.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            DgvPackages.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            DgvPackages.Size = new Size(454, 335);
+            DgvPackages.TabIndex = 0;
             // 
             // Column1
             // 
@@ -441,7 +442,7 @@
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)DgvPackages).EndInit();
             PnlHomeSurface.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
@@ -473,7 +474,7 @@
         private Panel panel2;
         private ListView listView2;
         private Button BtnRun;
-        private DataGridView dataGridView1;
+        private DataGridView DgvPackages;
         private DataGridViewCheckBoxColumn Column1;
         private DataGridViewTextBoxColumn Column2;
         private DataGridViewTextBoxColumn Column3;

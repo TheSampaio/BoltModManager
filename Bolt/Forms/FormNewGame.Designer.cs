@@ -86,13 +86,13 @@
             // 
             // TxyName
             // 
-            TxyName.Location = new Point(17, 15);
+            TxyName.Location = new Point(17, 71);
             TxyName.Margin = new Padding(8, 6, 8, 6);
             TxyName.Name = "TxyName";
             TxyName.ReadOnly = false;
             TxyName.Size = new Size(350, 44);
-            TxyName.TabIndex = 0;
-            TxyName.Text = "Name:";
+            TxyName.TabIndex = 2;
+            TxyName.Text = "Game name:";
             TxyName.Value = "";
             TxyName.ValueChanged += TxyName_ValueChanged;
             // 
@@ -121,24 +121,25 @@
             // 
             // BtnTarget
             // 
-            BtnTarget.Location = new Point(343, 91);
+            BtnTarget.Location = new Point(343, 35);
             BtnTarget.Name = "BtnTarget";
             BtnTarget.Size = new Size(24, 24);
-            BtnTarget.TabIndex = 2;
+            BtnTarget.TabIndex = 1;
             BtnTarget.Text = "...";
             BtnTarget.UseVisualStyleBackColor = true;
             BtnTarget.Click += BtnTarget_Click;
             // 
             // TxyTarget
             // 
-            TxyTarget.Location = new Point(17, 71);
+            TxyTarget.Location = new Point(17, 15);
             TxyTarget.Margin = new Padding(8, 6, 4, 6);
             TxyTarget.Name = "TxyTarget";
             TxyTarget.ReadOnly = false;
             TxyTarget.Size = new Size(319, 44);
-            TxyTarget.TabIndex = 1;
+            TxyTarget.TabIndex = 0;
             TxyTarget.Text = "Target directory:";
             TxyTarget.Value = "";
+            TxyTarget.ValueChanged += TxyTarget_ValueChanged;
             // 
             // FrmNewGame
             // 
