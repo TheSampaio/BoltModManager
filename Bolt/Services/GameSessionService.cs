@@ -3,15 +3,15 @@ using Bolt.Models;
 
 namespace Bolt.Services
 {
-    internal class GameDataService : IDisposable
+    internal class GameSessionService : IDisposable
     {
         public event Action<GameModel>? GameLoaded;
         public event Action? GameUnloaded;
         public GameModel? CurrentGame => _currentGame;
-        public static GameDataService Instance => _instance.Value;
+        public static GameSessionService Instance => _instance.Value;
 
         private GameModel? _currentGame;
-        private static readonly Lazy<GameDataService> _instance = new(() => new GameDataService());
+        private static readonly Lazy<GameSessionService> _instance = new(() => new GameSessionService());
 
         public void LoadGame(string path)
         {

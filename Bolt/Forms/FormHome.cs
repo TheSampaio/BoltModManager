@@ -11,8 +11,8 @@ namespace Bolt.Forms
         {
             InitializeComponent();
 
-            GameDataService.Instance.GameLoaded += OnGameLoaded;
-            GameDataService.Instance.GameUnloaded += OnGameUnloaded;
+            GameSessionService.Instance.GameLoaded += OnGameLoaded;
+            GameSessionService.Instance.GameUnloaded += OnGameUnloaded;
         }
 
         private void NewGame_ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -42,7 +42,7 @@ namespace Bolt.Forms
                     return;
                 }
 
-                GameDataService.Instance.LoadGame(OfdOpenGame.FileName);
+                GameSessionService.Instance.LoadGame(OfdOpenGame.FileName);
             }
         }
 
@@ -63,7 +63,7 @@ namespace Bolt.Forms
 
         private void BtnRun_Click(object sender, EventArgs e)
         {
-            if (GameDataService.Instance.CurrentGame is null)
+            if (GameSessionService.Instance.CurrentGame is null)
             {
                 MessageBox.Show(
                     $"Unable to launch the game. The file \"{OfdOpenGame.FileName}\" could not be loaded.",
@@ -75,7 +75,7 @@ namespace Bolt.Forms
                 return;
             }
 
-            string ExecutablePath = GameDataService.Instance.CurrentGame.ExecutablePath;
+            string ExecutablePath = GameSessionService.Instance.CurrentGame.ExecutablePath;
             var startInfo = new ProcessStartInfo
             {
                 FileName = ExecutablePath,
@@ -136,7 +136,7 @@ namespace Bolt.Forms
 
         private void OnGameUnloaded()
         {
-            if (GameDataService.Instance.CurrentGame is null)
+            if (GameSessionService.Instance.CurrentGame is null)
                 return;
 
             // Panel Home Surface
@@ -155,8 +155,8 @@ namespace Bolt.Forms
 
         private void FrmHome_FormClosing(object sender, FormClosingEventArgs e)
         {
-            GameDataService.Instance.GameLoaded -= OnGameLoaded;
-            GameDataService.Instance.GameUnloaded -= OnGameUnloaded;
+            GameSessionService.Instance.GameLoaded -= OnGameLoaded;
+            GameSessionService.Instance.GameUnloaded -= OnGameUnloaded;
         }
     }
 }

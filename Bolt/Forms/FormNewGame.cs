@@ -109,7 +109,7 @@ namespace Bolt.Forms
                 MessageBoxIcon.Information
             );
 
-            GameDataService.Instance.LoadGame(gameFilePath);
+            GameSessionService.Instance.LoadGame(gameFilePath);
             Close();
         }
 
