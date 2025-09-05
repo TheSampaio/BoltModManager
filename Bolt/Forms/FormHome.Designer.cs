@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            ListViewItem listViewItem2 = new ListViewItem("");
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmHome));
             MnsHome = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
             newGameToolStripMenuItem = new ToolStripMenuItem();
@@ -47,21 +47,33 @@
             OfdOpenGame = new OpenFileDialog();
             splitContainer1 = new SplitContainer();
             splitContainer3 = new SplitContainer();
-            splitContainer4 = new SplitContainer();
+            SplGame = new SplitContainer();
             BtnRun = new Button();
+            BtnNewProfile = new Button();
             CmbProfiles = new ComboBox();
+            TabGame = new TabControl();
+            tabPage3 = new TabPage();
             listView2 = new ListView();
             splitContainer2 = new SplitContainer();
-            DgvPackages = new DataGridView();
-            Column1 = new DataGridViewCheckBoxColumn();
-            Column2 = new DataGridViewTextBoxColumn();
-            Column3 = new DataGridViewTextBoxColumn();
-            Column4 = new DataGridViewTextBoxColumn();
-            Column5 = new DataGridViewTextBoxColumn();
-            Column6 = new DataGridViewComboBoxColumn();
+            TabPackages = new TabControl();
+            tabPage1 = new TabPage();
+            SplPackages = new SplitContainer();
+            progressBar1 = new ProgressBar();
+            BtnImport = new Button();
+            LvwPackages = new ListView();
+            columnHeader1 = new ColumnHeader();
+            columnHeader2 = new ColumnHeader();
+            columnHeader3 = new ColumnHeader();
+            columnHeader4 = new ColumnHeader();
+            columnHeader5 = new ColumnHeader();
+            tabControl1 = new TabControl();
+            tabPage4 = new TabPage();
             listView1 = new ListView();
+            tabPage5 = new TabPage();
             PnlHomeSurface = new Panel();
             panel2 = new Panel();
+            label2 = new Label();
+            label1 = new Label();
             MnsHome.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -71,16 +83,26 @@
             splitContainer3.Panel1.SuspendLayout();
             splitContainer3.Panel2.SuspendLayout();
             splitContainer3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)splitContainer4).BeginInit();
-            splitContainer4.Panel1.SuspendLayout();
-            splitContainer4.Panel2.SuspendLayout();
-            splitContainer4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)SplGame).BeginInit();
+            SplGame.Panel1.SuspendLayout();
+            SplGame.Panel2.SuspendLayout();
+            SplGame.SuspendLayout();
+            TabGame.SuspendLayout();
+            tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
             splitContainer2.Panel1.SuspendLayout();
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)DgvPackages).BeginInit();
+            TabPackages.SuspendLayout();
+            tabPage1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)SplPackages).BeginInit();
+            SplPackages.Panel1.SuspendLayout();
+            SplPackages.Panel2.SuspendLayout();
+            SplPackages.SuspendLayout();
+            tabControl1.SuspendLayout();
+            tabPage4.SuspendLayout();
             PnlHomeSurface.SuspendLayout();
+            panel2.SuspendLayout();
             SuspendLayout();
             // 
             // MnsHome
@@ -196,6 +218,7 @@
             // splitContainer1
             // 
             splitContainer1.Dock = DockStyle.Fill;
+            splitContainer1.FixedPanel = FixedPanel.Panel1;
             splitContainer1.Location = new Point(0, 0);
             splitContainer1.Margin = new Padding(0);
             splitContainer1.Name = "splitContainer1";
@@ -225,50 +248,51 @@
             // 
             // splitContainer3.Panel1
             // 
-            splitContainer3.Panel1.Controls.Add(splitContainer4);
+            splitContainer3.Panel1.Controls.Add(SplGame);
             // 
             // splitContainer3.Panel2
             // 
-            splitContainer3.Panel2.Controls.Add(listView2);
+            splitContainer3.Panel2.Controls.Add(TabGame);
             splitContainer3.Size = new Size(300, 480);
-            splitContainer3.SplitterDistance = 97;
+            splitContainer3.SplitterDistance = 104;
             splitContainer3.SplitterWidth = 8;
             splitContainer3.TabIndex = 0;
             splitContainer3.TabStop = false;
             // 
-            // splitContainer4
+            // SplGame
             // 
-            splitContainer4.Dock = DockStyle.Fill;
-            splitContainer4.FixedPanel = FixedPanel.Panel1;
-            splitContainer4.Location = new Point(0, 0);
-            splitContainer4.Margin = new Padding(0);
-            splitContainer4.Name = "splitContainer4";
-            splitContainer4.Orientation = Orientation.Horizontal;
+            SplGame.Dock = DockStyle.Fill;
+            SplGame.IsSplitterFixed = true;
+            SplGame.Location = new Point(0, 0);
+            SplGame.Margin = new Padding(0);
+            SplGame.Name = "SplGame";
+            SplGame.Orientation = Orientation.Horizontal;
             // 
-            // splitContainer4.Panel1
+            // SplGame.Panel1
             // 
-            splitContainer4.Panel1.Controls.Add(BtnRun);
+            SplGame.Panel1.Controls.Add(BtnRun);
             // 
-            // splitContainer4.Panel2
+            // SplGame.Panel2
             // 
-            splitContainer4.Panel2.Controls.Add(CmbProfiles);
-            splitContainer4.Size = new Size(300, 97);
-            splitContainer4.SplitterDistance = 64;
-            splitContainer4.SplitterWidth = 8;
-            splitContainer4.TabIndex = 0;
-            splitContainer4.TabStop = false;
+            SplGame.Panel2.Controls.Add(BtnNewProfile);
+            SplGame.Panel2.Controls.Add(CmbProfiles);
+            SplGame.Size = new Size(300, 104);
+            SplGame.SplitterDistance = 64;
+            SplGame.SplitterWidth = 8;
+            SplGame.TabIndex = 0;
+            SplGame.TabStop = false;
             // 
             // BtnRun
             // 
             BtnRun.BackColor = SystemColors.Window;
             BtnRun.Cursor = Cursors.Hand;
             BtnRun.Dock = DockStyle.Fill;
-            BtnRun.Enabled = false;
             BtnRun.FlatAppearance.BorderSize = 0;
             BtnRun.Font = new Font("Segoe UI", 12F);
             BtnRun.ImageAlign = ContentAlignment.MiddleLeft;
             BtnRun.Location = new Point(0, 0);
             BtnRun.Margin = new Padding(0);
+            BtnRun.MaximumSize = new Size(0, 64);
             BtnRun.MinimumSize = new Size(300, 64);
             BtnRun.Name = "BtnRun";
             BtnRun.Padding = new Padding(10);
@@ -279,35 +303,71 @@
             BtnRun.UseVisualStyleBackColor = false;
             BtnRun.Click += BtnRun_Click;
             // 
+            // BtnNewProfile
+            // 
+            BtnNewProfile.BackgroundImage = (Image)resources.GetObject("BtnNewProfile.BackgroundImage");
+            BtnNewProfile.BackgroundImageLayout = ImageLayout.Zoom;
+            BtnNewProfile.Dock = DockStyle.Right;
+            BtnNewProfile.Font = new Font("Segoe UI", 9F);
+            BtnNewProfile.Location = new Point(268, 0);
+            BtnNewProfile.Margin = new Padding(0);
+            BtnNewProfile.MaximumSize = new Size(32, 32);
+            BtnNewProfile.MinimumSize = new Size(32, 32);
+            BtnNewProfile.Name = "BtnNewProfile";
+            BtnNewProfile.Size = new Size(32, 32);
+            BtnNewProfile.TabIndex = 1;
+            BtnNewProfile.UseVisualStyleBackColor = true;
+            // 
             // CmbProfiles
             // 
-            CmbProfiles.Dock = DockStyle.Fill;
+            CmbProfiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             CmbProfiles.DropDownStyle = ComboBoxStyle.DropDownList;
             CmbProfiles.DropDownWidth = 256;
-            CmbProfiles.Enabled = false;
-            CmbProfiles.Font = new Font("Segoe UI", 10F);
+            CmbProfiles.Font = new Font("Segoe UI", 13F);
             CmbProfiles.FormattingEnabled = true;
             CmbProfiles.IntegralHeight = false;
             CmbProfiles.Location = new Point(0, 0);
-            CmbProfiles.Margin = new Padding(0);
+            CmbProfiles.Margin = new Padding(0, 0, 1, 0);
             CmbProfiles.Name = "CmbProfiles";
-            CmbProfiles.Size = new Size(300, 25);
+            CmbProfiles.Size = new Size(267, 31);
             CmbProfiles.TabIndex = 0;
+            // 
+            // TabGame
+            // 
+            TabGame.Controls.Add(tabPage3);
+            TabGame.Dock = DockStyle.Fill;
+            TabGame.Location = new Point(0, 0);
+            TabGame.Margin = new Padding(0);
+            TabGame.Name = "TabGame";
+            TabGame.SelectedIndex = 0;
+            TabGame.Size = new Size(300, 368);
+            TabGame.TabIndex = 0;
+            // 
+            // tabPage3
+            // 
+            tabPage3.Controls.Add(listView2);
+            tabPage3.Location = new Point(4, 24);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Size = new Size(292, 340);
+            tabPage3.TabIndex = 1;
+            tabPage3.Text = "Properties";
+            tabPage3.UseVisualStyleBackColor = true;
             // 
             // listView2
             // 
             listView2.BorderStyle = BorderStyle.None;
             listView2.Dock = DockStyle.Fill;
-            listView2.Items.AddRange(new ListViewItem[] { listViewItem2 });
             listView2.Location = new Point(0, 0);
+            listView2.Margin = new Padding(0);
             listView2.Name = "listView2";
-            listView2.Size = new Size(300, 375);
+            listView2.Size = new Size(292, 340);
             listView2.TabIndex = 0;
             listView2.UseCompatibleStateImageBehavior = false;
             // 
             // splitContainer2
             // 
             splitContainer2.Dock = DockStyle.Fill;
+            splitContainer2.FixedPanel = FixedPanel.Panel2;
             splitContainer2.Location = new Point(0, 0);
             splitContainer2.Margin = new Padding(0);
             splitContainer2.Name = "splitContainer2";
@@ -315,86 +375,172 @@
             // 
             // splitContainer2.Panel1
             // 
-            splitContainer2.Panel1.Controls.Add(DgvPackages);
+            splitContainer2.Panel1.Controls.Add(TabPackages);
             // 
             // splitContainer2.Panel2
             // 
-            splitContainer2.Panel2.Controls.Add(listView1);
+            splitContainer2.Panel2.Controls.Add(tabControl1);
+            splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 335;
+            splitContainer2.SplitterDistance = 268;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
             // 
-            // DgvPackages
+            // TabPackages
             // 
-            DgvPackages.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            DgvPackages.BackgroundColor = SystemColors.Window;
-            DgvPackages.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            DgvPackages.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            DgvPackages.Columns.AddRange(new DataGridViewColumn[] { Column1, Column2, Column3, Column4, Column5, Column6 });
-            DgvPackages.Dock = DockStyle.Fill;
-            DgvPackages.GridColor = SystemColors.ControlDark;
-            DgvPackages.Location = new Point(0, 0);
-            DgvPackages.Name = "DgvPackages";
-            DgvPackages.ReadOnly = true;
-            DgvPackages.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            DgvPackages.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            DgvPackages.Size = new Size(454, 335);
-            DgvPackages.TabIndex = 0;
+            TabPackages.Controls.Add(tabPage1);
+            TabPackages.Dock = DockStyle.Fill;
+            TabPackages.Location = new Point(0, 0);
+            TabPackages.Margin = new Padding(0);
+            TabPackages.Name = "TabPackages";
+            TabPackages.SelectedIndex = 0;
+            TabPackages.Size = new Size(454, 268);
+            TabPackages.TabIndex = 0;
             // 
-            // Column1
+            // tabPage1
             // 
-            Column1.HeaderText = "Status";
-            Column1.Name = "Column1";
-            Column1.ReadOnly = true;
+            tabPage1.Controls.Add(SplPackages);
+            tabPage1.Location = new Point(4, 24);
+            tabPage1.Margin = new Padding(0);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Size = new Size(446, 240);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "Packages";
+            tabPage1.UseVisualStyleBackColor = true;
             // 
-            // Column2
+            // SplPackages
             // 
-            Column2.HeaderText = "Name";
-            Column2.Name = "Column2";
-            Column2.ReadOnly = true;
+            SplPackages.Dock = DockStyle.Fill;
+            SplPackages.FixedPanel = FixedPanel.Panel1;
+            SplPackages.IsSplitterFixed = true;
+            SplPackages.Location = new Point(0, 0);
+            SplPackages.Margin = new Padding(0);
+            SplPackages.Name = "SplPackages";
+            SplPackages.Orientation = Orientation.Horizontal;
             // 
-            // Column3
+            // SplPackages.Panel1
             // 
-            Column3.HeaderText = "Version";
-            Column3.Name = "Column3";
-            Column3.ReadOnly = true;
+            SplPackages.Panel1.Controls.Add(progressBar1);
+            SplPackages.Panel1.Controls.Add(BtnImport);
+            SplPackages.Panel1MinSize = 32;
             // 
-            // Column4
+            // SplPackages.Panel2
             // 
-            Column4.HeaderText = "Category";
-            Column4.Name = "Column4";
-            Column4.ReadOnly = true;
+            SplPackages.Panel2.Controls.Add(LvwPackages);
+            SplPackages.Size = new Size(446, 240);
+            SplPackages.SplitterDistance = 32;
+            SplPackages.SplitterWidth = 8;
+            SplPackages.TabIndex = 0;
             // 
-            // Column5
+            // progressBar1
             // 
-            Column5.HeaderText = "Installation";
-            Column5.Name = "Column5";
-            Column5.ReadOnly = true;
+            progressBar1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            progressBar1.Location = new Point(0, 1);
+            progressBar1.Margin = new Padding(0, 0, 1, 0);
+            progressBar1.Name = "progressBar1";
+            progressBar1.Size = new Size(413, 30);
+            progressBar1.Style = ProgressBarStyle.Continuous;
+            progressBar1.TabIndex = 1;
             // 
-            // Column6
+            // BtnImport
             // 
-            Column6.HeaderText = "Actions";
-            Column6.Name = "Column6";
-            Column6.ReadOnly = true;
+            BtnImport.BackgroundImage = (Image)resources.GetObject("BtnImport.BackgroundImage");
+            BtnImport.BackgroundImageLayout = ImageLayout.Zoom;
+            BtnImport.Dock = DockStyle.Right;
+            BtnImport.Location = new Point(414, 0);
+            BtnImport.Margin = new Padding(0);
+            BtnImport.MaximumSize = new Size(32, 32);
+            BtnImport.MinimumSize = new Size(32, 32);
+            BtnImport.Name = "BtnImport";
+            BtnImport.Size = new Size(32, 32);
+            BtnImport.TabIndex = 0;
+            BtnImport.UseVisualStyleBackColor = true;
+            // 
+            // LvwPackages
+            // 
+            LvwPackages.BorderStyle = BorderStyle.None;
+            LvwPackages.CheckBoxes = true;
+            LvwPackages.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
+            LvwPackages.Dock = DockStyle.Fill;
+            LvwPackages.FullRowSelect = true;
+            LvwPackages.Location = new Point(0, 0);
+            LvwPackages.Margin = new Padding(0);
+            LvwPackages.Name = "LvwPackages";
+            LvwPackages.Size = new Size(446, 200);
+            LvwPackages.TabIndex = 0;
+            LvwPackages.UseCompatibleStateImageBehavior = false;
+            LvwPackages.View = View.Details;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "Status";
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Text = "Name";
+            // 
+            // columnHeader3
+            // 
+            columnHeader3.Text = "Version";
+            // 
+            // columnHeader4
+            // 
+            columnHeader4.Text = "Category";
+            // 
+            // columnHeader5
+            // 
+            columnHeader5.Text = "Installation";
+            // 
+            // tabControl1
+            // 
+            tabControl1.Controls.Add(tabPage4);
+            tabControl1.Controls.Add(tabPage5);
+            tabControl1.Dock = DockStyle.Fill;
+            tabControl1.Location = new Point(0, 0);
+            tabControl1.Margin = new Padding(0);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(454, 204);
+            tabControl1.TabIndex = 0;
+            // 
+            // tabPage4
+            // 
+            tabPage4.Controls.Add(listView1);
+            tabPage4.Location = new Point(4, 24);
+            tabPage4.Margin = new Padding(0);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Size = new Size(446, 176);
+            tabPage4.TabIndex = 0;
+            tabPage4.Text = "About";
+            tabPage4.UseVisualStyleBackColor = true;
             // 
             // listView1
             // 
-            listView1.BackColor = SystemColors.Window;
             listView1.BorderStyle = BorderStyle.None;
             listView1.Dock = DockStyle.Fill;
             listView1.Location = new Point(0, 0);
+            listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(454, 137);
-            listView1.TabIndex = 2;
-            listView1.TabStop = false;
+            listView1.Size = new Size(446, 176);
+            listView1.TabIndex = 0;
             listView1.UseCompatibleStateImageBehavior = false;
+            // 
+            // tabPage5
+            // 
+            tabPage5.Location = new Point(4, 24);
+            tabPage5.Name = "tabPage5";
+            tabPage5.Padding = new Padding(3);
+            tabPage5.Size = new Size(446, 176);
+            tabPage5.TabIndex = 1;
+            tabPage5.Text = "Files";
+            tabPage5.UseVisualStyleBackColor = true;
             // 
             // PnlHomeSurface
             // 
             PnlHomeSurface.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             PnlHomeSurface.Controls.Add(splitContainer1);
+            PnlHomeSurface.Enabled = false;
             PnlHomeSurface.Location = new Point(11, 36);
             PnlHomeSurface.Margin = new Padding(2, 12, 2, 10);
             PnlHomeSurface.Name = "PnlHomeSurface";
@@ -404,11 +550,38 @@
             // panel2
             // 
             panel2.BackColor = SystemColors.ControlLightLight;
+            panel2.Controls.Add(label2);
+            panel2.Controls.Add(label1);
             panel2.Dock = DockStyle.Bottom;
             panel2.Location = new Point(0, 529);
             panel2.Name = "panel2";
             panel2.Size = new Size(784, 32);
             panel2.TabIndex = 2;
+            // 
+            // label2
+            // 
+            label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI", 11F);
+            label2.ForeColor = SystemColors.WindowFrame;
+            label2.Location = new Point(730, 6);
+            label2.Name = "label2";
+            label2.Size = new Size(39, 20);
+            label2.TabIndex = 0;
+            label2.Text = "0.1.0";
+            label2.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Segoe UI", 11F);
+            label1.ForeColor = SystemColors.WindowFrame;
+            label1.Location = new Point(11, 6);
+            label1.Name = "label1";
+            label1.Size = new Size(283, 20);
+            label1.TabIndex = 0;
+            label1.Text = "Press \"Ctrl + O\" to open a game mod file.";
+            label1.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // FrmHome
             // 
@@ -434,16 +607,27 @@
             splitContainer3.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
             splitContainer3.ResumeLayout(false);
-            splitContainer4.Panel1.ResumeLayout(false);
-            splitContainer4.Panel2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)splitContainer4).EndInit();
-            splitContainer4.ResumeLayout(false);
+            SplGame.Panel1.ResumeLayout(false);
+            SplGame.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)SplGame).EndInit();
+            SplGame.ResumeLayout(false);
+            TabGame.ResumeLayout(false);
+            tabPage3.ResumeLayout(false);
             splitContainer2.Panel1.ResumeLayout(false);
             splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)DgvPackages).EndInit();
+            TabPackages.ResumeLayout(false);
+            tabPage1.ResumeLayout(false);
+            SplPackages.Panel1.ResumeLayout(false);
+            SplPackages.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)SplPackages).EndInit();
+            SplPackages.ResumeLayout(false);
+            tabControl1.ResumeLayout(false);
+            tabPage4.ResumeLayout(false);
             PnlHomeSurface.ResumeLayout(false);
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -468,20 +652,32 @@
         private OpenFileDialog OfdOpenGame;
         private SplitContainer splitContainer1;
         private SplitContainer splitContainer2;
-        private ListView listView1;
         private SplitContainer splitContainer3;
         private Panel PnlHomeSurface;
         private Panel panel2;
-        private ListView listView2;
         private Button BtnRun;
-        private DataGridView DgvPackages;
-        private DataGridViewCheckBoxColumn Column1;
-        private DataGridViewTextBoxColumn Column2;
-        private DataGridViewTextBoxColumn Column3;
-        private DataGridViewTextBoxColumn Column4;
-        private DataGridViewTextBoxColumn Column5;
-        private DataGridViewComboBoxColumn Column6;
-        private SplitContainer splitContainer4;
+        private SplitContainer SplGame;
         private ComboBox CmbProfiles;
+        private Button BtnNewProfile;
+        private TabControl TabPackages;
+        private TabPage tabPage1;
+        private SplitContainer SplPackages;
+        private ProgressBar progressBar1;
+        private Button BtnImport;
+        private ListView LvwPackages;
+        private ColumnHeader columnHeader1;
+        private ColumnHeader columnHeader2;
+        private ColumnHeader columnHeader3;
+        private ColumnHeader columnHeader4;
+        private ColumnHeader columnHeader5;
+        private TabControl TabGame;
+        private TabPage tabPage3;
+        private TabControl tabControl1;
+        private TabPage tabPage4;
+        private TabPage tabPage5;
+        private ListView listView1;
+        private ListView listView2;
+        private Label label2;
+        private Label label1;
     }
 }

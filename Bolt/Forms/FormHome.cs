@@ -103,7 +103,6 @@ namespace Bolt.Forms
         {
             MnsHome.Enabled = value;
             PnlHomeSurface.Enabled = value;
-            DgvPackages.Visible = value;
         }
 
         private void LoadGameModel(GameModel gameModel)
@@ -122,14 +121,15 @@ namespace Bolt.Forms
                 return;
             }
 
+            // Panel Home Surface
+            PnlHomeSurface.Enabled = true;
+
             // Button Run
-            BtnRun.Enabled = true;
             BtnRun.Text = $"  {_currentGameModel.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
             BtnRun.Image = Icon.ExtractAssociatedIcon(_currentGameModel.ExecutablePath)!.ToBitmap();
 
             // Combo Box Profiles
-            CmbProfiles.Enabled = true;
             CmbProfiles.Items.AddRange([.. _currentGameModel.Profiles.Select(p => p.Name)]);
             CmbProfiles.SelectedIndex = 0;
         }
@@ -139,12 +139,15 @@ namespace Bolt.Forms
             if (_currentGameModel is null)
                 return;
 
-            BtnRun.Enabled = false;
+            // Panel Home Surface
+            PnlHomeSurface.Enabled = false;
+
+            // Button Run
             BtnRun.Text = "No Game Loaded";
             BtnRun.TextAlign = ContentAlignment.MiddleCenter;
             BtnRun.Image = null;
 
-            CmbProfiles.Enabled = false;
+            // Combo Box Profiles
             CmbProfiles.Items.Clear();
         }
 
