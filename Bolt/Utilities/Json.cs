@@ -2,6 +2,9 @@
 
 namespace Bolt.Utilities
 {
+    /// <summary>
+    /// Provides methods for reading, writing, serializing, and deserializing JSON files.
+    /// </summary>
     internal static class Json
     {
         private static readonly JsonSerializerOptions SerializerOptions = new()

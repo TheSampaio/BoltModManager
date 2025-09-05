@@ -1,6 +1,6 @@
 ﻿using Bolt.Data;
 using Bolt.Models;
-using Bolt.Utilities;
+using Bolt.Services;
 
 namespace Bolt.Forms
 {
@@ -84,7 +84,7 @@ namespace Bolt.Forms
                     new ProfileModel
                     {
                         Id = Guid.NewGuid(),
-                        Name = "Main",
+                        Name = "Main Profile",
                         BackupPath = $"{TxyResultLocation.Value}\\Backups",
                         PackagesPath = $"{TxyResultLocation.Value}\\Packages",
                         TargetPath = TxyTarget.Value,
@@ -109,6 +109,7 @@ namespace Bolt.Forms
                 MessageBoxIcon.Information
             );
 
+            GameSessionService.Instance.LoadGame(gameFilePath);
             Close();
         }
 
@@ -119,12 +120,17 @@ namespace Bolt.Forms
 
         private void FrmNewGame_Load(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{PackageData.DirectoryValue}\\";
+            TxyResultLocation.Value = $"{PackageData.Load()}\\";
+        }
+
+        private void TxyTarget_ValueChanged(object sender, EventArgs e)
+        {
+            TxyName.Value = Path.GetFileName(TxyTarget.Value);
         }
 
         private void TxyName_ValueChanged(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{PackageData.DirectoryValue}\\{TxyName.Value}";
+            TxyResultLocation.Value = $"{PackageData.Load()}\\{TxyName.Value}";
         }
     }
 }
