@@ -40,7 +40,7 @@ namespace Bolt.Forms
                     return;
                 }
 
-                LoadGameModelFromDisk(GameData.Load(OfdOpenGame.FileName)!);
+                LoadGameModel(GameData.Load(OfdOpenGame.FileName)!);
             }
         }
 
@@ -75,10 +75,31 @@ namespace Bolt.Forms
                 UseShellExecute = true
             };
 
-            Process.Start(startInfo);
+            var process = Process.Start(startInfo);
+
+            if (process is null)
+                return;
+
+            // Disables components
+            EnableComponents(false);
+
+            process.EnableRaisingEvents = true;
+            process.Exited += (s, ev) =>
+            {
+                // Enables components
+                Invoke(() => EnableComponents(true));
+            };
         }
 
-        private void LoadGameModelFromDisk(GameModel gameModel)
+        private void EnableComponents(bool value)
+        {
+            MnsHome.Enabled = value;
+
+            PnlHomeSurface.Enabled = value;
+            PnlHomeSurface.Visible = value;
+        }
+
+        private void LoadGameModel(GameModel gameModel)
         {
             _currentGameModel = gameModel;
 
@@ -95,6 +116,24 @@ namespace Bolt.Forms
             }
 
             BtnRun.Enabled = true;
+            BtnRun.Text = $"  {_currentGameModel.Name}";
+            BtnRun.TextAlign = ContentAlignment.MiddleLeft;
+            BtnRun.Image = Icon.ExtractAssociatedIcon(_currentGameModel.ExecutablePath)!.ToBitmap();
+            BtnRun.Padding = new(10);
+
+            CmbProfiles.Enabled = true;
+        }
+
+        private void UnloadGameModel()
+        {
+            if (_currentGameModel is null)
+                return;
+
+            BtnRun.Enabled = false;
+            BtnRun.Text = "No Game Loaded";
+            BtnRun.TextAlign = ContentAlignment.MiddleCenter;
+            BtnRun.Image = null;
+            CmbProfiles.Enabled = true;
         }
 
         private static void ShowModalWindow(Form form)

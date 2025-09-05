@@ -49,7 +49,7 @@
             splitContainer3 = new SplitContainer();
             splitContainer4 = new SplitContainer();
             BtnRun = new Button();
-            comboBox1 = new ComboBox();
+            CmbProfiles = new ComboBox();
             listView2 = new ListView();
             splitContainer2 = new SplitContainer();
             dataGridView1 = new DataGridView();
@@ -60,7 +60,7 @@
             Column5 = new DataGridViewTextBoxColumn();
             Column6 = new DataGridViewComboBoxColumn();
             listView1 = new ListView();
-            panel1 = new Panel();
+            PnlHomeSurface = new Panel();
             panel2 = new Panel();
             MnsHome.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -80,7 +80,7 @@
             splitContainer2.Panel2.SuspendLayout();
             splitContainer2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
-            panel1.SuspendLayout();
+            PnlHomeSurface.SuspendLayout();
             SuspendLayout();
             // 
             // MnsHome
@@ -196,17 +196,19 @@
             // 
             splitContainer1.Dock = DockStyle.Fill;
             splitContainer1.Location = new Point(0, 0);
+            splitContainer1.Margin = new Padding(0);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
             // 
             splitContainer1.Panel1.Controls.Add(splitContainer3);
+            splitContainer1.Panel1MinSize = 300;
             // 
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer2);
             splitContainer1.Size = new Size(762, 480);
-            splitContainer1.SplitterDistance = 256;
+            splitContainer1.SplitterDistance = 300;
             splitContainer1.SplitterWidth = 8;
             splitContainer1.TabIndex = 0;
             splitContainer1.TabStop = false;
@@ -227,8 +229,8 @@
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(listView2);
-            splitContainer3.Size = new Size(256, 480);
-            splitContainer3.SplitterDistance = 87;
+            splitContainer3.Size = new Size(300, 480);
+            splitContainer3.SplitterDistance = 111;
             splitContainer3.SplitterWidth = 8;
             splitContainer3.TabIndex = 0;
             splitContainer3.TabStop = false;
@@ -248,9 +250,9 @@
             // 
             // splitContainer4.Panel2
             // 
-            splitContainer4.Panel2.Controls.Add(comboBox1);
-            splitContainer4.Size = new Size(256, 87);
-            splitContainer4.SplitterDistance = 41;
+            splitContainer4.Panel2.Controls.Add(CmbProfiles);
+            splitContainer4.Size = new Size(300, 111);
+            splitContainer4.SplitterDistance = 65;
             splitContainer4.SplitterWidth = 8;
             splitContainer4.TabIndex = 0;
             splitContainer4.TabStop = false;
@@ -262,27 +264,33 @@
             BtnRun.Dock = DockStyle.Fill;
             BtnRun.Enabled = false;
             BtnRun.FlatAppearance.BorderSize = 0;
+            BtnRun.Font = new Font("Segoe UI", 12F);
+            BtnRun.ImageAlign = ContentAlignment.MiddleLeft;
             BtnRun.Location = new Point(0, 0);
+            BtnRun.Margin = new Padding(0);
             BtnRun.Name = "BtnRun";
-            BtnRun.Size = new Size(256, 41);
+            BtnRun.Padding = new Padding(16);
+            BtnRun.Size = new Size(300, 65);
             BtnRun.TabIndex = 0;
-            BtnRun.Text = "Run";
+            BtnRun.Text = "No Game Loaded";
+            BtnRun.TextImageRelation = TextImageRelation.ImageBeforeText;
             BtnRun.UseVisualStyleBackColor = false;
             BtnRun.Click += BtnRun_Click;
             // 
-            // comboBox1
+            // CmbProfiles
             // 
-            comboBox1.Dock = DockStyle.Fill;
-            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox1.DropDownWidth = 256;
-            comboBox1.Font = new Font("Segoe UI", 16F);
-            comboBox1.FormattingEnabled = true;
-            comboBox1.IntegralHeight = false;
-            comboBox1.Location = new Point(0, 0);
-            comboBox1.Margin = new Padding(0);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(256, 38);
-            comboBox1.TabIndex = 0;
+            CmbProfiles.Dock = DockStyle.Fill;
+            CmbProfiles.DropDownStyle = ComboBoxStyle.DropDownList;
+            CmbProfiles.DropDownWidth = 256;
+            CmbProfiles.Enabled = false;
+            CmbProfiles.Font = new Font("Segoe UI", 16F);
+            CmbProfiles.FormattingEnabled = true;
+            CmbProfiles.IntegralHeight = false;
+            CmbProfiles.Location = new Point(0, 0);
+            CmbProfiles.Margin = new Padding(0);
+            CmbProfiles.Name = "CmbProfiles";
+            CmbProfiles.Size = new Size(300, 38);
+            CmbProfiles.TabIndex = 0;
             // 
             // listView2
             // 
@@ -291,7 +299,7 @@
             listView2.Items.AddRange(new ListViewItem[] { listViewItem1 });
             listView2.Location = new Point(0, 0);
             listView2.Name = "listView2";
-            listView2.Size = new Size(256, 385);
+            listView2.Size = new Size(300, 361);
             listView2.TabIndex = 0;
             listView2.UseCompatibleStateImageBehavior = false;
             // 
@@ -299,6 +307,7 @@
             // 
             splitContainer2.Dock = DockStyle.Fill;
             splitContainer2.Location = new Point(0, 0);
+            splitContainer2.Margin = new Padding(0);
             splitContainer2.Name = "splitContainer2";
             splitContainer2.Orientation = Orientation.Horizontal;
             // 
@@ -309,7 +318,7 @@
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(listView1);
-            splitContainer2.Size = new Size(498, 480);
+            splitContainer2.Size = new Size(454, 480);
             splitContainer2.SplitterDistance = 335;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
@@ -329,7 +338,7 @@
             dataGridView1.ReadOnly = true;
             dataGridView1.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridView1.Size = new Size(498, 335);
+            dataGridView1.Size = new Size(454, 335);
             dataGridView1.TabIndex = 0;
             // 
             // Column1
@@ -375,20 +384,20 @@
             listView1.Dock = DockStyle.Fill;
             listView1.Location = new Point(0, 0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(498, 137);
+            listView1.Size = new Size(454, 137);
             listView1.TabIndex = 2;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
             // 
-            // panel1
+            // PnlHomeSurface
             // 
-            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            panel1.Controls.Add(splitContainer1);
-            panel1.Location = new Point(11, 36);
-            panel1.Margin = new Padding(2, 12, 2, 10);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(762, 480);
-            panel1.TabIndex = 1;
+            PnlHomeSurface.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            PnlHomeSurface.Controls.Add(splitContainer1);
+            PnlHomeSurface.Location = new Point(11, 36);
+            PnlHomeSurface.Margin = new Padding(2, 12, 2, 10);
+            PnlHomeSurface.Name = "PnlHomeSurface";
+            PnlHomeSurface.Size = new Size(762, 480);
+            PnlHomeSurface.TabIndex = 1;
             // 
             // panel2
             // 
@@ -406,7 +415,7 @@
             BackColor = SystemColors.Control;
             ClientSize = new Size(784, 561);
             Controls.Add(panel2);
-            Controls.Add(panel1);
+            Controls.Add(PnlHomeSurface);
             Controls.Add(MnsHome);
             MainMenuStrip = MnsHome;
             MinimumSize = new Size(800, 600);
@@ -432,7 +441,7 @@
             ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
             splitContainer2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
-            panel1.ResumeLayout(false);
+            PnlHomeSurface.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -459,7 +468,7 @@
         private SplitContainer splitContainer2;
         private ListView listView1;
         private SplitContainer splitContainer3;
-        private Panel panel1;
+        private Panel PnlHomeSurface;
         private Panel panel2;
         private ListView listView2;
         private Button BtnRun;
@@ -471,6 +480,6 @@
         private DataGridViewTextBoxColumn Column5;
         private DataGridViewComboBoxColumn Column6;
         private SplitContainer splitContainer4;
-        private ComboBox comboBox1;
+        private ComboBox CmbProfiles;
     }
 }
