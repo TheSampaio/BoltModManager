@@ -1,5 +1,6 @@
 ﻿using Bolt.Data;
 using Bolt.Models;
+using Bolt.Services;
 
 namespace Bolt.Forms
 {
@@ -108,6 +109,7 @@ namespace Bolt.Forms
                 MessageBoxIcon.Information
             );
 
+            GameDataService.Instance.LoadGame(gameFilePath);
             Close();
         }
 

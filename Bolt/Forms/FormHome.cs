@@ -1,16 +1,18 @@
 ﻿using Bolt.Data;
 using Bolt.Models;
+using Bolt.Services;
 using System.Diagnostics;
 
 namespace Bolt.Forms
 {
     public partial class FrmHome : Form
     {
-        private GameModel? _currentGameModel;
-
         public FrmHome()
         {
             InitializeComponent();
+
+            GameDataService.Instance.GameLoaded += OnGameLoaded;
+            GameDataService.Instance.GameUnloaded += OnGameUnloaded;
         }
 
         private void NewGame_ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -40,16 +42,13 @@ namespace Bolt.Forms
                     return;
                 }
 
-                if (_currentGameModel is not null)
-                    UnloadGameModel();
-
-                LoadGameModel(GameData.Load(OfdOpenGame.FileName)!);
+                GameDataService.Instance.LoadGame(OfdOpenGame.FileName);
             }
         }
 
         private void QuitGame_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            UnloadGameModel();
+            OnGameUnloaded();
         }
 
         private void Quit_ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -64,7 +63,7 @@ namespace Bolt.Forms
 
         private void BtnRun_Click(object sender, EventArgs e)
         {
-            if (_currentGameModel is null)
+            if (GameDataService.Instance.CurrentGame is null)
             {
                 MessageBox.Show(
                     $"Unable to launch the game. The file \"{OfdOpenGame.FileName}\" could not be loaded.",
@@ -76,10 +75,11 @@ namespace Bolt.Forms
                 return;
             }
 
+            string ExecutablePath = GameDataService.Instance.CurrentGame.ExecutablePath;
             var startInfo = new ProcessStartInfo
             {
-                FileName = _currentGameModel.ExecutablePath,
-                WorkingDirectory = Path.GetDirectoryName(_currentGameModel.ExecutablePath),
+                FileName = ExecutablePath,
+                WorkingDirectory = Path.GetDirectoryName(ExecutablePath),
                 UseShellExecute = true
             };
 
@@ -105,14 +105,12 @@ namespace Bolt.Forms
             PnlHomeSurface.Enabled = value;
         }
 
-        private void LoadGameModel(GameModel gameModel)
+        private void OnGameLoaded(GameModel game)
         {
-            _currentGameModel = gameModel;
-
-            if (_currentGameModel is null)
+            if (game is null)
             {
                 MessageBox.Show(
-                    $"Failure to load the game file \"{OfdOpenGame.FileName}\".",
+                    "Failure to load the game file.",
                     "Invalid File",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
@@ -125,18 +123,20 @@ namespace Bolt.Forms
             PnlHomeSurface.Enabled = true;
 
             // Button Run
-            BtnRun.Text = $"  {_currentGameModel.Name}";
+            BtnRun.Text = $"  {game.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
-            BtnRun.Image = Icon.ExtractAssociatedIcon(_currentGameModel.ExecutablePath)!.ToBitmap();
+            BtnRun.Image = Icon.ExtractAssociatedIcon(game.ExecutablePath)!.ToBitmap();
 
             // Combo Box Profiles
-            CmbProfiles.Items.AddRange([.. _currentGameModel.Profiles.Select(p => p.Name)]);
+            CmbProfiles.Items.Clear();
+            CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => p.Name)]);
             CmbProfiles.SelectedIndex = 0;
         }
 
-        private void UnloadGameModel()
+
+        private void OnGameUnloaded()
         {
-            if (_currentGameModel is null)
+            if (GameDataService.Instance.CurrentGame is null)
                 return;
 
             // Panel Home Surface
@@ -151,10 +151,12 @@ namespace Bolt.Forms
             CmbProfiles.Items.Clear();
         }
 
-        private static void ShowModalWindow(Form form)
+        private static void ShowModalWindow(Form form) => form.ShowDialog();
+
+        private void FrmHome_FormClosing(object sender, FormClosingEventArgs e)
         {
-            var frmModal = form;
-            frmModal.ShowDialog();
+            GameDataService.Instance.GameLoaded -= OnGameLoaded;
+            GameDataService.Instance.GameUnloaded -= OnGameUnloaded;
         }
     }
 }

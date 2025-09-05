@@ -382,7 +382,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 264;
+            splitContainer2.SplitterDistance = 260;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -395,7 +395,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 264);
+            TabPackages.Size = new Size(454, 260);
             TabPackages.TabIndex = 0;
             // 
             // tabPage1
@@ -404,7 +404,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 236);
+            tabPage1.Size = new Size(446, 232);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -428,7 +428,7 @@
             // SplPackages.Panel2
             // 
             SplPackages.Panel2.Controls.Add(LvwPackages);
-            SplPackages.Size = new Size(446, 236);
+            SplPackages.Size = new Size(446, 232);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -467,7 +467,7 @@
             LvwPackages.Location = new Point(0, 0);
             LvwPackages.Margin = new Padding(0);
             LvwPackages.Name = "LvwPackages";
-            LvwPackages.Size = new Size(446, 196);
+            LvwPackages.Size = new Size(446, 192);
             LvwPackages.TabIndex = 0;
             LvwPackages.UseCompatibleStateImageBehavior = false;
             LvwPackages.View = View.Details;
@@ -501,7 +501,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 208);
+            tabControl1.Size = new Size(454, 212);
             tabControl1.TabIndex = 0;
             // 
             // tabPage4
@@ -510,7 +510,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 180);
+            tabPage4.Size = new Size(446, 184);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -522,7 +522,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 180);
+            listView1.Size = new Size(446, 184);
             listView1.TabIndex = 0;
             listView1.UseCompatibleStateImageBehavior = false;
             // 
@@ -531,7 +531,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 180);
+            tabPage5.Size = new Size(446, 184);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -597,6 +597,7 @@
             Name = "FrmHome";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Bolt Mod Manager";
+            FormClosing += FrmHome_FormClosing;
             MnsHome.ResumeLayout(false);
             MnsHome.PerformLayout();
             splitContainer1.Panel1.ResumeLayout(false);
