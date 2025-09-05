@@ -1,7 +1,6 @@
 ﻿using Bolt.Data;
 using Bolt.Models;
 using Bolt.Services;
-using System.Diagnostics;
 
 namespace Bolt.Forms
 {
@@ -10,9 +9,29 @@ namespace Bolt.Forms
         public FrmHome()
         {
             InitializeComponent();
+            InitializeEvents();
+        }
 
+        private void InitializeEvents()
+        {
+            // Game session
             GameSessionService.Instance.GameLoaded += OnGameLoaded;
             GameSessionService.Instance.GameUnloaded += OnGameUnloaded;
+
+            // Game process
+            GameProcessService.Instance.GameStarted += OnGameStarted;
+            GameProcessService.Instance.GameExited += OnGameExited;
+        }
+
+        private void TerminateEvents()
+        {
+            // Game process
+            GameProcessService.Instance.GameStarted -= OnGameStarted;
+            GameProcessService.Instance.GameExited -= OnGameExited;
+
+            // Game session
+            GameSessionService.Instance.GameLoaded -= OnGameLoaded;
+            GameSessionService.Instance.GameUnloaded -= OnGameUnloaded;
         }
 
         private void NewGame_ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -75,34 +94,35 @@ namespace Bolt.Forms
                 return;
             }
 
-            string ExecutablePath = GameSessionService.Instance.CurrentGame.ExecutablePath;
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = ExecutablePath,
-                WorkingDirectory = Path.GetDirectoryName(ExecutablePath),
-                UseShellExecute = true
-            };
-
-            var process = Process.Start(startInfo);
-
-            if (process is null)
-                return;
-
-            // Disables components
-            EnableComponents(false);
-
-            process.EnableRaisingEvents = true;
-            process.Exited += (s, ev) =>
-            {
-                // Enables components
-                Invoke(() => EnableComponents(true));
-            };
+            // Run the current game
+            GameProcessService.Instance.RunGame(GameSessionService.Instance.CurrentGame.ExecutablePath);
         }
 
-        private void EnableComponents(bool value)
+        private void OnGameStarted()
         {
-            MnsHome.Enabled = value;
-            PnlHomeSurface.Enabled = value;
+            const bool ENABLE = false;
+
+            MnsHome.Enabled = ENABLE;
+            PnlHomeSurface.Enabled = ENABLE;
+
+            LblStatus.Text = $"Running - {GameSessionService.Instance.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
+        }
+
+        private void OnGameExited()
+        {
+            const bool ENABLE = true;
+
+            // Reinvoke this method on the UI thread
+            if (InvokeRequired)
+            {
+                Invoke(new Action(OnGameExited));
+                return;
+            }
+
+            MnsHome.Enabled = ENABLE;
+            PnlHomeSurface.Enabled = ENABLE;
+
+            LblStatus.Text = $"Idle - {GameSessionService.Instance.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
         }
 
         private void OnGameLoaded(GameModel game)
@@ -131,8 +151,10 @@ namespace Bolt.Forms
             CmbProfiles.Items.Clear();
             CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => p.Name)]);
             CmbProfiles.SelectedIndex = 0;
-        }
 
+            // Label Status
+            LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem}";
+        }
 
         private void OnGameUnloaded()
         {
@@ -149,14 +171,16 @@ namespace Bolt.Forms
 
             // Combo Box Profiles
             CmbProfiles.Items.Clear();
+
+            // Label Status
+            LblStatus.Text = "Press (Ctrl + O) to open a Bolt game file, or (Ctrl + N) to create a new one.";
         }
 
         private static void ShowModalWindow(Form form) => form.ShowDialog();
 
         private void FrmHome_FormClosing(object sender, FormClosingEventArgs e)
         {
-            GameSessionService.Instance.GameLoaded -= OnGameLoaded;
-            GameSessionService.Instance.GameUnloaded -= OnGameUnloaded;
+            TerminateEvents();
         }
     }
 }

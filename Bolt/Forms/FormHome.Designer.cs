@@ -73,7 +73,7 @@
             PnlHomeSurface = new Panel();
             panel2 = new Panel();
             label2 = new Label();
-            label1 = new Label();
+            LblStatus = new Label();
             MnsHome.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -382,7 +382,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 260;
+            splitContainer2.SplitterDistance = 248;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -395,7 +395,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 260);
+            TabPackages.Size = new Size(454, 248);
             TabPackages.TabIndex = 0;
             // 
             // tabPage1
@@ -404,7 +404,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 232);
+            tabPage1.Size = new Size(446, 220);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -428,7 +428,7 @@
             // SplPackages.Panel2
             // 
             SplPackages.Panel2.Controls.Add(LvwPackages);
-            SplPackages.Size = new Size(446, 232);
+            SplPackages.Size = new Size(446, 220);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -467,7 +467,7 @@
             LvwPackages.Location = new Point(0, 0);
             LvwPackages.Margin = new Padding(0);
             LvwPackages.Name = "LvwPackages";
-            LvwPackages.Size = new Size(446, 192);
+            LvwPackages.Size = new Size(446, 180);
             LvwPackages.TabIndex = 0;
             LvwPackages.UseCompatibleStateImageBehavior = false;
             LvwPackages.View = View.Details;
@@ -501,7 +501,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 212);
+            tabControl1.Size = new Size(454, 224);
             tabControl1.TabIndex = 0;
             // 
             // tabPage4
@@ -510,7 +510,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 184);
+            tabPage4.Size = new Size(446, 196);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -522,7 +522,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 184);
+            listView1.Size = new Size(446, 196);
             listView1.TabIndex = 0;
             listView1.UseCompatibleStateImageBehavior = false;
             // 
@@ -531,7 +531,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 184);
+            tabPage5.Size = new Size(446, 196);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -551,7 +551,7 @@
             // 
             panel2.BackColor = SystemColors.ControlLightLight;
             panel2.Controls.Add(label2);
-            panel2.Controls.Add(label1);
+            panel2.Controls.Add(LblStatus);
             panel2.Dock = DockStyle.Bottom;
             panel2.Location = new Point(0, 529);
             panel2.Name = "panel2";
@@ -562,26 +562,26 @@
             // 
             label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             label2.AutoSize = true;
-            label2.Font = new Font("Segoe UI", 11F);
+            label2.Font = new Font("Segoe UI", 10F);
             label2.ForeColor = SystemColors.WindowFrame;
             label2.Location = new Point(734, 6);
             label2.Name = "label2";
-            label2.Size = new Size(39, 20);
+            label2.Size = new Size(39, 19);
             label2.TabIndex = 0;
             label2.Text = "0.1.0";
             label2.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // label1
+            // LblStatus
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 11F);
-            label1.ForeColor = SystemColors.WindowFrame;
-            label1.Location = new Point(11, 6);
-            label1.Name = "label1";
-            label1.Size = new Size(283, 20);
-            label1.TabIndex = 0;
-            label1.Text = "Press \"Ctrl + O\" to open a game mod file.";
-            label1.TextAlign = ContentAlignment.MiddleLeft;
+            LblStatus.AutoSize = true;
+            LblStatus.Font = new Font("Segoe UI", 10F);
+            LblStatus.ForeColor = SystemColors.WindowFrame;
+            LblStatus.Location = new Point(11, 6);
+            LblStatus.Name = "LblStatus";
+            LblStatus.Size = new Size(464, 19);
+            LblStatus.TabIndex = 0;
+            LblStatus.Text = "Press (Ctrl + O) to open a Bolt game file, or (Ctrl + N) to create a new one.";
+            LblStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // FrmHome
             // 
@@ -679,6 +679,6 @@
         private ListView listView1;
         private ListView listView2;
         private Label label2;
-        private Label label1;
+        private Label LblStatus;
     }
 }
