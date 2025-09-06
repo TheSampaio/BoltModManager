@@ -46,6 +46,7 @@ namespace Bolt.Forms
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Bolt Game File (*.bltg)|*.bltg";
             OfdOpenGame.InitialDirectory = PackageData.Load();
+            OfdOpenGame.Multiselect = false;
 
             if (OfdOpenGame.ShowDialog() == DialogResult.OK)
             {
@@ -113,108 +114,109 @@ namespace Bolt.Forms
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Zip File (*.zip)|*.zip";
             OfdOpenGame.InitialDirectory = string.Empty;
+            OfdOpenGame.Multiselect = true;
 
             if (OfdOpenGame.ShowDialog() != DialogResult.OK)
                 return;
 
-            var selectedFile = OfdOpenGame.FileName;
-
-            // Validate file extension
-            if (Path.GetExtension(selectedFile)?.ToLower() != ".zip")
-            {
-                MessageBox.Show(
-                    "Please select a valid Zip file.",
-                    "Invalid File",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-
-                return;
-            }
-
+            var selectedFiles = OfdOpenGame.FileNames;
             var currentGame = GameSessionService.Instance.CurrentGame!;
             var currentProfile = currentGame.Profiles[CmbProfiles.SelectedIndex];
             var packagesPath = currentProfile.PackagesPath;
 
-            try
+            foreach (var selectedFile in selectedFiles)
             {
-                string packageName = Path.GetFileNameWithoutExtension(selectedFile);
-                string destinationPath = Path.Combine(packagesPath, packageName);
-
-                // Delete existing package folder if it exists
-                if (Directory.Exists(destinationPath))
-                    Directory.Delete(destinationPath, true);
-
-                // Create package folder
-                Directory.CreateDirectory(destinationPath);
-
-                using (var archive = ZipFile.OpenRead(selectedFile))
+                // Validate file extension
+                if (Path.GetExtension(selectedFile)?.ToLower() != ".zip")
                 {
-                    int total = archive.Entries.Count;
-                    int current = 0;
+                    MessageBox.Show(
+                        $"Invalid file skipped: {Path.GetFileName(selectedFile)}",
+                        "Invalid File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
 
-                    PrgImport.Minimum = 0;
-                    PrgImport.Maximum = total;
-                    PrgImport.Value = 0;
-
-                    // Get the top-level folder name in the ZIP
-                    string topLevelFolder = archive.Entries
-                        .Where(e => !string.IsNullOrEmpty(e.FullName) && e.FullName.Contains('/'))
-                        .Select(e => e.FullName.Split('/')[0])
-                        .FirstOrDefault() ?? string.Empty;
-
-                    foreach (var entry in archive.Entries)
-                    {
-                        // Remove the top-level folder from the path
-                        string relativePath = entry.FullName;
-                        if (!string.IsNullOrEmpty(topLevelFolder))
-                            relativePath = relativePath[topLevelFolder.Length..].TrimStart('/', '\\');
-
-                        string destinationFile = Path.Combine(destinationPath, relativePath);
-
-                        if (string.IsNullOrEmpty(entry.Name))
-                            Directory.CreateDirectory(destinationFile);
-                        
-                        else
-                        {
-                            Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
-                            await Task.Run(() => entry.ExtractToFile(destinationFile, true));
-                        }
-
-                        current++;
-                        PrgImport.Value = current;
-                        PrgImport.Refresh();
-                    }
+                    continue;
                 }
 
-                // Add new row to DataGridView
-                DgvPackages.Rows.Add(
-                    false,           // Activate
-                    packageName,     // Name
-                    string.Empty,    // Version
-                    string.Empty,    // Category
-                    DateTime.UtcNow  // Installation date
-                );
+                try
+                {
+                    string packageName = Path.GetFileNameWithoutExtension(selectedFile);
+                    string destinationPath = Path.Combine(packagesPath, packageName);
 
-                PrgImport.Value = 0;
+                    // Delete existing package folder if it exists
+                    if (Directory.Exists(destinationPath))
+                        Directory.Delete(destinationPath, true);
 
-                MessageBox.Show(
-                    "Package(s) imported successfully!",
-                    "Success",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
+                    Directory.CreateDirectory(destinationPath);
+
+                    using (var archive = ZipFile.OpenRead(selectedFile))
+                    {
+                        int total = archive.Entries.Count;
+                        int current = 0;
+
+                        PrgImport.Minimum = 0;
+                        PrgImport.Maximum = total;
+                        PrgImport.Value = 0;
+
+                        string topLevelFolder = archive.Entries
+                            .Where(e => !string.IsNullOrEmpty(e.FullName) && e.FullName.Contains('/'))
+                            .Select(e => e.FullName.Split('/')[0])
+                            .FirstOrDefault() ?? string.Empty;
+
+                        foreach (var entry in archive.Entries)
+                        {
+                            string relativePath = entry.FullName;
+
+                            if (!string.IsNullOrEmpty(topLevelFolder))
+                                relativePath = relativePath[topLevelFolder.Length..].TrimStart('/', '\\');
+
+                            string destinationFile = Path.Combine(destinationPath, relativePath);
+
+                            if (string.IsNullOrEmpty(entry.Name))
+                                Directory.CreateDirectory(destinationFile);
+
+                            else
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
+                                await Task.Run(() => entry.ExtractToFile(destinationFile, true));
+                            }
+
+                            current++;
+                            PrgImport.Value = current;
+                            PrgImport.Refresh();
+                        }
+                    }
+
+                    LvwPackages.Items.Add(new ListViewItem(
+                    [
+                        string.Empty,
+                        packageName,
+                        string.Empty,
+                        string.Empty,
+                        DateTime.UtcNow.ToString()
+                    ]));
+
+                    PrgImport.Value = 0;
+                }
+
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Failed to import package \"{Path.GetFileName(selectedFile)}\":\n{ex.Message}",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
             }
 
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Failed to import package:\n{ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-            }
+            MessageBox.Show(
+                "All packages processed successfully!",
+                "Success",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
         }
 
         private void OnGameStarted()

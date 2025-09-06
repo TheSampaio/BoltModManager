@@ -60,7 +60,12 @@
             SplPackages = new SplitContainer();
             PrgImport = new ProgressBar();
             BtnImport = new Button();
-            DgvPackages = new DataGridView();
+            LvwPackages = new ListView();
+            columnHeader1 = new ColumnHeader();
+            columnHeader2 = new ColumnHeader();
+            columnHeader3 = new ColumnHeader();
+            columnHeader4 = new ColumnHeader();
+            columnHeader5 = new ColumnHeader();
             tabControl1 = new TabControl();
             tabPage4 = new TabPage();
             listView1 = new ListView();
@@ -69,11 +74,6 @@
             panel2 = new Panel();
             label2 = new Label();
             LblStatus = new Label();
-            Column4 = new DataGridViewCheckBoxColumn();
-            Column2 = new DataGridViewTextBoxColumn();
-            Column3 = new DataGridViewTextBoxColumn();
-            Column1 = new DataGridViewTextBoxColumn();
-            Column5 = new DataGridViewTextBoxColumn();
             MnsHome.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -99,7 +99,6 @@
             SplPackages.Panel1.SuspendLayout();
             SplPackages.Panel2.SuspendLayout();
             SplPackages.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)DgvPackages).BeginInit();
             tabControl1.SuspendLayout();
             tabPage4.SuspendLayout();
             PnlHomeSurface.SuspendLayout();
@@ -387,7 +386,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 204;
+            splitContainer2.SplitterDistance = 270;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -400,7 +399,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 204);
+            TabPackages.Size = new Size(454, 270);
             TabPackages.TabIndex = 0;
             TabPackages.TabStop = false;
             // 
@@ -410,7 +409,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 176);
+            tabPage1.Size = new Size(446, 242);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -433,8 +432,8 @@
             // 
             // SplPackages.Panel2
             // 
-            SplPackages.Panel2.Controls.Add(DgvPackages);
-            SplPackages.Size = new Size(446, 176);
+            SplPackages.Panel2.Controls.Add(LvwPackages);
+            SplPackages.Size = new Size(446, 242);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -466,26 +465,41 @@
             BtnImport.UseVisualStyleBackColor = true;
             BtnImport.Click += BtnImport_Click;
             // 
-            // DgvPackages
+            // LvwPackages
             // 
-            DgvPackages.AllowUserToAddRows = false;
-            DgvPackages.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            DgvPackages.BackgroundColor = SystemColors.ControlLightLight;
-            DgvPackages.BorderStyle = BorderStyle.None;
-            DgvPackages.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            DgvPackages.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            DgvPackages.Columns.AddRange(new DataGridViewColumn[] { Column4, Column2, Column3, Column1, Column5 });
-            DgvPackages.Dock = DockStyle.Fill;
-            DgvPackages.Location = new Point(0, 0);
-            DgvPackages.Margin = new Padding(0);
-            DgvPackages.Name = "DgvPackages";
-            DgvPackages.ReadOnly = true;
-            DgvPackages.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-            DgvPackages.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            DgvPackages.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            DgvPackages.Size = new Size(446, 136);
-            DgvPackages.TabIndex = 0;
-            DgvPackages.TabStop = false;
+            LvwPackages.Alignment = ListViewAlignment.Left;
+            LvwPackages.BorderStyle = BorderStyle.None;
+            LvwPackages.CheckBoxes = true;
+            LvwPackages.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
+            LvwPackages.Dock = DockStyle.Fill;
+            LvwPackages.FullRowSelect = true;
+            LvwPackages.Location = new Point(0, 0);
+            LvwPackages.Margin = new Padding(0);
+            LvwPackages.Name = "LvwPackages";
+            LvwPackages.Size = new Size(446, 202);
+            LvwPackages.TabIndex = 0;
+            LvwPackages.UseCompatibleStateImageBehavior = false;
+            LvwPackages.View = View.Details;
+            // 
+            // columnHeader1
+            // 
+            columnHeader1.Text = "Activate";
+            // 
+            // columnHeader2
+            // 
+            columnHeader2.Text = "Name";
+            // 
+            // columnHeader3
+            // 
+            columnHeader3.Text = "Version";
+            // 
+            // columnHeader4
+            // 
+            columnHeader4.Text = "Category";
+            // 
+            // columnHeader5
+            // 
+            columnHeader5.Text = "Imported On";
             // 
             // tabControl1
             // 
@@ -496,7 +510,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 268);
+            tabControl1.Size = new Size(454, 202);
             tabControl1.TabIndex = 0;
             tabControl1.TabStop = false;
             // 
@@ -506,7 +520,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 240);
+            tabPage4.Size = new Size(446, 174);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -518,7 +532,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 240);
+            listView1.Size = new Size(446, 174);
             listView1.TabIndex = 0;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -528,7 +542,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 240);
+            tabPage5.Size = new Size(446, 177);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -580,36 +594,6 @@
             LblStatus.Text = "Press (Ctrl + O) to open a Bolt game file, or (Ctrl + N) to create a new one.";
             LblStatus.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // Column4
-            // 
-            Column4.HeaderText = "Activate";
-            Column4.Name = "Column4";
-            Column4.ReadOnly = true;
-            // 
-            // Column2
-            // 
-            Column2.HeaderText = "Name";
-            Column2.Name = "Column2";
-            Column2.ReadOnly = true;
-            // 
-            // Column3
-            // 
-            Column3.HeaderText = "Version";
-            Column3.Name = "Column3";
-            Column3.ReadOnly = true;
-            // 
-            // Column1
-            // 
-            Column1.HeaderText = "Category";
-            Column1.Name = "Column1";
-            Column1.ReadOnly = true;
-            // 
-            // Column5
-            // 
-            Column5.HeaderText = "Installation";
-            Column5.Name = "Column5";
-            Column5.ReadOnly = true;
-            // 
             // FrmHome
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -650,7 +634,6 @@
             SplPackages.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)SplPackages).EndInit();
             SplPackages.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)DgvPackages).EndInit();
             tabControl1.ResumeLayout(false);
             tabPage4.ResumeLayout(false);
             PnlHomeSurface.ResumeLayout(false);
@@ -701,11 +684,11 @@
         private ListView listView2;
         private Label label2;
         private Label LblStatus;
-        private DataGridView DgvPackages;
-        private DataGridViewCheckBoxColumn Column4;
-        private DataGridViewTextBoxColumn Column2;
-        private DataGridViewTextBoxColumn Column3;
-        private DataGridViewTextBoxColumn Column1;
-        private DataGridViewTextBoxColumn Column5;
+        private ListView LvwPackages;
+        private ColumnHeader columnHeader1;
+        private ColumnHeader columnHeader2;
+        private ColumnHeader columnHeader3;
+        private ColumnHeader columnHeader4;
+        private ColumnHeader columnHeader5;
     }
 }
