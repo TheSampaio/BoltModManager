@@ -2,6 +2,7 @@
 using Bolt.Data;
 using Bolt.Models;
 using Bolt.Services;
+using Bolt.Utilities;
 using System.IO.Compression;
 
 namespace Bolt.Forms
@@ -145,12 +146,12 @@ namespace Bolt.Forms
                     string destinationPath = Path.Combine(packagesPath, packageName);
 
                     // Delete existing package folder if it exists
-                    if (Directory.Exists(destinationPath))
-                        Directory.Delete(destinationPath, true);
+                    if (System.IO.Directory.Exists(destinationPath))
+                        System.IO.Directory.Delete(destinationPath, true);
 
-                    Directory.CreateDirectory(destinationPath);
+                    System.IO.Directory.CreateDirectory(destinationPath);
 
-                    using (var archive = ZipFile.OpenRead(selectedFile))
+                    using (var archive = Archive.OpenRead(selectedFile))
                     {
                         int total = archive.Entries.Count;
                         int current = 0;
@@ -174,11 +175,11 @@ namespace Bolt.Forms
                             string destinationFile = Path.Combine(destinationPath, relativePath);
 
                             if (string.IsNullOrEmpty(entry.Name))
-                                Directory.CreateDirectory(destinationFile);
+                                System.IO.Directory.CreateDirectory(destinationFile);
 
                             else
                             {
-                                Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
+                                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
                                 await Task.Run(() => entry.ExtractToFile(destinationFile, true));
                             }
 

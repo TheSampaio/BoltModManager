@@ -1,14 +1,16 @@
-﻿using System.IO.Compression;
+﻿using Bolt.Enums;
+using System.IO.Compression;
 
 namespace Bolt.Utilities
 {
+    // This class will implement the SevenZipSharp library in the future
     internal class Archive
     {
-        public static void Extract(string filePath, string targetPath)
+        public static void ExtractToDirectory(string filePath, string targetPath, bool overwrite = true)
         {
             try
             {
-                ZipFile.ExtractToDirectory(filePath, targetPath);
+                ZipFile.ExtractToDirectory(filePath, targetPath, overwriteFiles: overwrite);
             }
 
             catch (Exception ex)
@@ -21,5 +23,7 @@ namespace Bolt.Utilities
                 );
             }
         }
+
+        public static ZipArchive OpenRead(string filePath) => ZipFile.OpenRead(filePath);
     }
 }
