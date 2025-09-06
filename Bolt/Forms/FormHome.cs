@@ -98,6 +98,36 @@ namespace Bolt.Forms
             GameProcessService.Instance.RunGame(GameSessionService.Instance.CurrentGame.ExecutablePath);
         }
 
+        private void BtnImport_Click(object sender, EventArgs e)
+        {
+            OfdOpenGame.Title = "Import Package";
+            OfdOpenGame.FileName = string.Empty;
+            OfdOpenGame.Filter = "Zip File (*.zip)|*.zip";
+
+            if (OfdOpenGame.ShowDialog() == DialogResult.OK)
+            {
+                // Validate if it's really an .zip file
+                if (!(Path.GetExtension(OfdOpenGame.FileName)?.ToLower() == ".zip"))
+                {
+                    MessageBox.Show(
+                        "Please select a valid Zip file.",
+                        "Invalid File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+
+                    return;
+                }
+
+                // TODO: Uncrompress Zip file and update the progress bar
+                // TODO: Move within content to "CURRENT_GAME\Packages\"
+                // TODO: Match CURRENT_GAME files and move it to "CURRENT_GAME\Backups\"
+                // TODO: Create the symbolic links between "Packages\MOD_FOLDER\" and CURRENT_GAME directory
+                // TODO: Save everything inside the Json game file (game.bltg)
+                // TODO: Populate LvwPackages
+            }
+        }
+
         private void OnGameStarted()
         {
             const bool ENABLE = false;
