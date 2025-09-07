@@ -73,29 +73,32 @@ namespace Bolt.Forms
                 return;
             }
 
+            // Stores the game location
+            string gameLocation = TxyResultLocation.Value;
+
             // Create a game model in memory to be serialized
             var gameModel = new GameModel
             {
                 Id = Guid.NewGuid(),
                 Name = TxyName.Value,
                 ExecutablePath = TxyExecutable.Value,
+                BackupsPath = $"{gameLocation}\\Backups",
+                ModificationsPath = $"{gameLocation}\\Modifications",
+                TargetPath = TxyTarget.Value,
                 Profiles =
                 {
-                    new ProfileModel
+                    new()
                     {
                         Id = Guid.NewGuid(),
-                        Name = "Main Profile",
-                        BackupPath = $"{TxyResultLocation.Value}\\Backups",
-                        PackagesPath = $"{TxyResultLocation.Value}\\Packages",
-                        TargetPath = TxyTarget.Value,
+                        Name = "Main",
                     }
                 }
             };
 
             // Create the necessary directories
-            Directory.CreateDirectory(TxyResultLocation.Value);
-            Directory.CreateDirectory(gameModel.Profiles[0].BackupPath);
-            Directory.CreateDirectory(gameModel.Profiles[0].PackagesPath);
+            Directory.CreateDirectory(gameLocation);
+            Directory.CreateDirectory(gameModel.BackupsPath);
+            Directory.CreateDirectory(gameModel.ModificationsPath);
 
             // Save the gameModel as Json file
             string gameFilePath = Path.Combine(TxyResultLocation.Value, AppData.GameFile);
@@ -120,7 +123,7 @@ namespace Bolt.Forms
 
         private void FrmNewGame_Load(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{PackageData.Load()}\\";
+            TxyResultLocation.Value = $"{ModificationsData.Load()}\\";
         }
 
         private void TxyTarget_ValueChanged(object sender, EventArgs e)
@@ -130,7 +133,7 @@ namespace Bolt.Forms
 
         private void TxyName_ValueChanged(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{PackageData.Load()}\\{TxyName.Value}";
+            TxyResultLocation.Value = $"{ModificationsData.Load()}\\{TxyName.Value}";
         }
     }
 }

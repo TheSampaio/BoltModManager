@@ -46,7 +46,7 @@ namespace Bolt.Forms
             OfdOpenGame.Title = "Open Game";
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Bolt Game File (*.bltg)|*.bltg";
-            OfdOpenGame.InitialDirectory = PackageData.Load();
+            OfdOpenGame.InitialDirectory = ModificationsData.Load();
             OfdOpenGame.Multiselect = false;
 
             if (OfdOpenGame.ShowDialog() == DialogResult.OK)
@@ -104,11 +104,11 @@ namespace Bolt.Forms
         private async void BtnImport_Click(object sender, EventArgs e)
         {
             // TODO: Uncrompress Zip file and update the progress bar
-            // TODO: Move within content to "CURRENT_GAME\Packages\"
+            // TODO: Move within content to "CURRENT_GAME\Modifications\"
             // TODO: Match CURRENT_GAME files and move it to "CURRENT_GAME\Backups\"
-            // TODO: Create the symbolic links between "Packages\MOD_FOLDER\" and CURRENT_GAME directory
+            // TODO: Create the symbolic links between "Modifications\MOD_FOLDER\" and CURRENT_GAME directory
             // TODO: Save everything inside the Json game file (game.bltg)
-            // TODO: Populate LvwPackages
+            // TODO: Populate LvwModifications
 
             // Configure OpenFileDialog
             OfdOpenGame.Title = "Import Package";
@@ -122,8 +122,8 @@ namespace Bolt.Forms
 
             var selectedFiles = OfdOpenGame.FileNames;
             var currentGame = GameSessionService.Instance.CurrentGame!;
+            var modificationsPath = currentGame.ModificationsPath;
             var currentProfile = currentGame.Profiles[CmbProfiles.SelectedIndex];
-            var packagesPath = currentProfile.PackagesPath;
 
             foreach (var selectedFile in selectedFiles)
             {
@@ -143,7 +143,7 @@ namespace Bolt.Forms
                 try
                 {
                     string packageName = Path.GetFileNameWithoutExtension(selectedFile);
-                    string destinationPath = Path.Combine(packagesPath, packageName);
+                    string destinationPath = Path.Combine(modificationsPath, packageName);
 
                     // Delete existing package folder if it exists
                     if (System.IO.Directory.Exists(destinationPath))
@@ -189,7 +189,7 @@ namespace Bolt.Forms
                         }
                     }
 
-                    LvwPackages.Items.Add(new ListViewItem(
+                    LvwModifications.Items.Add(new ListViewItem(
                     [
                         string.Empty,
                         packageName,
@@ -213,7 +213,7 @@ namespace Bolt.Forms
             }
 
             MessageBox.Show(
-                "All packages processed successfully!",
+                "All modifications processed successfully!",
                 "Success",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information

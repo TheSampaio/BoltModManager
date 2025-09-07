@@ -60,7 +60,7 @@
             SplPackages = new SplitContainer();
             PrgImport = new ProgressBar();
             BtnImport = new Button();
-            LvwPackages = new ListView();
+            LvwModifications = new ListView();
             columnHeader1 = new ColumnHeader();
             columnHeader2 = new ColumnHeader();
             columnHeader3 = new ColumnHeader();
@@ -386,7 +386,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 270;
+            splitContainer2.SplitterDistance = 266;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -399,7 +399,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 270);
+            TabPackages.Size = new Size(454, 266);
             TabPackages.TabIndex = 0;
             TabPackages.TabStop = false;
             // 
@@ -409,7 +409,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 242);
+            tabPage1.Size = new Size(446, 238);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -432,8 +432,8 @@
             // 
             // SplPackages.Panel2
             // 
-            SplPackages.Panel2.Controls.Add(LvwPackages);
-            SplPackages.Size = new Size(446, 242);
+            SplPackages.Panel2.Controls.Add(LvwModifications);
+            SplPackages.Size = new Size(446, 238);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -465,21 +465,21 @@
             BtnImport.UseVisualStyleBackColor = true;
             BtnImport.Click += BtnImport_Click;
             // 
-            // LvwPackages
+            // LvwModifications
             // 
-            LvwPackages.Alignment = ListViewAlignment.Left;
-            LvwPackages.BorderStyle = BorderStyle.None;
-            LvwPackages.CheckBoxes = true;
-            LvwPackages.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
-            LvwPackages.Dock = DockStyle.Fill;
-            LvwPackages.FullRowSelect = true;
-            LvwPackages.Location = new Point(0, 0);
-            LvwPackages.Margin = new Padding(0);
-            LvwPackages.Name = "LvwPackages";
-            LvwPackages.Size = new Size(446, 202);
-            LvwPackages.TabIndex = 0;
-            LvwPackages.UseCompatibleStateImageBehavior = false;
-            LvwPackages.View = View.Details;
+            LvwModifications.Alignment = ListViewAlignment.Left;
+            LvwModifications.BorderStyle = BorderStyle.None;
+            LvwModifications.CheckBoxes = true;
+            LvwModifications.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
+            LvwModifications.Dock = DockStyle.Fill;
+            LvwModifications.FullRowSelect = true;
+            LvwModifications.Location = new Point(0, 0);
+            LvwModifications.Margin = new Padding(0);
+            LvwModifications.Name = "LvwModifications";
+            LvwModifications.Size = new Size(446, 198);
+            LvwModifications.TabIndex = 0;
+            LvwModifications.UseCompatibleStateImageBehavior = false;
+            LvwModifications.View = View.Details;
             // 
             // columnHeader1
             // 
@@ -510,7 +510,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 202);
+            tabControl1.Size = new Size(454, 206);
             tabControl1.TabIndex = 0;
             tabControl1.TabStop = false;
             // 
@@ -520,7 +520,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 174);
+            tabPage4.Size = new Size(446, 178);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -532,7 +532,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 174);
+            listView1.Size = new Size(446, 178);
             listView1.TabIndex = 0;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -542,7 +542,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 177);
+            tabPage5.Size = new Size(446, 178);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -684,7 +684,7 @@
         private ListView listView2;
         private Label label2;
         private Label LblStatus;
-        private ListView LvwPackages;
+        private ListView LvwModifications;
         private ColumnHeader columnHeader1;
         private ColumnHeader columnHeader2;
         private ColumnHeader columnHeader3;

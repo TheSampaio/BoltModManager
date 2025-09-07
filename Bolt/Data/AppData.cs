@@ -8,11 +8,11 @@
         /// <summary>
         /// The default file name used to save and load game data.
         /// </summary>
-        public static string GameFile { get; } = "game.bltg";
+        public static string GameFile { get; } = "Game.bltg";
 
         /// <summary>
         /// The default file name used to save and load user preferences.
         /// </summary>
-        public static string PreferencesFile { get; } = "preferences.blts";
+        public static string PreferencesFile { get; } = "Preferences.blts";
     }
 }
