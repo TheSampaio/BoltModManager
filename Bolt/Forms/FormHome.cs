@@ -103,18 +103,13 @@ namespace Bolt.Forms
 
         private async void BtnImport_Click(object sender, EventArgs e)
         {
-            // TODO: Uncrompress Zip file and update the progress bar
-            // TODO: Move within content to "CURRENT_GAME\Modifications\"
-            // TODO: Match CURRENT_GAME files and move it to "CURRENT_GAME\Backups\"
-            // TODO: Create the symbolic links between "Modifications\MOD_FOLDER\" and CURRENT_GAME directory
-            // TODO: Save everything inside the Json game file (game.bltg)
-            // TODO: Populate LvwModifications
-
             // Configure OpenFileDialog
             OfdOpenGame.Title = "Import Package";
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Zip File (*.zip)|*.zip";
-            OfdOpenGame.InitialDirectory = string.Empty;
+            OfdOpenGame.InitialDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"
+            );
             OfdOpenGame.Multiselect = true;
 
             if (OfdOpenGame.ShowDialog() != DialogResult.OK)
@@ -124,6 +119,9 @@ namespace Bolt.Forms
             var currentGame = GameSessionService.Instance.CurrentGame!;
             var modificationsPath = currentGame.ModificationsPath;
             var currentProfile = currentGame.Profiles[CmbProfiles.SelectedIndex];
+
+            // Reset progress bar before processing
+            PrgImport.Value = 0;
 
             foreach (var selectedFile in selectedFiles)
             {
@@ -136,75 +134,107 @@ namespace Bolt.Forms
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning
                     );
-
                     continue;
                 }
 
                 try
                 {
-                    string packageName = Path.GetFileNameWithoutExtension(selectedFile);
-                    string destinationPath = Path.Combine(modificationsPath, packageName);
+                    string modificationName = Path.GetFileNameWithoutExtension(selectedFile);
+                    string destinationPath = Path.Combine(modificationsPath, modificationName);
 
                     // Delete existing package folder if it exists
                     if (System.IO.Directory.Exists(destinationPath))
                         System.IO.Directory.Delete(destinationPath, true);
 
+                    // Create a subdirectory for the mod inside Modifications
                     System.IO.Directory.CreateDirectory(destinationPath);
 
-                    using (var archive = Archive.OpenRead(selectedFile))
+                    using var archive = Archive.OpenRead(selectedFile);
+
+                    int total = archive.Entries.Count;
+                    int current = 0;
+
+                    PrgImport.Minimum = 0;
+                    PrgImport.Maximum = total;
+                    PrgImport.Value = 0;
+
+                    // Try to detect a top-level folder
+                    string topLevelFolder = archive.Entries
+                        .Where(e => !string.IsNullOrEmpty(e.FullName) && e.FullName.Contains('/'))
+                        .Select(e => e.FullName.Split('/')[0])
+                        .FirstOrDefault() ?? string.Empty;
+
+                    foreach (var entry in archive.Entries)
                     {
-                        int total = archive.Entries.Count;
-                        int current = 0;
+                        string relativePath = entry.FullName;
 
-                        PrgImport.Minimum = 0;
-                        PrgImport.Maximum = total;
-                        PrgImport.Value = 0;
+                        // Only trim if the entry actually starts with the top-level folder
+                        if (!string.IsNullOrEmpty(topLevelFolder) && relativePath.StartsWith(topLevelFolder))
+                            relativePath = relativePath[topLevelFolder.Length..].TrimStart('/', '\\');
 
-                        string topLevelFolder = archive.Entries
-                            .Where(e => !string.IsNullOrEmpty(e.FullName) && e.FullName.Contains('/'))
-                            .Select(e => e.FullName.Split('/')[0])
-                            .FirstOrDefault() ?? string.Empty;
+                        // 🔧 Normalize path (remove quebras de linha, chars inválidos, etc.)
+                        relativePath = relativePath
+                            .Replace("\r", "")
+                            .Replace("\n", "")
+                            .Trim()
+                            .Replace('/', Path.DirectorySeparatorChar)
+                            .Replace('\\', Path.DirectorySeparatorChar);
 
-                        foreach (var entry in archive.Entries)
+                        foreach (char invalidChar in Path.GetInvalidPathChars())
+                            relativePath = relativePath.Replace(invalidChar, '_');
+
+                        foreach (char invalidChar in Path.GetInvalidFileNameChars())
+                            relativePath = relativePath.Replace(invalidChar, '_');
+
+                        string destinationFile = Path.Combine(destinationPath, relativePath);
+
+                        if (string.IsNullOrEmpty(entry.Name))
                         {
-                            string relativePath = entry.FullName;
-
-                            if (!string.IsNullOrEmpty(topLevelFolder))
-                                relativePath = relativePath[topLevelFolder.Length..].TrimStart('/', '\\');
-
-                            string destinationFile = Path.Combine(destinationPath, relativePath);
-
-                            if (string.IsNullOrEmpty(entry.Name))
-                                System.IO.Directory.CreateDirectory(destinationFile);
-
-                            else
-                            {
-                                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
-                                await Task.Run(() => entry.ExtractToFile(destinationFile, true));
-                            }
-
-                            current++;
-                            PrgImport.Value = current;
-                            PrgImport.Refresh();
+                            // Directory entry
+                            System.IO.Directory.CreateDirectory(destinationFile);
                         }
+
+                        else
+                        {
+                            // File entry
+                            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
+                            await Task.Run(() => entry.ExtractToFile(destinationFile, true));
+                        }
+
+                        current++;
+                        PrgImport.Value = current;
+                        PrgImport.Refresh();
                     }
 
+                    // Create modification model (once per mod)
+                    var currentModification = new ModificationModel()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = modificationName,
+                        Version = "N/A",
+                        Category = "N/A",
+                        InstalledAt = DateTime.UtcNow,
+                    };
+
+                    // Save mod to current profile
+                    currentProfile.Modifications.Add(currentModification);
+                    GameData.Save(currentGame, $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}");
+
+                    // Populate list view (Temporary)
                     LvwModifications.Items.Add(new ListViewItem(
                     [
-                        string.Empty,
-                        packageName,
-                        string.Empty,
-                        string.Empty,
-                        DateTime.UtcNow.ToString()
+                        string.Empty,                               // Activate
+                        modificationName,                           // Name
+                        currentModification.Version,                // Version
+                        currentModification.Category,               // Category
+                        currentModification.InstalledAt.ToString()  // Imported On
                     ]));
-
-                    PrgImport.Value = 0;
                 }
 
                 catch (Exception ex)
                 {
                     MessageBox.Show(
-                        $"Failed to import package \"{Path.GetFileName(selectedFile)}\":\n{ex.Message}",
+                        $"Failed to import modification \"{Path.GetFileName(selectedFile)}\":\n{ex.Message}",
                         "Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
@@ -212,13 +242,20 @@ namespace Bolt.Forms
                 }
             }
 
-            MessageBox.Show(
-                "All modifications processed successfully!",
-                "Success",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+            // Success message if progress bar reached max
+            if (PrgImport.Value == PrgImport.Maximum)
+            {
+                MessageBox.Show(
+                    "All modifications processed successfully!",
+                    "Success",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
+
+                PrgImport.Value = 0; // Reset after success
+            }
         }
+
 
         private void OnGameStarted()
         {
@@ -249,6 +286,9 @@ namespace Bolt.Forms
 
         private void OnGameLoaded(GameModel game)
         {
+            // ListView Imports
+            LvwModifications.Items.Clear();
+
             if (game is null)
             {
                 MessageBox.Show(
@@ -276,6 +316,21 @@ namespace Bolt.Forms
 
             // Label Status
             LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem}";
+
+            // ListView Imports
+            var modifications = game.Profiles[CmbProfiles.SelectedIndex].Modifications;
+
+            foreach (var modification in modifications)
+            {
+                LvwModifications.Items.Add(new ListViewItem(
+                [
+                    string.Empty,                       // Activate
+                    modification.Name,                  // Name
+                    modification.Version,               // Version
+                    modification.Category,              // Category
+                    modification.InstalledAt.ToString() // Imported On
+                ]));
+            }
         }
 
         private void OnGameUnloaded()
@@ -296,8 +351,23 @@ namespace Bolt.Forms
 
             // Label Status
             LblStatus.Text = "Press (Ctrl + O) to open a Bolt game file, or (Ctrl + N) to create a new one.";
+
+            // ListView Imports
+            LvwModifications.Items.Clear();
         }
 
         private static void ShowModalWindow(Form form) => form.ShowDialog();
+
+        private void FrmHome_Load(object sender, EventArgs e)
+        {
+            string? gamesPath = ModificationsData.Load();
+
+            if (!string.IsNullOrEmpty(gamesPath))
+            {
+                // Update only if different
+                if (AppData.GamesPath != gamesPath)
+                    AppData.GamesPath = gamesPath;
+            }
+        }
     }
 }

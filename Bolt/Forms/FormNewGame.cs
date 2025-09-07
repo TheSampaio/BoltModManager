@@ -100,7 +100,7 @@ namespace Bolt.Forms
             Directory.CreateDirectory(gameModel.BackupsPath);
             Directory.CreateDirectory(gameModel.ModificationsPath);
 
-            // Save the gameModel as Json file
+            // Save the gameModel as "Bolt Game" file (Json)
             string gameFilePath = Path.Combine(TxyResultLocation.Value, AppData.GameFile);
             GameData.Save(gameModel, gameFilePath);
 
@@ -123,7 +123,15 @@ namespace Bolt.Forms
 
         private void FrmNewGame_Load(object sender, EventArgs e)
         {
-            TxyResultLocation.Value = $"{ModificationsData.Load()}\\";
+            string? gamesPath = ModificationsData.Load();
+
+            if (gamesPath is null)
+            {
+                gamesPath = AppData.GamesPath;
+                ModificationsData.Save(gamesPath);
+            }
+
+            TxyResultLocation.Value = $"{gamesPath}\\";
         }
 
         private void TxyTarget_ValueChanged(object sender, EventArgs e)

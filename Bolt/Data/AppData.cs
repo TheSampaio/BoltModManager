@@ -9,6 +9,7 @@
         /// The default file name used to save and load game data.
         /// </summary>
         public static string GameFile { get; } = "Game.bltg";
+        public static string GamesPath { get; set; } = "C:\\BoltModManager";
 
         /// <summary>
         /// The default file name used to save and load user preferences.

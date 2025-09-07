@@ -9,19 +9,19 @@ namespace Bolt.Forms
             InitializeComponent();
         }
 
-        private void BtnPackages_Click(object sender, EventArgs e)
+        private void BtnModifications_Click(object sender, EventArgs e)
         {
-            if (FbdPackages.ShowDialog(this) == DialogResult.OK)
-                TxyPackages.Value = FbdPackages.SelectedPath;
+            if (FbdModifications.ShowDialog(this) == DialogResult.OK)
+                TxyModifications.Value = FbdModifications.SelectedPath;
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
             // Validate entry
-            if (string.IsNullOrWhiteSpace(TxyPackages.Value))
+            if (string.IsNullOrWhiteSpace(TxyModifications.Value))
             {
                 MessageBox.Show(
-                    "Please select a valid packages directory before continuing.",
+                    "Please select a valid modifications directory before continuing.",
                     "Warning",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning
@@ -31,7 +31,7 @@ namespace Bolt.Forms
             }
 
             // Ensure directory exists
-            if (!Directory.Exists(TxyPackages.Value))
+            if (!Directory.Exists(TxyModifications.Value))
             {
                 MessageBox.Show(
                     "The selected directory does not exist. Please choose a valid folder.",
@@ -43,12 +43,14 @@ namespace Bolt.Forms
                 return;
             }
 
-            // Save packages directory path
-            ModificationsData.Save(TxyPackages.Value);
+            // Save modifications directory path
+            string gamesPath = TxyModifications.Value;
+            AppData.GamesPath = gamesPath;
+            ModificationsData.Save(gamesPath);
 
             MessageBox.Show(
-                $"Packages directory set to:\n{TxyPackages.Value}",
-                "Packages Directory Saved",
+                $"Modifications directory set to:\n{gamesPath}",
+                "Modifications Directory Saved",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information
             );
@@ -63,10 +65,10 @@ namespace Bolt.Forms
 
         private void FrmPreferences_Load(object sender, EventArgs e)
         {
-            var preferencesData = ModificationsData.Load();
+            string preferencesData = ModificationsData.Load() ?? AppData.GamesPath;
 
             if (preferencesData is not null)
-                TxyPackages.Value = preferencesData;
+                TxyModifications.Value = preferencesData;
         }
     }
 }
