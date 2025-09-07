@@ -58,9 +58,9 @@
             TabPackages = new TabControl();
             tabPage1 = new TabPage();
             SplPackages = new SplitContainer();
-            progressBar1 = new ProgressBar();
+            PrgImport = new ProgressBar();
             BtnImport = new Button();
-            LvwPackages = new ListView();
+            LvwModifications = new ListView();
             columnHeader1 = new ColumnHeader();
             columnHeader2 = new ColumnHeader();
             columnHeader3 = new ColumnHeader();
@@ -298,6 +298,7 @@
             BtnRun.Padding = new Padding(10);
             BtnRun.Size = new Size(300, 64);
             BtnRun.TabIndex = 0;
+            BtnRun.TabStop = false;
             BtnRun.Text = "No Game Loaded";
             BtnRun.TextImageRelation = TextImageRelation.ImageBeforeText;
             BtnRun.UseVisualStyleBackColor = false;
@@ -316,6 +317,7 @@
             BtnNewProfile.Name = "BtnNewProfile";
             BtnNewProfile.Size = new Size(32, 32);
             BtnNewProfile.TabIndex = 1;
+            BtnNewProfile.TabStop = false;
             BtnNewProfile.UseVisualStyleBackColor = true;
             // 
             // CmbProfiles
@@ -331,6 +333,7 @@
             CmbProfiles.Name = "CmbProfiles";
             CmbProfiles.Size = new Size(267, 31);
             CmbProfiles.TabIndex = 0;
+            CmbProfiles.TabStop = false;
             // 
             // TabGame
             // 
@@ -342,6 +345,7 @@
             TabGame.SelectedIndex = 0;
             TabGame.Size = new Size(300, 368);
             TabGame.TabIndex = 0;
+            TabGame.TabStop = false;
             // 
             // tabPage3
             // 
@@ -382,7 +386,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 248;
+            splitContainer2.SplitterDistance = 266;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -395,8 +399,9 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 248);
+            TabPackages.Size = new Size(454, 266);
             TabPackages.TabIndex = 0;
+            TabPackages.TabStop = false;
             // 
             // tabPage1
             // 
@@ -404,7 +409,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 220);
+            tabPage1.Size = new Size(446, 238);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -421,27 +426,28 @@
             // 
             // SplPackages.Panel1
             // 
-            SplPackages.Panel1.Controls.Add(progressBar1);
+            SplPackages.Panel1.Controls.Add(PrgImport);
             SplPackages.Panel1.Controls.Add(BtnImport);
             SplPackages.Panel1MinSize = 32;
             // 
             // SplPackages.Panel2
             // 
-            SplPackages.Panel2.Controls.Add(LvwPackages);
-            SplPackages.Size = new Size(446, 220);
+            SplPackages.Panel2.Controls.Add(LvwModifications);
+            SplPackages.Size = new Size(446, 238);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
+            SplPackages.TabStop = false;
             // 
-            // progressBar1
+            // PrgImport
             // 
-            progressBar1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            progressBar1.Location = new Point(0, 1);
-            progressBar1.Margin = new Padding(0, 0, 1, 0);
-            progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(413, 30);
-            progressBar1.Style = ProgressBarStyle.Continuous;
-            progressBar1.TabIndex = 1;
+            PrgImport.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            PrgImport.Location = new Point(0, 1);
+            PrgImport.Margin = new Padding(0, 0, 1, 0);
+            PrgImport.Name = "PrgImport";
+            PrgImport.Size = new Size(413, 30);
+            PrgImport.Style = ProgressBarStyle.Continuous;
+            PrgImport.TabIndex = 1;
             // 
             // BtnImport
             // 
@@ -455,26 +461,29 @@
             BtnImport.Name = "BtnImport";
             BtnImport.Size = new Size(32, 32);
             BtnImport.TabIndex = 0;
+            BtnImport.TabStop = false;
             BtnImport.UseVisualStyleBackColor = true;
+            BtnImport.Click += BtnImport_Click;
             // 
-            // LvwPackages
+            // LvwModifications
             // 
-            LvwPackages.BorderStyle = BorderStyle.None;
-            LvwPackages.CheckBoxes = true;
-            LvwPackages.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
-            LvwPackages.Dock = DockStyle.Fill;
-            LvwPackages.FullRowSelect = true;
-            LvwPackages.Location = new Point(0, 0);
-            LvwPackages.Margin = new Padding(0);
-            LvwPackages.Name = "LvwPackages";
-            LvwPackages.Size = new Size(446, 180);
-            LvwPackages.TabIndex = 0;
-            LvwPackages.UseCompatibleStateImageBehavior = false;
-            LvwPackages.View = View.Details;
+            LvwModifications.Alignment = ListViewAlignment.Left;
+            LvwModifications.BorderStyle = BorderStyle.None;
+            LvwModifications.CheckBoxes = true;
+            LvwModifications.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
+            LvwModifications.Dock = DockStyle.Fill;
+            LvwModifications.FullRowSelect = true;
+            LvwModifications.Location = new Point(0, 0);
+            LvwModifications.Margin = new Padding(0);
+            LvwModifications.Name = "LvwModifications";
+            LvwModifications.Size = new Size(446, 198);
+            LvwModifications.TabIndex = 0;
+            LvwModifications.UseCompatibleStateImageBehavior = false;
+            LvwModifications.View = View.Details;
             // 
             // columnHeader1
             // 
-            columnHeader1.Text = "Status";
+            columnHeader1.Text = "Activate";
             // 
             // columnHeader2
             // 
@@ -490,7 +499,7 @@
             // 
             // columnHeader5
             // 
-            columnHeader5.Text = "Installation";
+            columnHeader5.Text = "Imported On";
             // 
             // tabControl1
             // 
@@ -501,8 +510,9 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 224);
+            tabControl1.Size = new Size(454, 206);
             tabControl1.TabIndex = 0;
+            tabControl1.TabStop = false;
             // 
             // tabPage4
             // 
@@ -510,7 +520,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 196);
+            tabPage4.Size = new Size(446, 178);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -522,8 +532,9 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 196);
+            listView1.Size = new Size(446, 178);
             listView1.TabIndex = 0;
+            listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
             // 
             // tabPage5
@@ -531,7 +542,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 196);
+            tabPage5.Size = new Size(446, 178);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -545,7 +556,7 @@
             PnlHomeSurface.Margin = new Padding(2, 12, 2, 10);
             PnlHomeSurface.Name = "PnlHomeSurface";
             PnlHomeSurface.Size = new Size(762, 480);
-            PnlHomeSurface.TabIndex = 1;
+            PnlHomeSurface.TabIndex = 0;
             // 
             // panel2
             // 
@@ -662,14 +673,8 @@
         private TabControl TabPackages;
         private TabPage tabPage1;
         private SplitContainer SplPackages;
-        private ProgressBar progressBar1;
+        private ProgressBar PrgImport;
         private Button BtnImport;
-        private ListView LvwPackages;
-        private ColumnHeader columnHeader1;
-        private ColumnHeader columnHeader2;
-        private ColumnHeader columnHeader3;
-        private ColumnHeader columnHeader4;
-        private ColumnHeader columnHeader5;
         private TabControl TabGame;
         private TabPage tabPage3;
         private TabControl tabControl1;
@@ -679,5 +684,11 @@
         private ListView listView2;
         private Label label2;
         private Label LblStatus;
+        private ListView LvwModifications;
+        private ColumnHeader columnHeader1;
+        private ColumnHeader columnHeader2;
+        private ColumnHeader columnHeader3;
+        private ColumnHeader columnHeader4;
+        private ColumnHeader columnHeader5;
     }
 }

@@ -5,7 +5,7 @@ namespace Bolt.Data
     /// <summary>
     /// Handles reading and writing the path to the packages directory in user preferences.
     /// </summary>
-    internal class PackageData
+    internal class ModificationsData
     {
         /// <summary>
         /// The key used to store the packages directory in the preferences file.

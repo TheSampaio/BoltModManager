@@ -2,6 +2,8 @@
 using Bolt.Data;
 using Bolt.Models;
 using Bolt.Services;
+using Bolt.Utilities;
+using System.IO.Compression;
 
 namespace Bolt.Forms
 {
@@ -44,7 +46,8 @@ namespace Bolt.Forms
             OfdOpenGame.Title = "Open Game";
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Bolt Game File (*.bltg)|*.bltg";
-            OfdOpenGame.InitialDirectory = PackageData.Load();
+            OfdOpenGame.InitialDirectory = ModificationsData.Load();
+            OfdOpenGame.Multiselect = false;
 
             if (OfdOpenGame.ShowDialog() == DialogResult.OK)
             {
@@ -96,6 +99,125 @@ namespace Bolt.Forms
 
             // Run the current game
             GameProcessService.Instance.RunGame(GameSessionService.Instance.CurrentGame.ExecutablePath);
+        }
+
+        private async void BtnImport_Click(object sender, EventArgs e)
+        {
+            // TODO: Uncrompress Zip file and update the progress bar
+            // TODO: Move within content to "CURRENT_GAME\Modifications\"
+            // TODO: Match CURRENT_GAME files and move it to "CURRENT_GAME\Backups\"
+            // TODO: Create the symbolic links between "Modifications\MOD_FOLDER\" and CURRENT_GAME directory
+            // TODO: Save everything inside the Json game file (game.bltg)
+            // TODO: Populate LvwModifications
+
+            // Configure OpenFileDialog
+            OfdOpenGame.Title = "Import Package";
+            OfdOpenGame.FileName = string.Empty;
+            OfdOpenGame.Filter = "Zip File (*.zip)|*.zip";
+            OfdOpenGame.InitialDirectory = string.Empty;
+            OfdOpenGame.Multiselect = true;
+
+            if (OfdOpenGame.ShowDialog() != DialogResult.OK)
+                return;
+
+            var selectedFiles = OfdOpenGame.FileNames;
+            var currentGame = GameSessionService.Instance.CurrentGame!;
+            var modificationsPath = currentGame.ModificationsPath;
+            var currentProfile = currentGame.Profiles[CmbProfiles.SelectedIndex];
+
+            foreach (var selectedFile in selectedFiles)
+            {
+                // Validate file extension
+                if (Path.GetExtension(selectedFile)?.ToLower() != ".zip")
+                {
+                    MessageBox.Show(
+                        $"Invalid file skipped: {Path.GetFileName(selectedFile)}",
+                        "Invalid File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+
+                    continue;
+                }
+
+                try
+                {
+                    string packageName = Path.GetFileNameWithoutExtension(selectedFile);
+                    string destinationPath = Path.Combine(modificationsPath, packageName);
+
+                    // Delete existing package folder if it exists
+                    if (System.IO.Directory.Exists(destinationPath))
+                        System.IO.Directory.Delete(destinationPath, true);
+
+                    System.IO.Directory.CreateDirectory(destinationPath);
+
+                    using (var archive = Archive.OpenRead(selectedFile))
+                    {
+                        int total = archive.Entries.Count;
+                        int current = 0;
+
+                        PrgImport.Minimum = 0;
+                        PrgImport.Maximum = total;
+                        PrgImport.Value = 0;
+
+                        string topLevelFolder = archive.Entries
+                            .Where(e => !string.IsNullOrEmpty(e.FullName) && e.FullName.Contains('/'))
+                            .Select(e => e.FullName.Split('/')[0])
+                            .FirstOrDefault() ?? string.Empty;
+
+                        foreach (var entry in archive.Entries)
+                        {
+                            string relativePath = entry.FullName;
+
+                            if (!string.IsNullOrEmpty(topLevelFolder))
+                                relativePath = relativePath[topLevelFolder.Length..].TrimStart('/', '\\');
+
+                            string destinationFile = Path.Combine(destinationPath, relativePath);
+
+                            if (string.IsNullOrEmpty(entry.Name))
+                                System.IO.Directory.CreateDirectory(destinationFile);
+
+                            else
+                            {
+                                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
+                                await Task.Run(() => entry.ExtractToFile(destinationFile, true));
+                            }
+
+                            current++;
+                            PrgImport.Value = current;
+                            PrgImport.Refresh();
+                        }
+                    }
+
+                    LvwModifications.Items.Add(new ListViewItem(
+                    [
+                        string.Empty,
+                        packageName,
+                        string.Empty,
+                        string.Empty,
+                        DateTime.UtcNow.ToString()
+                    ]));
+
+                    PrgImport.Value = 0;
+                }
+
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Failed to import package \"{Path.GetFileName(selectedFile)}\":\n{ex.Message}",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+            }
+
+            MessageBox.Show(
+                "All modifications processed successfully!",
+                "Success",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
         }
 
         private void OnGameStarted()
