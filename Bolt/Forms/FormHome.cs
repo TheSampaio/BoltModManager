@@ -104,7 +104,7 @@ namespace Bolt.Forms
         private async void BtnImport_Click(object sender, EventArgs e)
         {
             // Configure OpenFileDialog
-            OfdOpenGame.Title = "Import Package";
+            OfdOpenGame.Title = "Import Modification(s)";
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Zip File (*.zip)|*.zip";
             OfdOpenGame.InitialDirectory = Path.Combine(
@@ -231,18 +231,12 @@ namespace Bolt.Forms
                     };
 
                     // Save mod to current profile
+                    string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
                     currentProfile.Modifications.Add(currentModification);
-                    GameData.Save(currentGame, $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}");
+                    GameData.Save(currentGame, gameFilename);
 
-                    // Populate list view (temporary)
-                    LvwModifications.Items.Add(new ListViewItem(
-                    [
-                        string.Empty,                               // Activate
-                        modificationName,                           // Name
-                        currentModification.Version,                // Version
-                        currentModification.Category,               // Category
-                        currentModification.InstalledAt.ToString()  // Imported On
-                    ]));
+                    // Reload the current game
+                    GameSessionService.Instance.LoadGame(gameFilename);
                 }
 
                 catch (Exception ex)
