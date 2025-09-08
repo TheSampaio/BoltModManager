@@ -317,7 +317,10 @@ namespace Bolt.Forms
 
             // Update profiles combo box
             CmbProfiles.Items.Clear();
-            CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => p.Name)]);
+            CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => $"  {p.Name}")]);
+
+            //CmbProfiles.Items.Add("a");
+
             CmbProfiles.SelectedIndex = 0;
 
             // Update status label

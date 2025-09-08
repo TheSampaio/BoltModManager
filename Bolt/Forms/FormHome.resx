@@ -124,7 +124,7 @@
     <value>127, 17</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="BtnNewProfile.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+  <data name="NewProfile.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAB
         1wAAAdcBjJIIaAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAMLSURBVHhe7Zvf
@@ -142,6 +142,24 @@
         1CK9LA2CnRYZ3yjRh8Ppr0sN9wb2OVSwycCQBbELO1+wv0hyOLsD6SlOmhVg00cB+4ol2GlBON1SnDzt
         bMb+2g8ULIyCPoDbiOJCaQPmWIi84MXVBc89C90UtJRp2Tjpz4WzJZgbnq+VldVQ/QXTNtsvwpbjPgAA
         AABJRU5ErkJggg==
+</value>
+  </data>
+  <data name="BtnRemoveProfile.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6
+        JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAACXBIWXMAAAHXAAAB1wGMkghoAAAAB3RJ
+        TUUH6QkIDAYQd8zk8gAAApRJREFUeF7tmEFy0zAUhnsqLlDYt7AuR4CBDQycAbpp0wWBy1F6gCaKZrwR
+        ozB5Qz7Fjp6seOwX/zPfpv4l+3tO2o4uLubMmaPN+vJFGCN8zurhDccKn7t3eIOpQI+icNOpQR9VuNlU
+        oVdWuMnUoV9nuNgK9GwNF1qBngfDRdagbxIusAZ998KyVegtYdEq9JawaBV6S1i0Cr0lLFqF3hIWrUJv
+        CYsluOtXwT/cBr9cBHfzOrmuxb19E/zPh+AXt8FdvUyul0BvCYtaonzz9BiapvnHahU2Xz4kvVzi2riH
+        7Pf0WGUI9JawqCW+eXnYHW5dNIStvFsn+/n770lXC70lLGqJH1U+cMkQ2uS3A1gukr4WektY1BK/83sf
+        2YIhdMk3q+fgbq6TNVroLWGxhM2nd6FZtwhsXHBf24fQZ60GektYLKVEpGRNKfSWsNgHjZCmWwN6S1js
+        S45YTof79oXeEhZr0PlLLf6841rOL80S6C1hsRadb/kQJ3rzO+gtYbEm2UM4sXyE3hIWa3N0CAPIR+gt
+        YbE2Zz2Ao/IDDoHeEhZrkS0/0BDoLWGxBmf9Z3Dz+X37m8/+R+hjsm9f6C1hsQ858tIdeAj0lrBYikZe
+        1gw4BHpLWCyhRF7WDjQEektY1BIPME97ILIa94GI/3XmR2Lx6JoPrJXf0TYEf/ct6Wqht4RFLfHIev9Y
+        /LlIfsd2CP9/pf78HvexeCQ+YDy69j/uqnxf40GrX95v93RXl8n1EugtYdEq9JawaBV6S1i0Cr0lLFqF
+        3hIWrUJvCYtWofdeWLYGfZNwgTXoezBcZAV6toYLrUDPznDx1KFfVrjJVKGXKtxsatCnKNx0KtCjd3iD
+        scLnrh7ecCzwOefMmXM0fwGLFBYCWLHb4gAAAABJRU5ErkJggg==
 </value>
   </data>
   <data name="BtnImport.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
