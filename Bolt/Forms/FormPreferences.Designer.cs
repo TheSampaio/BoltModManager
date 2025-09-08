@@ -31,9 +31,9 @@
             panel1 = new Panel();
             BtnSave = new Button();
             BtnClose = new Button();
-            TxyPackages = new Bolt.Controls.TextEntry();
-            BtnLibrary = new Button();
-            FbdPackages = new FolderBrowserDialog();
+            TxyModifications = new Bolt.Controls.TextEntry();
+            BtnModifications = new Button();
+            FbdModifications = new FolderBrowserDialog();
             SuspendLayout();
             // 
             // panel1
@@ -65,26 +65,26 @@
             BtnClose.UseVisualStyleBackColor = true;
             BtnClose.Click += BtnClose_Click;
             // 
-            // TxyModsDir
+            // TxyModifications
             // 
-            TxyPackages.Location = new Point(17, 28);
-            TxyPackages.Margin = new Padding(8, 8, 4, 8);
-            TxyPackages.Name = "TxyModsDir";
-            TxyPackages.ReadOnly = false;
-            TxyPackages.Size = new Size(319, 44);
-            TxyPackages.TabIndex = 0;
-            TxyPackages.Text = "Mods directory:";
-            TxyPackages.Value = "";
+            TxyModifications.Location = new Point(17, 28);
+            TxyModifications.Margin = new Padding(8, 8, 4, 8);
+            TxyModifications.Name = "TxyModifications";
+            TxyModifications.ReadOnly = false;
+            TxyModifications.Size = new Size(319, 44);
+            TxyModifications.TabIndex = 0;
+            TxyModifications.Text = "Mods directory:";
+            TxyModifications.Value = "";
             // 
-            // BtnLibrary
+            // BtnModifications
             // 
-            BtnLibrary.Location = new Point(343, 48);
-            BtnLibrary.Name = "BtnLibrary";
-            BtnLibrary.Size = new Size(24, 24);
-            BtnLibrary.TabIndex = 1;
-            BtnLibrary.Text = "...";
-            BtnLibrary.UseVisualStyleBackColor = true;
-            BtnLibrary.Click += BtnPackages_Click;
+            BtnModifications.Location = new Point(343, 48);
+            BtnModifications.Name = "BtnModifications";
+            BtnModifications.Size = new Size(24, 24);
+            BtnModifications.TabIndex = 1;
+            BtnModifications.Text = "...";
+            BtnModifications.UseVisualStyleBackColor = true;
+            BtnModifications.Click += BtnModifications_Click;
             // 
             // FrmPreferences
             // 
@@ -92,8 +92,8 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             ClientSize = new Size(384, 293);
-            Controls.Add(TxyPackages);
-            Controls.Add(BtnLibrary);
+            Controls.Add(TxyModifications);
+            Controls.Add(BtnModifications);
             Controls.Add(panel1);
             Controls.Add(BtnSave);
             Controls.Add(BtnClose);
@@ -113,8 +113,8 @@
         private Panel panel1;
         private Button BtnSave;
         private Button BtnClose;
-        private Controls.TextEntry TxyPackages;
-        private Button BtnLibrary;
-        private FolderBrowserDialog FbdPackages;
+        private Controls.TextEntry TxyModifications;
+        private Button BtnModifications;
+        private FolderBrowserDialog FbdModifications;
     }
 }
