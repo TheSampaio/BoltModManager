@@ -385,6 +385,24 @@ namespace Bolt.Forms
                         //    File.Move(destinationPath, backupPath, true);
                         //}
 
+                        // Backup original only if it's not a symlink
+                        // TODO: Fix backups of mod files inside symlinks directories
+                        if ((File.Exists(destinationPath) || System.IO.Directory.Exists(destinationPath)))
+                        {
+                            if (!IsSymbolicLink(destinationPath))
+                            {
+                                // Backup real files or folders
+                                string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
+                                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
+
+                                if (File.Exists(destinationPath))
+                                    File.Move(destinationPath, backupPath, true);
+
+                                //else if (System.IO.Directory.Exists(destinationPath))
+                                //    System.IO.Directory.Move(destinationPath, backupPath);
+                            }
+                        }
+
                         // Create the symbolic link for directories
                         if (System.IO.Directory.Exists(sourcePath))
                             SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.Directory);
@@ -393,6 +411,8 @@ namespace Bolt.Forms
                         else if (File.Exists(sourcePath))
                             SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.File);
                     }
+
+                    catch (IOException) { }
 
                     catch (Exception ex)
                     {
@@ -405,6 +425,12 @@ namespace Bolt.Forms
                     }
                 }
             }
+        }
+
+        private static bool IsSymbolicLink(string path)
+        {
+            var attributes = File.GetAttributes(path);
+            return attributes.HasFlag(FileAttributes.ReparsePoint);
         }
 
         private void OnGameUnloaded()
