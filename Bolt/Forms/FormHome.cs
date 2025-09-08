@@ -51,7 +51,7 @@ namespace Bolt.Forms
 
             if (OfdOpenGame.ShowDialog() == DialogResult.OK)
             {
-                // Validate if it's really an .exe file
+                // Validate if it's really a .bltg file
                 if (!(Path.GetExtension(OfdOpenGame.FileName)?.ToLower() == ".bltg"))
                 {
                     MessageBox.Show(
@@ -131,8 +131,7 @@ namespace Bolt.Forms
                     MessageBox.Show(
                         $"Invalid file skipped: {Path.GetFileName(selectedFile)}",
                         "Invalid File",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
+                        MessageBoxButtons.OK
                     );
                     continue;
                 }
@@ -151,28 +150,32 @@ namespace Bolt.Forms
 
                     using var archive = Archive.OpenRead(selectedFile);
 
-                    int total = archive.Entries.Count;
+                    // Count only files for accurate progress bar
+                    int total = archive.Entries.Count(e => !string.IsNullOrEmpty(e.Name));
                     int current = 0;
 
                     PrgImport.Minimum = 0;
                     PrgImport.Maximum = total;
                     PrgImport.Value = 0;
 
-                    // Try to detect a top-level folder
+                    // Detect top-level folder
                     string topLevelFolder = archive.Entries
                         .Where(e => !string.IsNullOrEmpty(e.FullName) && e.FullName.Contains('/'))
                         .Select(e => e.FullName.Split('/')[0])
                         .FirstOrDefault() ?? string.Empty;
 
+                    // Initialize modification content list
+                    List<string> modificationContent = [];
+
                     foreach (var entry in archive.Entries)
                     {
                         string relativePath = entry.FullName;
 
-                        // Only trim if the entry actually starts with the top-level folder
+                        // Trim top-level folder if needed
                         if (!string.IsNullOrEmpty(topLevelFolder) && relativePath.StartsWith(topLevelFolder))
                             relativePath = relativePath[topLevelFolder.Length..].TrimStart('/', '\\');
 
-                        // 🔧 Normalize path (remove quebras de linha, chars inválidos, etc.)
+                        // Normalize path (only path separators and invalid path chars)
                         relativePath = relativePath
                             .Replace("\r", "")
                             .Replace("\n", "")
@@ -183,24 +186,34 @@ namespace Bolt.Forms
                         foreach (char invalidChar in Path.GetInvalidPathChars())
                             relativePath = relativePath.Replace(invalidChar, '_');
 
-                        foreach (char invalidChar in Path.GetInvalidFileNameChars())
-                            relativePath = relativePath.Replace(invalidChar, '_');
-
                         string destinationFile = Path.Combine(destinationPath, relativePath);
+
+                        // Split into directory and file
+                        string directory = Path.GetDirectoryName(destinationFile)!;
+                        string fileName = Path.GetFileName(destinationFile);
+
+                        // Sanitize only the file name
+                        foreach (char invalidChar in Path.GetInvalidFileNameChars())
+                            fileName = fileName.Replace(invalidChar, '_');
+
+                        // Recombine directory and file
+                        destinationFile = Path.Combine(directory, fileName);
+
+                        if (!string.IsNullOrEmpty(relativePath))
+                            modificationContent.Add(destinationFile);
 
                         if (string.IsNullOrEmpty(entry.Name))
                         {
-                            // Directory entry
+                            // Entry is a directory
                             System.IO.Directory.CreateDirectory(destinationFile);
+                            continue; // Do not count directories in progress
                         }
 
-                        else
-                        {
-                            // File entry
-                            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
-                            await Task.Run(() => entry.ExtractToFile(destinationFile, true));
-                        }
+                        // Entry is a file
+                        System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
+                        await Task.Run(() => entry.ExtractToFile(destinationFile, true));
 
+                        // Update progress bar for files
                         current++;
                         PrgImport.Value = current;
                         PrgImport.Refresh();
@@ -214,13 +227,14 @@ namespace Bolt.Forms
                         Version = "N/A",
                         Category = "N/A",
                         InstalledAt = DateTime.UtcNow,
+                        Content = modificationContent
                     };
 
                     // Save mod to current profile
                     currentProfile.Modifications.Add(currentModification);
                     GameData.Save(currentGame, $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}");
 
-                    // Populate list view (Temporary)
+                    // Populate list view (temporary)
                     LvwModifications.Items.Add(new ListViewItem(
                     [
                         string.Empty,                               // Activate
@@ -236,8 +250,7 @@ namespace Bolt.Forms
                     MessageBox.Show(
                         $"Failed to import modification \"{Path.GetFileName(selectedFile)}\":\n{ex.Message}",
                         "Error",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error
+                        MessageBoxButtons.OK
                     );
                 }
             }
@@ -252,10 +265,10 @@ namespace Bolt.Forms
                     MessageBoxIcon.Information
                 );
 
-                PrgImport.Value = 0; // Reset after success
+                // Reset after success
+                PrgImport.Value = 0;
             }
         }
-
 
         private void OnGameStarted()
         {
@@ -286,7 +299,7 @@ namespace Bolt.Forms
 
         private void OnGameLoaded(GameModel game)
         {
-            // ListView Imports
+            // Clear ListView
             LvwModifications.Items.Clear();
 
             if (game is null)
@@ -297,39 +310,100 @@ namespace Bolt.Forms
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error
                 );
-
                 return;
             }
 
-            // Panel Home Surface
+            // Enable panel
             PnlHomeSurface.Enabled = true;
 
-            // Button Run
+            // Update Run button
             BtnRun.Text = $"  {game.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
             BtnRun.Image = Icon.ExtractAssociatedIcon(game.ExecutablePath)!.ToBitmap();
 
-            // Combo Box Profiles
+            // Update profiles combo box
             CmbProfiles.Items.Clear();
             CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => p.Name)]);
             CmbProfiles.SelectedIndex = 0;
 
-            // Label Status
+            // Update status label
             LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem}";
 
-            // ListView Imports
+            // Get modifications
             var modifications = game.Profiles[CmbProfiles.SelectedIndex].Modifications;
 
+            // Create symbolic links for mods
+            CreateSymbolicLinks(modifications);
+
+            // Update UI
             foreach (var modification in modifications)
             {
-                LvwModifications.Items.Add(new ListViewItem(
+                ListViewItem value = new(
                 [
                     string.Empty,                       // Activate
                     modification.Name,                  // Name
                     modification.Version,               // Version
                     modification.Category,              // Category
                     modification.InstalledAt.ToString() // Imported On
-                ]));
+                ]);
+
+                LvwModifications.Items.Add(value);
+            }
+        }
+
+        private static void CreateSymbolicLinks(List<ModificationModel> modifications)
+        {
+            var currentGame = GameSessionService.Instance.CurrentGame!;
+
+            foreach (var modification in modifications)
+            {
+                // Base mod path
+                string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
+
+                foreach (var item in modification.Content)
+                {
+                    // Full path of the file/directory in Modifications
+                    string sourcePath = item;
+
+                    // Relative file path to the mod folder
+                    string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
+
+                    // Final path within TargetPath maintaining a folder structure
+                    string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
+
+                    // Certifies that the parent directory exists
+                    System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+
+                    try
+                    {
+                        // Backup of the original file if it exists (BUGGY)
+                        // TODO: Fix backup of symbolic links
+                        //if (File.Exists(destinationPath))
+                        //{
+                        //    string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
+                        //    System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
+                        //    File.Move(destinationPath, backupPath, true);
+                        //}
+
+                        // Create the symbolic link for directories
+                        if (System.IO.Directory.Exists(sourcePath))
+                            SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.Directory);
+
+                        // Create the symbolic link for files
+                        else if (File.Exists(sourcePath))
+                            SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.File);
+                    }
+
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(
+                            $"Failed to create symbolic link for '{sourcePath}':\n{ex.Message}",
+                            "Symbolic Link Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
             }
         }
 
@@ -338,21 +412,21 @@ namespace Bolt.Forms
             if (GameSessionService.Instance.CurrentGame is null)
                 return;
 
-            // Panel Home Surface
+            // Disable panel
             PnlHomeSurface.Enabled = false;
 
-            // Button Run
+            // Update Run button
             BtnRun.Text = "No Game Loaded";
             BtnRun.TextAlign = ContentAlignment.MiddleCenter;
             BtnRun.Image = null;
 
-            // Combo Box Profiles
+            // Clear profiles combo box
             CmbProfiles.Items.Clear();
 
-            // Label Status
+            // Reset status label
             LblStatus.Text = "Press (Ctrl + O) to open a Bolt game file, or (Ctrl + N) to create a new one.";
 
-            // ListView Imports
+            // Clear ListView
             LvwModifications.Items.Clear();
         }
 

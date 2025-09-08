@@ -7,5 +7,6 @@
         public string Version { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public DateTime InstalledAt { get; set; }
+        public List<string> Content { get; set; } = [];
     }
 }
