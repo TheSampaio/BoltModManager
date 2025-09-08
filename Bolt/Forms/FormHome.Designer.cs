@@ -49,7 +49,8 @@
             splitContainer3 = new SplitContainer();
             SplGame = new SplitContainer();
             BtnRun = new Button();
-            BtnNewProfile = new Button();
+            NewProfile = new Button();
+            BtnRemoveProfile = new Button();
             CmbProfiles = new ComboBox();
             TabGame = new TabControl();
             tabPage3 = new TabPage();
@@ -274,7 +275,8 @@
             // 
             // SplGame.Panel2
             // 
-            SplGame.Panel2.Controls.Add(BtnNewProfile);
+            SplGame.Panel2.Controls.Add(NewProfile);
+            SplGame.Panel2.Controls.Add(BtnRemoveProfile);
             SplGame.Panel2.Controls.Add(CmbProfiles);
             SplGame.Size = new Size(300, 104);
             SplGame.SplitterDistance = 64;
@@ -304,21 +306,36 @@
             BtnRun.UseVisualStyleBackColor = false;
             BtnRun.Click += BtnRun_Click;
             // 
-            // BtnNewProfile
+            // NewProfile
             // 
-            BtnNewProfile.BackgroundImage = (Image)resources.GetObject("BtnNewProfile.BackgroundImage");
-            BtnNewProfile.BackgroundImageLayout = ImageLayout.Zoom;
-            BtnNewProfile.Dock = DockStyle.Right;
-            BtnNewProfile.Font = new Font("Segoe UI", 9F);
-            BtnNewProfile.Location = new Point(268, 0);
-            BtnNewProfile.Margin = new Padding(0);
-            BtnNewProfile.MaximumSize = new Size(32, 32);
-            BtnNewProfile.MinimumSize = new Size(32, 32);
-            BtnNewProfile.Name = "BtnNewProfile";
-            BtnNewProfile.Size = new Size(32, 32);
-            BtnNewProfile.TabIndex = 1;
-            BtnNewProfile.TabStop = false;
-            BtnNewProfile.UseVisualStyleBackColor = true;
+            NewProfile.BackgroundImage = (Image)resources.GetObject("NewProfile.BackgroundImage");
+            NewProfile.BackgroundImageLayout = ImageLayout.Zoom;
+            NewProfile.Font = new Font("Segoe UI", 9F);
+            NewProfile.Location = new Point(237, 0);
+            NewProfile.Margin = new Padding(0);
+            NewProfile.MaximumSize = new Size(32, 32);
+            NewProfile.MinimumSize = new Size(32, 32);
+            NewProfile.Name = "NewProfile";
+            NewProfile.Size = new Size(32, 32);
+            NewProfile.TabIndex = 2;
+            NewProfile.TabStop = false;
+            NewProfile.UseVisualStyleBackColor = true;
+            // 
+            // BtnRemoveProfile
+            // 
+            BtnRemoveProfile.BackgroundImage = (Image)resources.GetObject("BtnRemoveProfile.BackgroundImage");
+            BtnRemoveProfile.BackgroundImageLayout = ImageLayout.Zoom;
+            BtnRemoveProfile.Dock = DockStyle.Right;
+            BtnRemoveProfile.Font = new Font("Segoe UI", 9F);
+            BtnRemoveProfile.Location = new Point(268, 0);
+            BtnRemoveProfile.Margin = new Padding(0);
+            BtnRemoveProfile.MaximumSize = new Size(32, 32);
+            BtnRemoveProfile.MinimumSize = new Size(32, 32);
+            BtnRemoveProfile.Name = "BtnRemoveProfile";
+            BtnRemoveProfile.Size = new Size(32, 32);
+            BtnRemoveProfile.TabIndex = 1;
+            BtnRemoveProfile.TabStop = false;
+            BtnRemoveProfile.UseVisualStyleBackColor = true;
             // 
             // CmbProfiles
             // 
@@ -331,7 +348,7 @@
             CmbProfiles.Location = new Point(0, 0);
             CmbProfiles.Margin = new Padding(0, 0, 1, 0);
             CmbProfiles.Name = "CmbProfiles";
-            CmbProfiles.Size = new Size(267, 31);
+            CmbProfiles.Size = new Size(236, 31);
             CmbProfiles.TabIndex = 0;
             CmbProfiles.TabStop = false;
             // 
@@ -386,7 +403,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 262;
+            splitContainer2.SplitterDistance = 234;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -399,7 +416,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 262);
+            TabPackages.Size = new Size(454, 234);
             TabPackages.TabIndex = 0;
             TabPackages.TabStop = false;
             // 
@@ -409,7 +426,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 234);
+            tabPage1.Size = new Size(446, 206);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -433,7 +450,7 @@
             // SplPackages.Panel2
             // 
             SplPackages.Panel2.Controls.Add(LvwModifications);
-            SplPackages.Size = new Size(446, 234);
+            SplPackages.Size = new Size(446, 206);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -476,7 +493,7 @@
             LvwModifications.Location = new Point(0, 0);
             LvwModifications.Margin = new Padding(0);
             LvwModifications.Name = "LvwModifications";
-            LvwModifications.Size = new Size(446, 194);
+            LvwModifications.Size = new Size(446, 166);
             LvwModifications.TabIndex = 0;
             LvwModifications.UseCompatibleStateImageBehavior = false;
             LvwModifications.View = View.Details;
@@ -510,7 +527,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 210);
+            tabControl1.Size = new Size(454, 238);
             tabControl1.TabIndex = 0;
             tabControl1.TabStop = false;
             // 
@@ -520,7 +537,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 182);
+            tabPage4.Size = new Size(446, 210);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -532,7 +549,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 182);
+            listView1.Size = new Size(446, 210);
             listView1.TabIndex = 0;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -542,7 +559,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 182);
+            tabPage5.Size = new Size(446, 210);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -670,7 +687,7 @@
         private Button BtnRun;
         private SplitContainer SplGame;
         private ComboBox CmbProfiles;
-        private Button BtnNewProfile;
+        private Button BtnRemoveProfile;
         private TabControl TabPackages;
         private TabPage tabPage1;
         private SplitContainer SplPackages;
@@ -691,5 +708,6 @@
         private ColumnHeader columnHeader3;
         private ColumnHeader columnHeader4;
         private ColumnHeader columnHeader5;
+        private Button NewProfile;
     }
 }
