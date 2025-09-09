@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmNewGame));
             BtnClose = new Button();
             BtnSave = new Button();
             panel1 = new Panel();
@@ -157,6 +158,7 @@
             Controls.Add(BtnSave);
             Controls.Add(BtnClose);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmNewGame";

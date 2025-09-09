@@ -7,10 +7,15 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ApplicationIcon>bolt-main-icon-1.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Forms\dmeob5ct.h34~" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bolt-main-icon-1.ico" />
   </ItemGroup>
 
   <ItemGroup>

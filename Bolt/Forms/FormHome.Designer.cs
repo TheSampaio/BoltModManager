@@ -403,7 +403,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 234;
+            splitContainer2.SplitterDistance = 210;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -416,7 +416,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 234);
+            TabPackages.Size = new Size(454, 210);
             TabPackages.TabIndex = 0;
             TabPackages.TabStop = false;
             // 
@@ -426,7 +426,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 206);
+            tabPage1.Size = new Size(446, 182);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -450,7 +450,7 @@
             // SplPackages.Panel2
             // 
             SplPackages.Panel2.Controls.Add(LvwModifications);
-            SplPackages.Size = new Size(446, 206);
+            SplPackages.Size = new Size(446, 182);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -493,18 +493,20 @@
             LvwModifications.Location = new Point(0, 0);
             LvwModifications.Margin = new Padding(0);
             LvwModifications.Name = "LvwModifications";
-            LvwModifications.Size = new Size(446, 166);
+            LvwModifications.Size = new Size(446, 142);
             LvwModifications.TabIndex = 0;
             LvwModifications.UseCompatibleStateImageBehavior = false;
             LvwModifications.View = View.Details;
             // 
             // columnHeader1
             // 
-            columnHeader1.Text = "Activate";
+            columnHeader1.Text = "";
+            columnHeader1.Width = 25;
             // 
             // columnHeader2
             // 
             columnHeader2.Text = "Name";
+            columnHeader2.Width = 170;
             // 
             // columnHeader3
             // 
@@ -513,10 +515,12 @@
             // columnHeader4
             // 
             columnHeader4.Text = "Category";
+            columnHeader4.Width = 65;
             // 
             // columnHeader5
             // 
             columnHeader5.Text = "Imported On";
+            columnHeader5.Width = 125;
             // 
             // tabControl1
             // 
@@ -527,7 +531,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 238);
+            tabControl1.Size = new Size(454, 262);
             tabControl1.TabIndex = 0;
             tabControl1.TabStop = false;
             // 
@@ -537,7 +541,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 210);
+            tabPage4.Size = new Size(446, 234);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -549,7 +553,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 210);
+            listView1.Size = new Size(446, 234);
             listView1.TabIndex = 0;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -559,7 +563,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 210);
+            tabPage5.Size = new Size(446, 234);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -620,6 +624,7 @@
             Controls.Add(panel2);
             Controls.Add(PnlHomeSurface);
             Controls.Add(MnsHome);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MainMenuStrip = MnsHome;
             MinimumSize = new Size(800, 600);
             Name = "FrmHome";

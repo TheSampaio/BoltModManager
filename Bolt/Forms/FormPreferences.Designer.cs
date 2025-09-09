@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmPreferences));
             panel1 = new Panel();
             BtnSave = new Button();
             BtnClose = new Button();
@@ -98,6 +99,7 @@
             Controls.Add(BtnSave);
             Controls.Add(BtnClose);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "FrmPreferences";
