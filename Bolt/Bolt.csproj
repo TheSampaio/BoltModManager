@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplicationIcon>bolt-main-icon-1.ico</ApplicationIcon>
+    <ApplicationIcon>Assets\bolt-main-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="bolt-main-icon-1.ico" />
+    <Content Include="Assets\bolt-main-icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
