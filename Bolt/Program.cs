@@ -1,19 +1,44 @@
 using Bolt.Forms;
+using Bolt.Interfaces;
+using Bolt.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Bolt
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
+        public static IServiceProvider ServiceProvider { get; private set; } = null!;
+
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new FrmHome());
+
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            ServiceProvider = services.BuildServiceProvider();
+
+            var mainForm = ServiceProvider.GetRequiredService<FrmHome>();
+            Application.Run(mainForm);
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            services.AddSingleton<IGameSessionService, GameSessionService>();
+            services.AddSingleton<IGameProcessService, GameProcessService>();
+            services.AddTransient<IModImportService, ModImportService>();
+
+            services.AddTransient<FrmHome>(provider => new FrmHome(
+                provider.GetRequiredService<IGameSessionService>(),
+                provider.GetRequiredService<IGameProcessService>(),
+                provider.GetRequiredService<IModImportService>()
+            ));
+
+            services.AddTransient<FrmNewGame>(provider => new FrmNewGame(
+                provider.GetRequiredService<IGameSessionService>()
+            ));
+
+            services.AddTransient<FrmPreferences>();
         }
     }
 }

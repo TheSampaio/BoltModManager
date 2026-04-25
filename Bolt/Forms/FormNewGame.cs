@@ -1,13 +1,16 @@
 ﻿using Bolt.Data;
 using Bolt.Models;
-using Bolt.Services;
+using Bolt.Interfaces;
 
 namespace Bolt.Forms
 {
     public partial class FrmNewGame : Form
     {
-        public FrmNewGame()
+        private readonly IGameSessionService _gameSession;
+
+        internal FrmNewGame(IGameSessionService gameSession)
         {
+            _gameSession = gameSession;
             InitializeComponent();
         }
 
@@ -45,38 +48,20 @@ namespace Bolt.Forms
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
-            // Validates if the entries are null or empty
-            if (string.IsNullOrWhiteSpace(TxyName.Value)
-                || string.IsNullOrWhiteSpace(TxyTarget.Value)
-                || string.IsNullOrWhiteSpace(TxyExecutable.Value))
+            if (string.IsNullOrWhiteSpace(TxyName.Value) || string.IsNullOrWhiteSpace(TxyTarget.Value) || string.IsNullOrWhiteSpace(TxyExecutable.Value))
             {
-                MessageBox.Show(
-                    "Please enter values for the \"Name\", \"Target\" and \"Executable\" fields before continuing.",
-                    "Invalid File",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-
+                MessageBox.Show("Please enter values for the \"Name\", \"Target\" and \"Executable\" fields before continuing.", "Invalid File", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Validates if the result location already exists
             if (Directory.Exists(TxyResultLocation.Value))
             {
-                MessageBox.Show(
-                    "A game with this name already exists in the selected location.",
-                    "Duplicate Game",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning
-                );
-
+                MessageBox.Show("A game with this name already exists in the selected location.", "Duplicate Game", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Stores the game location
             string gameLocation = TxyResultLocation.Value;
 
-            // Create a game model in memory to be serialized
             var gameModel = new GameModel
             {
                 Id = Guid.NewGuid(),
@@ -85,35 +70,19 @@ namespace Bolt.Forms
                 BackupsPath = $"{gameLocation}\\Backups",
                 ModificationsPath = $"{gameLocation}\\Modifications",
                 TargetPath = TxyTarget.Value,
-                Profiles =
-                {
-                    new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Main",
-                    }
-                }
+                Profiles = { new() { Id = Guid.NewGuid(), Name = "Main" } }
             };
 
-            // Create the necessary directories
             Directory.CreateDirectory(gameLocation);
             Directory.CreateDirectory(gameModel.BackupsPath);
             Directory.CreateDirectory(gameModel.ModificationsPath);
 
-            // Save the gameModel as "Bolt Game" file (Json)
             string gameFilePath = Path.Combine(TxyResultLocation.Value, AppData.GameFile);
             GameData.Save(gameModel, gameFilePath);
 
-            // Feedback the user and close the form
-            MessageBox.Show(
-                $"Game saved into \"{gameFilePath}\" directory.",
-                "Game File Saved",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+            MessageBox.Show($"Game saved into \"{gameFilePath}\" directory.", "Game File Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            // Load the game
-            GameSessionService.Instance.LoadGame(gameFilePath);
+            _gameSession.LoadGame(gameFilePath);
 
             Close();
         }

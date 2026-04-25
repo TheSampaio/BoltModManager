@@ -1,44 +1,52 @@
 ﻿using Bolt.Base;
 using Bolt.Data;
+using Bolt.Interfaces;
 using Bolt.Models;
-using Bolt.Services;
 using Bolt.Utilities;
-using System.IO.Compression;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Bolt.Forms
 {
     public partial class FrmHome : EventfulForm
     {
-        public FrmHome()
+        private readonly IGameSessionService _gameSession;
+        private readonly IGameProcessService _gameProcess;
+        private readonly IModImportService _modImportService;
+
+        internal FrmHome(
+            IGameSessionService gameSession,
+            IGameProcessService gameProcess,
+            IModImportService modImportService)
         {
+            _gameSession = gameSession;
+            _gameProcess = gameProcess;
+            _modImportService = modImportService;
+
             InitializeComponent();
         }
 
         protected override void InitializeEvents()
         {
-            // Game session
-            GameSessionService.Instance.GameLoaded += OnGameLoaded;
-            GameSessionService.Instance.GameUnloaded += OnGameUnloaded;
+            _gameSession.GameLoaded += OnGameLoaded;
+            _gameSession.GameUnloaded += OnGameUnloaded;
 
-            // Game process
-            GameProcessService.Instance.GameStarted += OnGameStarted;
-            GameProcessService.Instance.GameExited += OnGameExited;
+            _gameProcess.GameStarted += OnGameStarted;
+            _gameProcess.GameExited += OnGameExited;
         }
 
         protected override void TerminateEvents()
         {
-            // Game process
-            GameProcessService.Instance.GameStarted -= OnGameStarted;
-            GameProcessService.Instance.GameExited -= OnGameExited;
+            _gameProcess.GameStarted -= OnGameStarted;
+            _gameProcess.GameExited -= OnGameExited;
 
-            // Game session
-            GameSessionService.Instance.GameLoaded -= OnGameLoaded;
-            GameSessionService.Instance.GameUnloaded -= OnGameUnloaded;
+            _gameSession.GameLoaded -= OnGameLoaded;
+            _gameSession.GameUnloaded -= OnGameUnloaded;
         }
 
         private void NewGame_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ShowModalWindow(new FrmNewGame());
+            var frm = Program.ServiceProvider.GetRequiredService<FrmNewGame>();
+            ShowModalWindow(frm);
         }
 
         private void OpenGame_ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -51,374 +59,179 @@ namespace Bolt.Forms
 
             if (OfdOpenGame.ShowDialog() == DialogResult.OK)
             {
-                // Validate if it's really a .bltg file
                 if (!(Path.GetExtension(OfdOpenGame.FileName)?.ToLower() == ".bltg"))
                 {
-                    MessageBox.Show(
-                        "Please select a valid Bolt game file.",
-                        "Invalid File",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning
-                    );
-
+                    MessageBox.Show("Please select a valid Bolt game file.", "Invalid File", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                GameSessionService.Instance.LoadGame(OfdOpenGame.FileName);
+                _gameSession.LoadGame(OfdOpenGame.FileName);
             }
         }
 
-        private void QuitGame_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OnGameUnloaded();
-        }
+        private void QuitGame_ToolStripMenuItem_Click(object sender, EventArgs e) => OnGameUnloaded();
 
-        private void Quit_ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
+        private void Quit_ToolStripMenuItem_Click(object sender, EventArgs e) => Close();
 
         private void Settings_ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ShowModalWindow(new FrmPreferences());
+            var frm = Program.ServiceProvider.GetRequiredService<FrmPreferences>();
+            ShowModalWindow(frm);
         }
 
         private void BtnRun_Click(object sender, EventArgs e)
         {
-            if (GameSessionService.Instance.CurrentGame is null)
+            if (_gameSession.CurrentGame is null)
             {
-                MessageBox.Show(
-                    $"Unable to launch the game. The file \"{OfdOpenGame.FileName}\" could not be loaded.",
-                    "Game Launch Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-
+                MessageBox.Show($"Unable to launch the game.", "Game Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            // Run the current game
-            GameProcessService.Instance.RunGame(GameSessionService.Instance.CurrentGame.ExecutablePath);
+            try
+            {
+                _gameProcess.RunGame(_gameSession.CurrentGame.ExecutablePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Game Launch Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private async void BtnImport_Click(object sender, EventArgs e)
         {
-            // Configure OpenFileDialog
             OfdOpenGame.Title = "Import Modification(s)";
             OfdOpenGame.FileName = string.Empty;
             OfdOpenGame.Filter = "Zip File (*.zip)|*.zip";
-            OfdOpenGame.InitialDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads"
-            );
+            OfdOpenGame.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
             OfdOpenGame.Multiselect = true;
 
             if (OfdOpenGame.ShowDialog() != DialogResult.OK)
                 return;
 
-            var selectedFiles = OfdOpenGame.FileNames;
-            var currentGame = GameSessionService.Instance.CurrentGame!;
-            var modificationsPath = currentGame.ModificationsPath;
+            var currentGame = _gameSession.CurrentGame!;
             var currentProfile = currentGame.Profiles[CmbProfiles.SelectedIndex];
 
-            // Reset progress bar before processing
             PrgImport.Value = 0;
 
-            foreach (var selectedFile in selectedFiles)
+            int totalFiles = OfdOpenGame.FileNames.Sum(file =>
+                Path.GetExtension(file)?.ToLower() == ".zip" ? Archive.OpenRead(file).Entries.Count(x => !string.IsNullOrEmpty(x.Name)) : 0);
+
+            PrgImport.Maximum = totalFiles;
+
+            var progress = new Progress<int>(value =>
             {
-                // Validate file extension
-                if (Path.GetExtension(selectedFile)?.ToLower() != ".zip")
-                {
-                    MessageBox.Show(
-                        $"Invalid file skipped: {Path.GetFileName(selectedFile)}",
-                        "Invalid File",
-                        MessageBoxButtons.OK
-                    );
-                    continue;
-                }
+                PrgImport.Value = value;
+                PrgImport.Refresh();
+            });
 
-                try
-                {
-                    string modificationName = Path.GetFileNameWithoutExtension(selectedFile);
-                    string destinationPath = Path.Combine(modificationsPath, modificationName);
+            try
+            {
+                await _modImportService.ImportModsAsync(OfdOpenGame.FileNames, currentGame, currentProfile, progress);
 
-                    // Delete existing package folder if it exists
-                    if (System.IO.Directory.Exists(destinationPath))
-                        System.IO.Directory.Delete(destinationPath, true);
+                MessageBox.Show("All modifications processed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    // Create a subdirectory for the mod inside Modifications
-                    System.IO.Directory.CreateDirectory(destinationPath);
-
-                    using var archive = Archive.OpenRead(selectedFile);
-
-                    // Count only files for accurate progress bar
-                    int total = archive.Entries.Count(e => !string.IsNullOrEmpty(e.Name));
-                    int current = 0;
-
-                    PrgImport.Minimum = 0;
-                    PrgImport.Maximum = total;
-                    PrgImport.Value = 0;
-
-                    // Detect top-level folder
-                    string topLevelFolder = archive.Entries
-                        .Where(e => !string.IsNullOrEmpty(e.FullName) && e.FullName.Contains('/'))
-                        .Select(e => e.FullName.Split('/')[0])
-                        .FirstOrDefault() ?? string.Empty;
-
-                    // Initialize modification content list
-                    List<string> modificationContent = [];
-
-                    foreach (var entry in archive.Entries)
-                    {
-                        string relativePath = entry.FullName;
-
-                        // Trim top-level folder if needed
-                        if (!string.IsNullOrEmpty(topLevelFolder) && relativePath.StartsWith(topLevelFolder))
-                            relativePath = relativePath[topLevelFolder.Length..].TrimStart('/', '\\');
-
-                        // Normalize path (only path separators and invalid path chars)
-                        relativePath = relativePath
-                            .Replace("\r", "")
-                            .Replace("\n", "")
-                            .Trim()
-                            .Replace('/', Path.DirectorySeparatorChar)
-                            .Replace('\\', Path.DirectorySeparatorChar);
-
-                        foreach (char invalidChar in Path.GetInvalidPathChars())
-                            relativePath = relativePath.Replace(invalidChar, '_');
-
-                        string destinationFile = Path.Combine(destinationPath, relativePath);
-
-                        // Split into directory and file
-                        string directory = Path.GetDirectoryName(destinationFile)!;
-                        string fileName = Path.GetFileName(destinationFile);
-
-                        // Sanitize only the file name
-                        foreach (char invalidChar in Path.GetInvalidFileNameChars())
-                            fileName = fileName.Replace(invalidChar, '_');
-
-                        // Recombine directory and file
-                        destinationFile = Path.Combine(directory, fileName);
-
-                        if (!string.IsNullOrEmpty(relativePath))
-                            modificationContent.Add(destinationFile);
-
-                        if (string.IsNullOrEmpty(entry.Name))
-                        {
-                            // Entry is a directory
-                            System.IO.Directory.CreateDirectory(destinationFile);
-                            continue; // Do not count directories in progress
-                        }
-
-                        // Entry is a file
-                        System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationFile)!);
-                        await Task.Run(() => entry.ExtractToFile(destinationFile, true));
-
-                        // Update progress bar for files
-                        current++;
-                        PrgImport.Value = current;
-                        PrgImport.Refresh();
-                    }
-
-                    // Create modification model (once per mod)
-                    var currentModification = new ModificationModel()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = modificationName,
-                        Version = "N/A",
-                        Category = "N/A",
-                        InstalledAt = DateTime.UtcNow,
-                        Content = modificationContent
-                    };
-
-                    // Save mod to current profile
-                    string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
-                    currentProfile.Modifications.Add(currentModification);
-                    GameData.Save(currentGame, gameFilename);
-
-                    // Reload the current game
-                    GameSessionService.Instance.LoadGame(gameFilename);
-                }
-
-                catch (Exception ex)
-                {
-                    MessageBox.Show(
-                        $"Failed to import modification \"{Path.GetFileName(selectedFile)}\":\n{ex.Message}",
-                        "Error",
-                        MessageBoxButtons.OK
-                    );
-                }
+                string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
+                _gameSession.LoadGame(gameFilename);
             }
-
-            // Success message if progress bar reached max
-            if (PrgImport.Value == PrgImport.Maximum)
+            catch (Exception ex)
             {
-                MessageBox.Show(
-                    "All modifications processed successfully!",
-                    "Success",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
-
-                // Reset after success
+                MessageBox.Show($"Failed to import modifications:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
                 PrgImport.Value = 0;
             }
         }
 
         private void OnGameStarted()
         {
-            const bool ENABLE = false;
-
-            MnsHome.Enabled = ENABLE;
-            PnlHomeSurface.Enabled = ENABLE;
-
-            LblStatus.Text = $"Running - {GameSessionService.Instance.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
+            MnsHome.Enabled = false;
+            PnlHomeSurface.Enabled = false;
+            LblStatus.Text = $"Running - {_gameSession.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
         }
 
         private void OnGameExited()
         {
-            const bool ENABLE = true;
-
-            // Reinvoke this method on the UI thread
             if (InvokeRequired)
             {
                 Invoke(new Action(OnGameExited));
                 return;
             }
 
-            MnsHome.Enabled = ENABLE;
-            PnlHomeSurface.Enabled = ENABLE;
-
-            LblStatus.Text = $"Idle - {GameSessionService.Instance.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
+            MnsHome.Enabled = true;
+            PnlHomeSurface.Enabled = true;
+            LblStatus.Text = $"Idle - {_gameSession.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
         }
 
         private void OnGameLoaded(GameModel game)
         {
-            // Clear ListView
             LvwModifications.Items.Clear();
 
-            if (game is null)
-            {
-                MessageBox.Show(
-                    "Failure to load the game file.",
-                    "Invalid File",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-                return;
-            }
+            if (game is null) return;
 
-            // Enable panel
             PnlHomeSurface.Enabled = true;
-
-            // Update Run button
             BtnRun.Text = $"  {game.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
             BtnRun.Image = Icon.ExtractAssociatedIcon(game.ExecutablePath)!.ToBitmap();
 
-            // Update profiles combo box
             CmbProfiles.Items.Clear();
             CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => $"  {p.Name}")]);
-
-            //CmbProfiles.Items.Add("a");
-
             CmbProfiles.SelectedIndex = 0;
 
-            // Update status label
             LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem}";
 
-            // Get modifications
             var modifications = game.Profiles[CmbProfiles.SelectedIndex].Modifications;
-
-            // Create symbolic links for mods
             CreateSymbolicLinks(modifications);
 
-            // Update UI
             foreach (var modification in modifications)
             {
-                ListViewItem value = new(
-                [
-                    string.Empty,                       // Activate
-                    modification.Name,                  // Name
-                    modification.Version,               // Version
-                    modification.Category,              // Category
-                    modification.InstalledAt.ToString() // Imported On
+                ListViewItem value = new([
+                    string.Empty,
+                    modification.Name,
+                    modification.Version,
+                    modification.Category,
+                    modification.InstalledAt.ToString()
                 ]);
 
                 LvwModifications.Items.Add(value);
             }
         }
 
-        private static void CreateSymbolicLinks(List<ModificationModel> modifications)
+        private void CreateSymbolicLinks(List<ModificationModel> modifications)
         {
-            var currentGame = GameSessionService.Instance.CurrentGame!;
+            var currentGame = _gameSession.CurrentGame!;
 
             foreach (var modification in modifications)
             {
-                // Base mod path
                 string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
 
-                foreach (var item in modification.Content)
+                foreach (var sourcePath in modification.Content)
                 {
-                    // Full path of the file/directory in Modifications
-                    string sourcePath = item;
-
-                    // Relative file path to the mod folder
                     string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-
-                    // Final path within TargetPath maintaining a folder structure
                     string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
 
-                    // Certifies that the parent directory exists
                     System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
 
                     try
                     {
-                        // Backup of the original file if it exists (BUGGY)
-                        // TODO: Fix backup of symbolic links
-                        //if (File.Exists(destinationPath))
-                        //{
-                        //    string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
-                        //    System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
-                        //    File.Move(destinationPath, backupPath, true);
-                        //}
-
-                        // Backup original only if it's not a symlink
-                        // TODO: Fix backups of mod files inside symlinks directories
-                        if ((File.Exists(destinationPath) || System.IO.Directory.Exists(destinationPath)))
+                        if ((File.Exists(destinationPath) || System.IO.Directory.Exists(destinationPath)) && !IsSymbolicLink(destinationPath))
                         {
-                            if (!IsSymbolicLink(destinationPath))
-                            {
-                                // Backup real files or folders
-                                string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
-                                System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
+                            string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
+                            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
 
-                                if (File.Exists(destinationPath))
-                                    File.Move(destinationPath, backupPath, true);
-
-                                //else if (System.IO.Directory.Exists(destinationPath))
-                                //    System.IO.Directory.Move(destinationPath, backupPath);
-                            }
+                            if (File.Exists(destinationPath))
+                                File.Move(destinationPath, backupPath, true);
                         }
 
-                        // Create the symbolic link for directories
                         if (System.IO.Directory.Exists(sourcePath))
                             SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.Directory);
-
-                        // Create the symbolic link for files
                         else if (File.Exists(sourcePath))
                             SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.File);
                     }
-
-                    catch (IOException) { }
-
+                    catch (IOException) { /* TODO: Log system */ }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(
-                            $"Failed to create symbolic link for '{sourcePath}':\n{ex.Message}",
-                            "Symbolic Link Error",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error
-                        );
+                        MessageBox.Show($"Failed to create symlink for '{sourcePath}':\n{ex.Message}", "SymLink Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
@@ -432,24 +245,14 @@ namespace Bolt.Forms
 
         private void OnGameUnloaded()
         {
-            if (GameSessionService.Instance.CurrentGame is null)
-                return;
+            if (_gameSession.CurrentGame is null) return;
 
-            // Disable panel
             PnlHomeSurface.Enabled = false;
-
-            // Update Run button
             BtnRun.Text = "No Game Loaded";
             BtnRun.TextAlign = ContentAlignment.MiddleCenter;
             BtnRun.Image = null;
-
-            // Clear profiles combo box
             CmbProfiles.Items.Clear();
-
-            // Reset status label
             LblStatus.Text = "Press (Ctrl + O) to open a Bolt game file, or (Ctrl + N) to create a new one.";
-
-            // Clear ListView
             LvwModifications.Items.Clear();
         }
 
@@ -458,12 +261,9 @@ namespace Bolt.Forms
         private void FrmHome_Load(object sender, EventArgs e)
         {
             string? gamesPath = ModificationsData.Load();
-
-            if (!string.IsNullOrEmpty(gamesPath))
+            if (!string.IsNullOrEmpty(gamesPath) && AppData.GamesPath != gamesPath)
             {
-                // Update only if different
-                if (AppData.GamesPath != gamesPath)
-                    AppData.GamesPath = gamesPath;
+                AppData.GamesPath = gamesPath;
             }
         }
     }
