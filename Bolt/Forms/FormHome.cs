@@ -218,6 +218,10 @@ namespace Bolt.Forms
                 return;
             }
 
+            string gameFilename = $"{AppData.GamesPath}\\{game.Name}\\{AppData.GameFile}";
+            RecentGamesData.Save(gameFilename);
+            UpdateRecentMenu();
+
             PnlHomeSurface.Enabled = true;
             BtnRun.Text = $"  {game.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
@@ -284,7 +288,10 @@ namespace Bolt.Forms
                         else if (File.Exists(sourcePath))
                             SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.File);
                     }
-                    catch (IOException) { /* TODO: Log system */ }
+                    catch (IOException)
+                    {
+                        /* TODO: Log system */
+                    }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"Failed to create symlink for '{sourcePath}':\n{ex.Message}", "SymLink Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -351,12 +358,66 @@ namespace Bolt.Forms
 
         private static void ShowModalWindow(Form form) => form.ShowDialog();
 
+        private void UpdateRecentMenu()
+        {
+            recentToolStripMenuItem.DropDownItems.Clear();
+
+            var recentGames = RecentGamesData.Load();
+
+            foreach (var path in recentGames)
+            {
+                if (!File.Exists(path)) continue;
+
+                var gameName = Path.GetFileName(Path.GetDirectoryName(path)) ?? "Unknown Game";
+
+                var item = new ToolStripMenuItem(gameName)
+                {
+                    Tag = path
+                };
+
+                item.Click += (s, e) =>
+                {
+                    if (s is ToolStripMenuItem menu && menu.Tag is string gamePath)
+                        _gameSession.LoadGame(gamePath);
+                };
+
+                recentToolStripMenuItem.DropDownItems.Add(item);
+            }
+
+            if (recentToolStripMenuItem.DropDownItems.Count > 0)
+                recentToolStripMenuItem.DropDownItems.Add(new ToolStripSeparator());
+
+            var clearItem = new ToolStripMenuItem("Clear History");
+            clearItem.Enabled = recentGames.Count > 0;
+            clearItem.Click += (s, e) =>
+            {
+                RecentGamesData.Clear();
+                UpdateRecentMenu();
+            };
+
+            recentToolStripMenuItem.DropDownItems.Add(clearItem);
+        }
+
         private void FrmHome_Load(object sender, EventArgs e)
         {
             string? gamesPath = ModificationsData.Load();
 
             if (!string.IsNullOrEmpty(gamesPath) && AppData.GamesPath != gamesPath)
                 AppData.GamesPath = gamesPath;
+
+            UpdateRecentMenu();
+
+            // Load the most recent game if available
+            BeginInvoke(new Action(() =>
+            {
+                var recentGames = RecentGamesData.Load();
+                var lastGame = recentGames.FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(lastGame) && File.Exists(lastGame))
+                {
+                    _gameSession.LoadGame(lastGame);
+                }
+            }));
         }
     }
 }
