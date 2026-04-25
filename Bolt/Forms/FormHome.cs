@@ -13,6 +13,8 @@ namespace Bolt.Forms
         private readonly IGameProcessService _gameProcess;
         private readonly IModImportService _modImportService;
 
+        private bool _isLoadingMods = false;
+
         internal FrmHome(
             IGameSessionService gameSession,
             IGameProcessService gameProcess,
@@ -32,6 +34,8 @@ namespace Bolt.Forms
 
             _gameProcess.GameStarted += OnGameStarted;
             _gameProcess.GameExited += OnGameExited;
+
+            LvwModifications.ItemCheck += LvwModifications_ItemCheck;
         }
 
         protected override void TerminateEvents()
@@ -41,6 +45,46 @@ namespace Bolt.Forms
 
             _gameSession.GameLoaded -= OnGameLoaded;
             _gameSession.GameUnloaded -= OnGameUnloaded;
+
+            LvwModifications.ItemCheck -= LvwModifications_ItemCheck;
+        }
+
+        private void LvwModifications_ItemCheck(object? sender, ItemCheckEventArgs e)
+        {
+            if (_isLoadingMods)
+                return;
+
+            var item = LvwModifications.Items[e.Index];
+
+            if (item.Tag is not ModificationModel mod)
+                return;
+
+            if (e.NewValue == CheckState.Unchecked)
+            {
+                var result = MessageBox.Show(
+                    "Do you really want to disable this mod?",
+                    "Disable Mod",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.No)
+                {
+                    e.NewValue = e.CurrentValue;
+                    return;
+                }
+
+                RestoreBackups(mod);
+                mod.IsEnabled = false;
+            }
+            else if (e.NewValue == CheckState.Checked)
+            {
+                CreateSymbolicLinks([mod]);
+                mod.IsEnabled = true;
+            }
+
+            var currentGame = _gameSession.CurrentGame!;
+            string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
+            GameData.Save(currentGame, gameFilename);
         }
 
         private void NewGame_ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -147,7 +191,7 @@ namespace Bolt.Forms
         {
             MnsHome.Enabled = false;
             PnlHomeSurface.Enabled = false;
-            LblStatus.Text = $"Running - {_gameSession.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
+            LblStatus.Text = $"Running - {_gameSession.CurrentGame!.Name} - {CmbProfiles.SelectedItem!.ToString()!.Trim()}";
         }
 
         private void OnGameExited()
@@ -160,14 +204,19 @@ namespace Bolt.Forms
 
             MnsHome.Enabled = true;
             PnlHomeSurface.Enabled = true;
-            LblStatus.Text = $"Idle - {_gameSession.CurrentGame!.Name} - {CmbProfiles.SelectedItem}";
+            LblStatus.Text = $"Idle - {_gameSession.CurrentGame!.Name} - {CmbProfiles.SelectedItem!.ToString()!.Trim()}";
         }
 
         private void OnGameLoaded(GameModel game)
         {
+            _isLoadingMods = true;
             LvwModifications.Items.Clear();
 
-            if (game is null) return;
+            if (game is null)
+            {
+                _isLoadingMods = false;
+                return;
+            }
 
             PnlHomeSurface.Enabled = true;
             BtnRun.Text = $"  {game.Name}";
@@ -178,10 +227,11 @@ namespace Bolt.Forms
             CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => $"  {p.Name}")]);
             CmbProfiles.SelectedIndex = 0;
 
-            LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem}";
+            LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem!.ToString()!.Trim()}";
 
             var modifications = game.Profiles[CmbProfiles.SelectedIndex].Modifications;
-            CreateSymbolicLinks(modifications);
+
+            CreateSymbolicLinks(modifications.Where(m => m.IsEnabled).ToList());
 
             foreach (var modification in modifications)
             {
@@ -191,10 +241,16 @@ namespace Bolt.Forms
                     modification.Version,
                     modification.Category,
                     modification.InstalledAt.ToString()
-                ]);
+                ])
+                {
+                    Checked = modification.IsEnabled,
+                    Tag = modification
+                };
 
                 LvwModifications.Items.Add(value);
             }
+
+            _isLoadingMods = false;
         }
 
         private void CreateSymbolicLinks(List<ModificationModel> modifications)
@@ -237,15 +293,52 @@ namespace Bolt.Forms
             }
         }
 
+        private void RestoreBackups(ModificationModel modification)
+        {
+            var currentGame = _gameSession.CurrentGame!;
+            string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
+
+            foreach (var sourcePath in modification.Content)
+            {
+                string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
+                string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
+                string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
+
+                try
+                {
+                    if (IsSymbolicLink(destinationPath))
+                    {
+                        if (System.IO.Directory.Exists(destinationPath))
+                            System.IO.Directory.Delete(destinationPath, false);
+                        else
+                            File.Delete(destinationPath);
+                    }
+
+                    if (File.Exists(backupPath))
+                        File.Move(backupPath, destinationPath, true);
+                    else if (System.IO.Directory.Exists(backupPath))
+                        System.IO.Directory.Move(backupPath, destinationPath);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to restore original file for '{relativePath}':\n{ex.Message}", "Restore Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
         private static bool IsSymbolicLink(string path)
         {
+            if (!File.Exists(path) && !System.IO.Directory.Exists(path))
+                return false;
+
             var attributes = File.GetAttributes(path);
             return attributes.HasFlag(FileAttributes.ReparsePoint);
         }
 
         private void OnGameUnloaded()
         {
-            if (_gameSession.CurrentGame is null) return;
+            if (_gameSession.CurrentGame is null)
+                return;
 
             PnlHomeSurface.Enabled = false;
             BtnRun.Text = "No Game Loaded";
@@ -261,10 +354,9 @@ namespace Bolt.Forms
         private void FrmHome_Load(object sender, EventArgs e)
         {
             string? gamesPath = ModificationsData.Load();
+
             if (!string.IsNullOrEmpty(gamesPath) && AppData.GamesPath != gamesPath)
-            {
                 AppData.GamesPath = gamesPath;
-            }
         }
     }
 }

@@ -7,6 +7,7 @@
         public string Version { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public DateTime InstalledAt { get; set; }
+        public bool IsEnabled { get; set; } = true;
         public List<string> Content { get; set; } = [];
     }
 }
