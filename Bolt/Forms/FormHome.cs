@@ -267,6 +267,9 @@ namespace Bolt.Forms
 
                 foreach (var sourcePath in modification.Content)
                 {
+                    if (System.IO.Directory.Exists(sourcePath))
+                        continue;
+
                     string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
                     string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
 
@@ -274,18 +277,15 @@ namespace Bolt.Forms
 
                     try
                     {
-                        if ((File.Exists(destinationPath) || System.IO.Directory.Exists(destinationPath)) && !IsSymbolicLink(destinationPath))
+                        if (File.Exists(destinationPath) && !IsSymbolicLink(destinationPath))
                         {
                             string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
                             System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
 
-                            if (File.Exists(destinationPath))
-                                File.Move(destinationPath, backupPath, true);
+                            File.Move(destinationPath, backupPath, true);
                         }
 
-                        if (System.IO.Directory.Exists(sourcePath))
-                            SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.Directory);
-                        else if (File.Exists(sourcePath))
+                        if (File.Exists(sourcePath))
                             SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.File);
                     }
                     catch (IOException)
@@ -307,6 +307,9 @@ namespace Bolt.Forms
 
             foreach (var sourcePath in modification.Content)
             {
+                if (System.IO.Directory.Exists(sourcePath))
+                    continue;
+
                 string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
                 string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
                 string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
@@ -314,17 +317,10 @@ namespace Bolt.Forms
                 try
                 {
                     if (IsSymbolicLink(destinationPath))
-                    {
-                        if (System.IO.Directory.Exists(destinationPath))
-                            System.IO.Directory.Delete(destinationPath, false);
-                        else
-                            File.Delete(destinationPath);
-                    }
+                        File.Delete(destinationPath);
 
                     if (File.Exists(backupPath))
                         File.Move(backupPath, destinationPath, true);
-                    else if (System.IO.Directory.Exists(backupPath))
-                        System.IO.Directory.Move(backupPath, destinationPath);
                 }
                 catch (Exception ex)
                 {
