@@ -1,21 +1,20 @@
 ﻿using Bolt.Data;
 using Bolt.Models;
+using Bolt.Interfaces;
 
 namespace Bolt.Services
 {
-    internal class GameSessionService : IDisposable
+    internal class GameSessionService : IGameSessionService
     {
         public event Action<GameModel>? GameLoaded;
         public event Action? GameUnloaded;
-        public GameModel? CurrentGame => _currentGame;
-        public static GameSessionService Instance => _instance.Value;
 
+        public GameModel? CurrentGame => _currentGame;
         private GameModel? _currentGame;
-        private static readonly Lazy<GameSessionService> _instance = new(() => new GameSessionService());
+
 
         public void LoadGame(string path)
         {
-            // Forces to unload the current game before load another
             if (_currentGame is not null)
                 UnloadGame();
 

@@ -2,7 +2,13 @@
 {
     public class EventfulForm : Form
     {
-        protected EventfulForm() => InitializeEvents();
+        protected EventfulForm() { }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            InitializeEvents();
+        }
 
         protected override void Dispose(bool disposing)
         {
