@@ -272,6 +272,7 @@ namespace Bolt.Forms
         private void CreateSymbolicLinks(List<ModificationModel> modifications)
         {
             var currentGame = _gameSession.CurrentGame!;
+            var operations = new List<LinkOperationModel>();
 
             foreach (var modification in modifications)
             {
@@ -279,65 +280,75 @@ namespace Bolt.Forms
 
                 foreach (var sourcePath in modification.Content)
                 {
-                    if (System.IO.Directory.Exists(sourcePath))
-                        continue;
+                    if (System.IO.Directory.Exists(sourcePath)) continue;
 
                     string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-                    string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
 
-                    System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-
-                    try
+                    operations.Add(new LinkOperationModel
                     {
-                        if (File.Exists(destinationPath) && !IsSymbolicLink(destinationPath))
-                        {
-                            string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
-                            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
-
-                            File.Move(destinationPath, backupPath, true);
-                        }
-
-                        if (File.Exists(sourcePath))
-                            SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.File);
-                    }
-                    catch (IOException)
-                    {
-                        /* TODO: Log system */
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Failed to create symlink for '{sourcePath}':\n{ex.Message}", "SymLink Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                        Action = "Link",
+                        SourcePath = sourcePath,
+                        DestinationPath = Path.Combine(currentGame.TargetPath, relativePath),
+                        BackupPath = Path.Combine(currentGame.BackupsPath, relativePath)
+                    });
                 }
             }
+
+            ExecuteElevatedHelper(operations);
         }
 
         private void RestoreBackups(ModificationModel modification)
         {
             var currentGame = _gameSession.CurrentGame!;
             string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
+            var operations = new List<LinkOperationModel>();
 
             foreach (var sourcePath in modification.Content)
             {
-                if (System.IO.Directory.Exists(sourcePath))
-                    continue;
+                if (System.IO.Directory.Exists(sourcePath)) continue;
 
                 string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-                string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
-                string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
 
-                try
+                operations.Add(new LinkOperationModel
                 {
-                    if (IsSymbolicLink(destinationPath))
-                        File.Delete(destinationPath);
+                    Action = "Restore",
+                    DestinationPath = Path.Combine(currentGame.TargetPath, relativePath),
+                    BackupPath = Path.Combine(currentGame.BackupsPath, relativePath)
+                });
+            }
 
-                    if (File.Exists(backupPath))
-                        File.Move(backupPath, destinationPath, true);
-                }
-                catch (Exception ex)
+            ExecuteElevatedHelper(operations);
+        }
+
+        private static void ExecuteElevatedHelper(List<LinkOperationModel> operations)
+        {
+            if (operations.Count == 0) return;
+
+            // Usando a sua classe Json já existente para criar o arquivo de comunicação
+            string manifestPath = Path.Combine(Path.GetTempPath(), $"BoltManifest_{Guid.NewGuid():N}.json");
+            Json.Serialize(operations, manifestPath);
+
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    MessageBox.Show($"Failed to restore original file for '{relativePath}':\n{ex.Message}", "Restore Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                    FileName = Environment.ProcessPath, // Chama o próprio Bolt.exe
+                    Arguments = $"--elevated-helper \"{manifestPath}\"",
+                    UseShellExecute = true,
+                    Verb = "runas", // Solicita a tela do UAC exatamente aqui
+                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+                };
+
+                using var process = System.Diagnostics.Process.Start(psi);
+
+                // A UI do app principal vai aguardar (congelar) até o UAC ser aprovado e os links serem criados.
+                // Se preferir não congelar a UI principal, pode transformar esse método em async e usar await process.WaitForExitAsync()
+                process?.WaitForExit();
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                MessageBox.Show("A elevação de privilégios foi cancelada pelo usuário. Os mods não foram aplicados corretamente.", "Operação Cancelada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                if (File.Exists(manifestPath)) File.Delete(manifestPath);
             }
         }
 
