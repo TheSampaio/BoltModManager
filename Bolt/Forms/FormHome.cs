@@ -322,9 +322,9 @@ namespace Bolt.Forms
 
         private static void ExecuteElevatedHelper(List<LinkOperationModel> operations)
         {
-            if (operations.Count == 0) return;
+            if (operations.Count == 0)
+                return;
 
-            // Usando a sua classe Json já existente para criar o arquivo de comunicação
             string manifestPath = Path.Combine(Path.GetTempPath(), $"BoltManifest_{Guid.NewGuid():N}.json");
             Json.Serialize(operations, manifestPath);
 
@@ -332,7 +332,7 @@ namespace Bolt.Forms
             {
                 var psi = new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = Environment.ProcessPath, // Chama o próprio Bolt.exe
+                    FileName = Environment.ProcessPath,
                     Arguments = $"--elevated-helper \"{manifestPath}\"",
                     UseShellExecute = true,
                     Verb = "runas", // Solicita a tela do UAC exatamente aqui
@@ -341,8 +341,6 @@ namespace Bolt.Forms
 
                 using var process = System.Diagnostics.Process.Start(psi);
 
-                // A UI do app principal vai aguardar (congelar) até o UAC ser aprovado e os links serem criados.
-                // Se preferir não congelar a UI principal, pode transformar esse método em async e usar await process.WaitForExitAsync()
                 process?.WaitForExit();
             }
             catch (System.ComponentModel.Win32Exception)
