@@ -156,14 +156,15 @@
             // 
             recentToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { clearHistoryToolStripMenuItem });
             recentToolStripMenuItem.Name = "recentToolStripMenuItem";
+            recentToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.R;
             recentToolStripMenuItem.Size = new Size(182, 22);
             recentToolStripMenuItem.Text = "Recent";
             // 
             // clearHistoryToolStripMenuItem
             // 
             clearHistoryToolStripMenuItem.Name = "clearHistoryToolStripMenuItem";
-            clearHistoryToolStripMenuItem.Size = new Size(140, 22);
-            clearHistoryToolStripMenuItem.Text = "Clear history";
+            clearHistoryToolStripMenuItem.Size = new Size(142, 22);
+            clearHistoryToolStripMenuItem.Text = "Clear History";
             // 
             // toolStripSeparator2
             // 
@@ -308,6 +309,7 @@
             // 
             // NewProfile
             // 
+            NewProfile.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             NewProfile.BackgroundImage = (Image)resources.GetObject("NewProfile.BackgroundImage");
             NewProfile.BackgroundImageLayout = ImageLayout.Zoom;
             NewProfile.Font = new Font("Segoe UI", 9F);
@@ -342,13 +344,13 @@
             CmbProfiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             CmbProfiles.DropDownStyle = ComboBoxStyle.DropDownList;
             CmbProfiles.DropDownWidth = 256;
-            CmbProfiles.Font = new Font("Segoe UI", 13F);
+            CmbProfiles.Font = new Font("Segoe UI", 12F);
             CmbProfiles.FormattingEnabled = true;
             CmbProfiles.IntegralHeight = false;
-            CmbProfiles.Location = new Point(0, 0);
+            CmbProfiles.Location = new Point(0, 1);
             CmbProfiles.Margin = new Padding(0, 0, 1, 0);
             CmbProfiles.Name = "CmbProfiles";
-            CmbProfiles.Size = new Size(236, 31);
+            CmbProfiles.Size = new Size(236, 29);
             CmbProfiles.TabIndex = 0;
             CmbProfiles.TabStop = false;
             // 
@@ -403,7 +405,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 210;
+            splitContainer2.SplitterDistance = 186;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -416,7 +418,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 210);
+            TabPackages.Size = new Size(454, 186);
             TabPackages.TabIndex = 0;
             TabPackages.TabStop = false;
             // 
@@ -426,7 +428,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 182);
+            tabPage1.Size = new Size(446, 158);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -450,7 +452,7 @@
             // SplPackages.Panel2
             // 
             SplPackages.Panel2.Controls.Add(LvwModifications);
-            SplPackages.Size = new Size(446, 182);
+            SplPackages.Size = new Size(446, 158);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -493,7 +495,7 @@
             LvwModifications.Location = new Point(0, 0);
             LvwModifications.Margin = new Padding(0);
             LvwModifications.Name = "LvwModifications";
-            LvwModifications.Size = new Size(446, 142);
+            LvwModifications.Size = new Size(446, 118);
             LvwModifications.TabIndex = 0;
             LvwModifications.UseCompatibleStateImageBehavior = false;
             LvwModifications.View = View.Details;
@@ -531,7 +533,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 262);
+            tabControl1.Size = new Size(454, 286);
             tabControl1.TabIndex = 0;
             tabControl1.TabStop = false;
             // 
@@ -541,7 +543,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 234);
+            tabPage4.Size = new Size(446, 258);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -553,7 +555,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 234);
+            listView1.Size = new Size(446, 258);
             listView1.TabIndex = 0;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -563,7 +565,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 234);
+            tabPage5.Size = new Size(446, 258);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
