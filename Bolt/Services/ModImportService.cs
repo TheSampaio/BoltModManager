@@ -1,6 +1,5 @@
-﻿using Bolt.Data;
+﻿using Bolt.Interfaces;
 using Bolt.Models;
-using Bolt.Interfaces;
 using Bolt.Utilities;
 using System.IO.Compression;
 
@@ -10,74 +9,52 @@ namespace Bolt.Services
     {
         public async Task ImportModsAsync(string[] zipFiles, GameModel currentGame, ProfileModel currentProfile, IProgress<int> progress)
         {
-            var modificationsPath = currentGame.ModificationsPath;
+            int progressCount = 0;
 
-            foreach (var selectedFile in zipFiles)
+            await Task.Run(() =>
             {
-                if (Path.GetExtension(selectedFile)?.ToLower() != ".zip")
-                    continue;
-
-                string modificationName = Path.GetFileNameWithoutExtension(selectedFile);
-                string destinationPath = Path.Combine(modificationsPath, modificationName);
-
-                if (System.IO.Directory.Exists(destinationPath))
-                    System.IO.Directory.Delete(destinationPath, true);
-
-                System.IO.Directory.CreateDirectory(destinationPath);
-
-                using var archive = Archive.OpenRead(selectedFile);
-
-                int current = 0;
-                List<string> modificationContent = [];
-
-                foreach (var entry in archive.Entries)
+                foreach (var zipFile in zipFiles)
                 {
-                    if (string.IsNullOrEmpty(entry.Name))
+                    if (Path.GetExtension(zipFile)?.ToLower() != ".zip")
                         continue;
 
-                    string relativePath = entry.FullName
-                        .Replace("\r", "")
-                        .Replace("\n", "")
-                        .Trim()
-                        .Replace('/', Path.DirectorySeparatorChar)
-                        .Replace('\\', Path.DirectorySeparatorChar);
+                    string modName = Path.GetFileNameWithoutExtension(zipFile);
+                    string modExtractedPath = Path.Combine(currentGame.ModificationsPath, modName);
 
-                    foreach (char invalidChar in Path.GetInvalidPathChars())
-                        relativePath = relativePath.Replace(invalidChar, '_');
+                    var modification = new ModificationModel
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = modName,
+                        Version = "N/A",
+                        Category = "N/A",
+                        InstalledAt = DateTime.Now,
+                        IsEnabled = true
+                    };
 
-                    string destinationFile = Path.Combine(destinationPath, relativePath);
-                    string directory = Path.GetDirectoryName(destinationFile)!;
-                    string fileName = Path.GetFileName(destinationFile);
+                    using var archive = Archive.OpenRead(zipFile);
+                    foreach (var entry in archive.Entries)
+                    {
+                        if (string.IsNullOrEmpty(entry.Name))
+                            continue;
 
-                    foreach (char invalidChar in Path.GetInvalidFileNameChars())
-                        fileName = fileName.Replace(invalidChar, '_');
+                        string destinationPath = Path.GetFullPath(Path.Combine(modExtractedPath, entry.FullName));
 
-                    destinationFile = Path.Combine(directory, fileName);
+                        if (!destinationPath.StartsWith(modExtractedPath, StringComparison.OrdinalIgnoreCase))
+                            continue;
 
-                    System.IO.Directory.CreateDirectory(directory);
+                        System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                        entry.ExtractToFile(destinationPath, overwrite: true);
 
-                    await Task.Run(() => entry.ExtractToFile(destinationFile, true));
+                        modification.Content.Add(destinationPath);
 
-                    modificationContent.Add(destinationFile);
+                        progressCount++;
+                        progress.Report(progressCount);
+                    }
 
-                    current++;
-                    progress.Report(current);
+                    currentProfile.Modifications.RemoveAll(m => m.Name.Equals(modName, StringComparison.OrdinalIgnoreCase));
+                    currentProfile.Modifications.Add(modification);
                 }
-
-                var currentModification = new ModificationModel()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = modificationName,
-                    Version = "N/A",
-                    Category = "N/A",
-                    InstalledAt = DateTime.UtcNow,
-                    Content = modificationContent
-                };
-
-                currentProfile.Modifications.Add(currentModification);
-                string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
-                GameData.Save(currentGame, gameFilename);
-            }
+            });
         }
     }
 }

@@ -10,8 +10,14 @@ namespace Bolt
         public static IServiceProvider ServiceProvider { get; private set; } = null!;
 
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            if (args.Length == 2 && args[0] == "--elevated-helper")
+            {
+                new ElevatedOperationService().ExecuteManifest(args[1]);
+                return;
+            }
+
             ApplicationConfiguration.Initialize();
 
             var services = new ServiceCollection();
@@ -27,11 +33,14 @@ namespace Bolt
             services.AddSingleton<IGameSessionService, GameSessionService>();
             services.AddSingleton<IGameProcessService, GameProcessService>();
             services.AddTransient<IModImportService, ModImportService>();
+            services.AddTransient<IModDeploymentService, ModDeploymentService>();
+            services.AddTransient<IElevatedOperationService, ElevatedOperationService>();
 
             services.AddTransient<FrmHome>(provider => new FrmHome(
                 provider.GetRequiredService<IGameSessionService>(),
                 provider.GetRequiredService<IGameProcessService>(),
-                provider.GetRequiredService<IModImportService>()
+                provider.GetRequiredService<IModImportService>(),
+                provider.GetRequiredService<IModDeploymentService>()
             ));
 
             services.AddTransient<FrmNewGame>(provider => new FrmNewGame(

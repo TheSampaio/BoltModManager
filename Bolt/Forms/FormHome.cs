@@ -12,17 +12,20 @@ namespace Bolt.Forms
         private readonly IGameSessionService _gameSession;
         private readonly IGameProcessService _gameProcess;
         private readonly IModImportService _modImportService;
+        private readonly IModDeploymentService _modDeployment;
 
         private bool _isLoadingMods = false;
 
         internal FrmHome(
             IGameSessionService gameSession,
             IGameProcessService gameProcess,
-            IModImportService modImportService)
+            IModImportService modImportService,
+            IModDeploymentService modDeployment)
         {
             _gameSession = gameSession;
             _gameProcess = gameProcess;
             _modImportService = modImportService;
+            _modDeployment = modDeployment;
 
             InitializeComponent();
         }
@@ -36,6 +39,7 @@ namespace Bolt.Forms
             _gameProcess.GameExited += OnGameExited;
 
             LvwModifications.ItemCheck += LvwModifications_ItemCheck;
+            LvwModifications.KeyDown += LvwModifications_KeyDown;
         }
 
         protected override void TerminateEvents()
@@ -47,6 +51,84 @@ namespace Bolt.Forms
             _gameSession.GameUnloaded -= OnGameUnloaded;
 
             LvwModifications.ItemCheck -= LvwModifications_ItemCheck;
+            LvwModifications.KeyDown -= LvwModifications_KeyDown;
+        }
+
+        private void LvwModifications_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete)
+            {
+                DeleteSelectedModification();
+            }
+        }
+
+        private void EnableToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            ToggleSelectedModifications(true);
+        }
+
+        private void DisableToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            ToggleSelectedModifications(false);
+        }
+
+        private void DeleteToolStripMenuItem_Click(object? sender, EventArgs e)
+        {
+            DeleteSelectedModification();
+        }
+
+        private void DeleteSelectedModification()
+        {
+            if (_isLoadingMods || LvwModifications.SelectedItems.Count == 0)
+                return;
+
+            var selectedItems = LvwModifications.SelectedItems.Cast<ListViewItem>().ToList();
+            var modsToDelete = selectedItems.Select(i => (ModificationModel)i.Tag!).ToList();
+
+            var currentGame = _gameSession.CurrentGame!;
+            var currentProfile = currentGame.Profiles[CmbProfiles.SelectedIndex];
+
+            string prompt = modsToDelete.Count == 1
+                ? $"Are you sure you want to delete '{modsToDelete[0].Name}'?"
+                : $"Are you sure you want to delete {modsToDelete.Count} modifications?";
+
+            var result = MessageBox.Show(prompt, "Delete Modification(s)", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (result == DialogResult.No)
+                return;
+
+            var activeModsToDelete = modsToDelete.Where(m => m.IsEnabled).ToList();
+
+            if (activeModsToDelete.Count > 0)
+            {
+                if (!_modDeployment.RevertModifications(currentGame, activeModsToDelete))
+                    return;
+            }
+
+            foreach (var mod in modsToDelete)
+            {
+                currentProfile.Modifications.Remove(mod);
+
+                string modDirectory = Path.Combine(currentGame.ModificationsPath, mod.Name);
+
+                if (System.IO.Directory.Exists(modDirectory))
+                {
+                    try
+                    {
+                        System.IO.Directory.Delete(modDirectory, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Failed to remove modification files for '{mod.Name}':\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+
+            foreach (var item in selectedItems)
+                LvwModifications.Items.Remove(item);
+
+            string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
+            GameData.Save(currentGame, gameFilename);
         }
 
         private void LvwModifications_ItemCheck(object? sender, ItemCheckEventArgs e)
@@ -58,6 +140,8 @@ namespace Bolt.Forms
 
             if (item.Tag is not ModificationModel mod)
                 return;
+
+            var currentGame = _gameSession.CurrentGame!;
 
             if (e.NewValue == CheckState.Unchecked)
             {
@@ -74,16 +158,25 @@ namespace Bolt.Forms
                     return;
                 }
 
-                RestoreBackups(mod);
+                if (!_modDeployment.RevertModification(currentGame, mod))
+                {
+                    e.NewValue = e.CurrentValue;
+                    return;
+                }
+
                 mod.IsEnabled = false;
             }
             else if (e.NewValue == CheckState.Checked)
             {
-                CreateSymbolicLinks([mod]);
+                if (!_modDeployment.DeployModification(currentGame, mod))
+                {
+                    e.NewValue = e.CurrentValue;
+                    return;
+                }
+
                 mod.IsEnabled = true;
             }
 
-            var currentGame = _gameSession.CurrentGame!;
             string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
             GameData.Save(currentGame, gameFilename);
         }
@@ -159,24 +252,26 @@ namespace Bolt.Forms
             PrgImport.Value = 0;
 
             int totalFiles = OfdOpenGame.FileNames.Sum(file =>
-                Path.GetExtension(file)?.ToLower() == ".zip" ? Archive.OpenRead(file).Entries.Count(x => !string.IsNullOrEmpty(x.Name)) : 0);
+                Path.GetExtension(file)?.ToLower() == ".zip" ? Bolt.Utilities.Archive.OpenRead(file).Entries.Count(x => !string.IsNullOrEmpty(x.Name)) : 0);
 
             PrgImport.Maximum = totalFiles;
 
-            var progress = new Progress<int>(value =>
+            var progress = new SyncProgress<int>(value =>
             {
                 PrgImport.Value = value;
                 PrgImport.Refresh();
-            });
+            }, this);
 
             try
             {
                 await _modImportService.ImportModsAsync(OfdOpenGame.FileNames, currentGame, currentProfile, progress);
 
-                MessageBox.Show("All modifications processed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
                 string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
+                GameData.Save(currentGame, gameFilename);
+
                 _gameSession.LoadGame(gameFilename);
+
+                MessageBox.Show("All modifications processed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -246,8 +341,10 @@ namespace Bolt.Forms
             LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem!.ToString()!.Trim()}";
 
             var modifications = game.Profiles[CmbProfiles.SelectedIndex].Modifications;
+            var activeMods = modifications.Where(m => m.IsEnabled).ToList();
 
-            CreateSymbolicLinks([.. modifications.Where(m => m.IsEnabled)]);
+            if (activeMods.Count > 0)
+                _modDeployment.DeployModifications(game, activeMods);
 
             foreach (var modification in modifications)
             {
@@ -267,87 +364,6 @@ namespace Bolt.Forms
             }
 
             _isLoadingMods = false;
-        }
-
-        private void CreateSymbolicLinks(List<ModificationModel> modifications)
-        {
-            var currentGame = _gameSession.CurrentGame!;
-
-            foreach (var modification in modifications)
-            {
-                string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
-
-                foreach (var sourcePath in modification.Content)
-                {
-                    if (System.IO.Directory.Exists(sourcePath))
-                        continue;
-
-                    string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-                    string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
-
-                    System.IO.Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-
-                    try
-                    {
-                        if (File.Exists(destinationPath) && !IsSymbolicLink(destinationPath))
-                        {
-                            string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
-                            System.IO.Directory.CreateDirectory(Path.GetDirectoryName(backupPath)!);
-
-                            File.Move(destinationPath, backupPath, true);
-                        }
-
-                        if (File.Exists(sourcePath))
-                            SymbolicLink.Create(destinationPath, sourcePath, Enums.SymbolicLinkType.File);
-                    }
-                    catch (IOException)
-                    {
-                        /* TODO: Log system */
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Failed to create symlink for '{sourcePath}':\n{ex.Message}", "SymLink Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
-
-        private void RestoreBackups(ModificationModel modification)
-        {
-            var currentGame = _gameSession.CurrentGame!;
-            string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
-
-            foreach (var sourcePath in modification.Content)
-            {
-                if (System.IO.Directory.Exists(sourcePath))
-                    continue;
-
-                string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-                string destinationPath = Path.Combine(currentGame.TargetPath, relativePath);
-                string backupPath = Path.Combine(currentGame.BackupsPath, relativePath);
-
-                try
-                {
-                    if (IsSymbolicLink(destinationPath))
-                        File.Delete(destinationPath);
-
-                    if (File.Exists(backupPath))
-                        File.Move(backupPath, destinationPath, true);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Failed to restore original file for '{relativePath}':\n{ex.Message}", "Restore Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-            }
-        }
-
-        private static bool IsSymbolicLink(string path)
-        {
-            if (!File.Exists(path) && !System.IO.Directory.Exists(path))
-                return false;
-
-            var attributes = File.GetAttributes(path);
-            return attributes.HasFlag(FileAttributes.ReparsePoint);
         }
 
         private void OnGameUnloaded()
@@ -417,17 +433,54 @@ namespace Bolt.Forms
 
             UpdateRecentMenu();
 
-            // Load the most recent game if available
             BeginInvoke(new Action(() =>
             {
                 var recentGames = RecentGamesData.Load();
                 var lastGame = recentGames.FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(lastGame) && File.Exists(lastGame))
-                {
                     _gameSession.LoadGame(lastGame);
-                }
             }));
+        }
+
+        private void ToggleSelectedModifications(bool enable)
+        {
+            if (_isLoadingMods || LvwModifications.SelectedItems.Count == 0)
+                return;
+
+            var selectedItems = LvwModifications.SelectedItems.Cast<ListViewItem>().ToList();
+
+            var modsToToggle = selectedItems
+                .Select(i => (ModificationModel)i.Tag!)
+                .Where(m => m.IsEnabled != enable)
+                .ToList();
+
+            if (modsToToggle.Count == 0)
+                return;
+
+            var currentGame = _gameSession.CurrentGame!;
+            bool success = enable
+                ? _modDeployment.DeployModifications(currentGame, modsToToggle)
+                : _modDeployment.RevertModifications(currentGame, modsToToggle);
+
+            if (!success)
+                return;
+
+            _isLoadingMods = true;
+
+            foreach (var item in selectedItems)
+            {
+                if (item.Tag is ModificationModel mod && mod.IsEnabled != enable)
+                {
+                    mod.IsEnabled = enable;
+                    item.Checked = enable;
+                }
+            }
+
+            _isLoadingMods = false;
+
+            string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
+            GameData.Save(currentGame, gameFilename);
         }
     }
 }
