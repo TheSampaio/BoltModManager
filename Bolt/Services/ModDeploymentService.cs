@@ -1,4 +1,5 @@
-﻿using Bolt.Interfaces;
+﻿// ==== D:\DevelopmentLibrary\Apps\BoltModManager\Bolt\Services\ModDeploymentService.cs ====
+using Bolt.Interfaces;
 using Bolt.Models;
 using Bolt.Utilities;
 
@@ -25,12 +26,16 @@ namespace Bolt.Services
                         continue;
 
                     string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
+                    string destinationPath = Path.Combine(game.TargetPath, relativePath);
+
+                    if (IsSymbolicLink(destinationPath))
+                        continue;
 
                     operations.Add(new LinkOperationModel
                     {
                         Action = "Link",
                         SourcePath = sourcePath,
-                        DestinationPath = Path.Combine(game.TargetPath, relativePath),
+                        DestinationPath = destinationPath,
                         BackupPath = Path.Combine(game.BackupsPath, relativePath)
                     });
                 }
@@ -58,17 +63,31 @@ namespace Bolt.Services
                         continue;
 
                     string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
+                    string destinationPath = Path.Combine(game.TargetPath, relativePath);
+                    string backupPath = Path.Combine(game.BackupsPath, relativePath);
+
+                    if (!IsSymbolicLink(destinationPath) && !File.Exists(backupPath))
+                        continue;
 
                     operations.Add(new LinkOperationModel
                     {
                         Action = "Restore",
-                        DestinationPath = Path.Combine(game.TargetPath, relativePath),
-                        BackupPath = Path.Combine(game.BackupsPath, relativePath)
+                        DestinationPath = destinationPath,
+                        BackupPath = backupPath
                     });
                 }
             }
 
             return ExecuteElevatedHelper(operations);
+        }
+
+        private static bool IsSymbolicLink(string path)
+        {
+            if (!File.Exists(path) && !System.IO.Directory.Exists(path))
+                return false;
+
+            var attributes = File.GetAttributes(path);
+            return attributes.HasFlag(FileAttributes.ReparsePoint);
         }
 
         private static bool ExecuteElevatedHelper(List<LinkOperationModel> operations)

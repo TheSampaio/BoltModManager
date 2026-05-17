@@ -26,7 +26,7 @@ namespace Bolt.Services
                         Id = Guid.NewGuid(),
                         Name = modName,
                         Version = "N/A",
-                        Category = "Imported",
+                        Category = "N/A",
                         InstalledAt = DateTime.Now,
                         IsEnabled = true
                     };
