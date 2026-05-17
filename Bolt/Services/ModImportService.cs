@@ -25,7 +25,7 @@ namespace Bolt.Services
                     {
                         Id = Guid.NewGuid(),
                         Name = modName,
-                        Version = "1.0",
+                        Version = "N/A",
                         Category = "Imported",
                         InstalledAt = DateTime.Now,
                         IsEnabled = true

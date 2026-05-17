@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmHome));
             MnsHome = new MenuStrip();
             fileToolStripMenuItem = new ToolStripMenuItem();
@@ -67,6 +68,11 @@
             columnHeader3 = new ColumnHeader();
             columnHeader4 = new ColumnHeader();
             columnHeader5 = new ColumnHeader();
+            CtxModifications = new ContextMenuStrip(components);
+            enableToolStripMenuItem = new ToolStripMenuItem();
+            disableToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator3 = new ToolStripSeparator();
+            deleteToolStripMenuItem = new ToolStripMenuItem();
             tabControl1 = new TabControl();
             tabPage4 = new TabPage();
             listView1 = new ListView();
@@ -100,6 +106,7 @@
             SplPackages.Panel1.SuspendLayout();
             SplPackages.Panel2.SuspendLayout();
             SplPackages.SuspendLayout();
+            CtxModifications.SuspendLayout();
             tabControl1.SuspendLayout();
             tabPage4.SuspendLayout();
             PnlHomeSurface.SuspendLayout();
@@ -490,6 +497,7 @@
             LvwModifications.BorderStyle = BorderStyle.None;
             LvwModifications.CheckBoxes = true;
             LvwModifications.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2, columnHeader3, columnHeader4, columnHeader5 });
+            LvwModifications.ContextMenuStrip = CtxModifications;
             LvwModifications.Dock = DockStyle.Fill;
             LvwModifications.FullRowSelect = true;
             LvwModifications.Location = new Point(0, 0);
@@ -523,6 +531,38 @@
             // 
             columnHeader5.Text = "Imported On";
             columnHeader5.Width = 125;
+            // 
+            // CtxModifications
+            // 
+            CtxModifications.Items.AddRange(new ToolStripItem[] { enableToolStripMenuItem, disableToolStripMenuItem, toolStripSeparator3, deleteToolStripMenuItem });
+            CtxModifications.Name = "CtxModifications";
+            CtxModifications.Size = new Size(113, 76);
+            // 
+            // enableToolStripMenuItem
+            // 
+            enableToolStripMenuItem.Name = "enableToolStripMenuItem";
+            enableToolStripMenuItem.Size = new Size(112, 22);
+            enableToolStripMenuItem.Text = "Enable";
+            enableToolStripMenuItem.Click += EnableToolStripMenuItem_Click;
+            // 
+            // disableToolStripMenuItem
+            // 
+            disableToolStripMenuItem.Name = "disableToolStripMenuItem";
+            disableToolStripMenuItem.Size = new Size(112, 22);
+            disableToolStripMenuItem.Text = "Disable";
+            disableToolStripMenuItem.Click += DisableToolStripMenuItem_Click;
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new Size(109, 6);
+            // 
+            // deleteToolStripMenuItem
+            // 
+            deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+            deleteToolStripMenuItem.Size = new Size(112, 22);
+            deleteToolStripMenuItem.Text = "Delete";
+            deleteToolStripMenuItem.Click += DeleteToolStripMenuItem_Click;
             // 
             // tabControl1
             // 
@@ -659,6 +699,7 @@
             SplPackages.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)SplPackages).EndInit();
             SplPackages.ResumeLayout(false);
+            CtxModifications.ResumeLayout(false);
             tabControl1.ResumeLayout(false);
             tabPage4.ResumeLayout(false);
             PnlHomeSurface.ResumeLayout(false);
@@ -715,6 +756,11 @@
         private ColumnHeader columnHeader3;
         private ColumnHeader columnHeader4;
         private ColumnHeader columnHeader5;
+        private ContextMenuStrip CtxModifications;
+        private ToolStripMenuItem enableToolStripMenuItem;
+        private ToolStripMenuItem disableToolStripMenuItem;
+        private ToolStripSeparator toolStripSeparator3;
+        private ToolStripMenuItem deleteToolStripMenuItem;
         private Button NewProfile;
     }
 }

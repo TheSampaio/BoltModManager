@@ -41,22 +41,31 @@ namespace Bolt.Services
 
         public bool RevertModification(GameModel game, ModificationModel modification)
         {
+            return RevertModifications(game, [modification]);
+        }
+
+        public bool RevertModifications(GameModel game, IEnumerable<ModificationModel> modifications)
+        {
             var operations = new List<LinkOperationModel>();
-            string modBasePath = Path.Combine(game.ModificationsPath, modification.Name);
 
-            foreach (var sourcePath in modification.Content)
+            foreach (var modification in modifications)
             {
-                if (System.IO.Directory.Exists(sourcePath))
-                    continue;
+                string modBasePath = Path.Combine(game.ModificationsPath, modification.Name);
 
-                string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-
-                operations.Add(new LinkOperationModel
+                foreach (var sourcePath in modification.Content)
                 {
-                    Action = "Restore",
-                    DestinationPath = Path.Combine(game.TargetPath, relativePath),
-                    BackupPath = Path.Combine(game.BackupsPath, relativePath)
-                });
+                    if (System.IO.Directory.Exists(sourcePath))
+                        continue;
+
+                    string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
+
+                    operations.Add(new LinkOperationModel
+                    {
+                        Action = "Restore",
+                        DestinationPath = Path.Combine(game.TargetPath, relativePath),
+                        BackupPath = Path.Combine(game.BackupsPath, relativePath)
+                    });
+                }
             }
 
             return ExecuteElevatedHelper(operations);
@@ -89,7 +98,9 @@ namespace Bolt.Services
             catch (System.ComponentModel.Win32Exception)
             {
                 MessageBox.Show("Privilege elevation was canceled by the user. The modifications were not applied.", "Operation Canceled", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                if (File.Exists(manifestPath)) File.Delete(manifestPath);
+
+                if (File.Exists(manifestPath))
+                    File.Delete(manifestPath);
 
                 return false;
             }
