@@ -65,7 +65,8 @@ namespace Bolt.Forms
                     "Do you really want to disable this mod?",
                     "Disable Mod",
                     MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
+                    MessageBoxIcon.Question
+                );
 
                 if (result == DialogResult.No)
                 {
@@ -225,7 +226,18 @@ namespace Bolt.Forms
             PnlHomeSurface.Enabled = true;
             BtnRun.Text = $"  {game.Name}";
             BtnRun.TextAlign = ContentAlignment.MiddleLeft;
-            BtnRun.Image = Icon.ExtractAssociatedIcon(game.ExecutablePath)!.ToBitmap();
+
+            try
+            {
+                var icon = Icon.ExtractAssociatedIcon(game.ExecutablePath);
+
+                if (icon is not null)
+                    BtnRun.Image = icon.ToBitmap();
+            }
+            catch (FileNotFoundException ex)
+            {
+                MessageBox.Show($"Game executable not found:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
 
             CmbProfiles.Items.Clear();
             CmbProfiles.Items.AddRange([.. game.Profiles.Select(p => $"  {p.Name}")]);
@@ -235,7 +247,7 @@ namespace Bolt.Forms
 
             var modifications = game.Profiles[CmbProfiles.SelectedIndex].Modifications;
 
-            CreateSymbolicLinks(modifications.Where(m => m.IsEnabled).ToList());
+            CreateSymbolicLinks([.. modifications.Where(m => m.IsEnabled)]);
 
             foreach (var modification in modifications)
             {
@@ -383,8 +395,10 @@ namespace Bolt.Forms
             if (recentToolStripMenuItem.DropDownItems.Count > 0)
                 recentToolStripMenuItem.DropDownItems.Add(new ToolStripSeparator());
 
-            var clearItem = new ToolStripMenuItem("Clear History");
-            clearItem.Enabled = recentGames.Count > 0;
+            var clearItem = new ToolStripMenuItem("Clear History")
+            {
+                Enabled = recentGames.Count > 0
+            };
             clearItem.Click += (s, e) =>
             {
                 RecentGamesData.Clear();
