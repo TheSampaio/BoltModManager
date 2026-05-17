@@ -2,7 +2,6 @@
 using Bolt.Data;
 using Bolt.Interfaces;
 using Bolt.Models;
-using Bolt.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Bolt.Forms
@@ -12,17 +11,20 @@ namespace Bolt.Forms
         private readonly IGameSessionService _gameSession;
         private readonly IGameProcessService _gameProcess;
         private readonly IModImportService _modImportService;
+        private readonly IModDeploymentService _modDeployment;
 
         private bool _isLoadingMods = false;
 
         internal FrmHome(
             IGameSessionService gameSession,
             IGameProcessService gameProcess,
-            IModImportService modImportService)
+            IModImportService modImportService,
+            IModDeploymentService modDeployment)
         {
             _gameSession = gameSession;
             _gameProcess = gameProcess;
             _modImportService = modImportService;
+            _modDeployment = modDeployment;
 
             InitializeComponent();
         }
@@ -59,6 +61,8 @@ namespace Bolt.Forms
             if (item.Tag is not ModificationModel mod)
                 return;
 
+            var currentGame = _gameSession.CurrentGame!;
+
             if (e.NewValue == CheckState.Unchecked)
             {
                 var result = MessageBox.Show(
@@ -74,16 +78,25 @@ namespace Bolt.Forms
                     return;
                 }
 
-                RestoreBackups(mod);
+                if (!_modDeployment.RevertModification(currentGame, mod))
+                {
+                    e.NewValue = e.CurrentValue;
+                    return;
+                }
+
                 mod.IsEnabled = false;
             }
             else if (e.NewValue == CheckState.Checked)
             {
-                CreateSymbolicLinks([mod]);
+                if (!_modDeployment.DeployModification(currentGame, mod))
+                {
+                    e.NewValue = e.CurrentValue;
+                    return;
+                }
+
                 mod.IsEnabled = true;
             }
 
-            var currentGame = _gameSession.CurrentGame!;
             string gameFilename = $"{AppData.GamesPath}\\{currentGame.Name}\\{AppData.GameFile}";
             GameData.Save(currentGame, gameFilename);
         }
@@ -159,7 +172,7 @@ namespace Bolt.Forms
             PrgImport.Value = 0;
 
             int totalFiles = OfdOpenGame.FileNames.Sum(file =>
-                Path.GetExtension(file)?.ToLower() == ".zip" ? Archive.OpenRead(file).Entries.Count(x => !string.IsNullOrEmpty(x.Name)) : 0);
+                Path.GetExtension(file)?.ToLower() == ".zip" ? Bolt.Utilities.Archive.OpenRead(file).Entries.Count(x => !string.IsNullOrEmpty(x.Name)) : 0);
 
             PrgImport.Maximum = totalFiles;
 
@@ -246,8 +259,10 @@ namespace Bolt.Forms
             LblStatus.Text = $"Idle - {game.Name} - {CmbProfiles.SelectedItem!.ToString()!.Trim()}";
 
             var modifications = game.Profiles[CmbProfiles.SelectedIndex].Modifications;
+            var activeMods = modifications.Where(m => m.IsEnabled).ToList();
 
-            CreateSymbolicLinks([.. modifications.Where(m => m.IsEnabled)]);
+            if (activeMods.Count > 0)
+                _modDeployment.DeployModifications(game, activeMods);
 
             foreach (var modification in modifications)
             {
@@ -267,96 +282,6 @@ namespace Bolt.Forms
             }
 
             _isLoadingMods = false;
-        }
-
-        private void CreateSymbolicLinks(List<ModificationModel> modifications)
-        {
-            var currentGame = _gameSession.CurrentGame!;
-            var operations = new List<LinkOperationModel>();
-
-            foreach (var modification in modifications)
-            {
-                string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
-
-                foreach (var sourcePath in modification.Content)
-                {
-                    if (System.IO.Directory.Exists(sourcePath)) continue;
-
-                    string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-
-                    operations.Add(new LinkOperationModel
-                    {
-                        Action = "Link",
-                        SourcePath = sourcePath,
-                        DestinationPath = Path.Combine(currentGame.TargetPath, relativePath),
-                        BackupPath = Path.Combine(currentGame.BackupsPath, relativePath)
-                    });
-                }
-            }
-
-            ExecuteElevatedHelper(operations);
-        }
-
-        private void RestoreBackups(ModificationModel modification)
-        {
-            var currentGame = _gameSession.CurrentGame!;
-            string modBasePath = Path.Combine(currentGame.ModificationsPath, modification.Name);
-            var operations = new List<LinkOperationModel>();
-
-            foreach (var sourcePath in modification.Content)
-            {
-                if (System.IO.Directory.Exists(sourcePath)) continue;
-
-                string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-
-                operations.Add(new LinkOperationModel
-                {
-                    Action = "Restore",
-                    DestinationPath = Path.Combine(currentGame.TargetPath, relativePath),
-                    BackupPath = Path.Combine(currentGame.BackupsPath, relativePath)
-                });
-            }
-
-            ExecuteElevatedHelper(operations);
-        }
-
-        private static void ExecuteElevatedHelper(List<LinkOperationModel> operations)
-        {
-            if (operations.Count == 0)
-                return;
-
-            string manifestPath = Path.Combine(Path.GetTempPath(), $"BoltManifest_{Guid.NewGuid():N}.json");
-            Json.Serialize(operations, manifestPath);
-
-            try
-            {
-                var psi = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = Environment.ProcessPath,
-                    Arguments = $"--elevated-helper \"{manifestPath}\"",
-                    UseShellExecute = true,
-                    Verb = "runas", // Solicita a tela do UAC exatamente aqui
-                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
-                };
-
-                using var process = System.Diagnostics.Process.Start(psi);
-
-                process?.WaitForExit();
-            }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                MessageBox.Show("A elevação de privilégios foi cancelada pelo usuário. Os mods não foram aplicados corretamente.", "Operação Cancelada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                if (File.Exists(manifestPath)) File.Delete(manifestPath);
-            }
-        }
-
-        private static bool IsSymbolicLink(string path)
-        {
-            if (!File.Exists(path) && !System.IO.Directory.Exists(path))
-                return false;
-
-            var attributes = File.GetAttributes(path);
-            return attributes.HasFlag(FileAttributes.ReparsePoint);
         }
 
         private void OnGameUnloaded()
@@ -426,16 +351,13 @@ namespace Bolt.Forms
 
             UpdateRecentMenu();
 
-            // Load the most recent game if available
             BeginInvoke(new Action(() =>
             {
                 var recentGames = RecentGamesData.Load();
                 var lastGame = recentGames.FirstOrDefault();
 
                 if (!string.IsNullOrEmpty(lastGame) && File.Exists(lastGame))
-                {
                     _gameSession.LoadGame(lastGame);
-                }
             }));
         }
     }
