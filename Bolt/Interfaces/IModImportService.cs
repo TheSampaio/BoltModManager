@@ -2,7 +2,7 @@
 
 namespace Bolt.Interfaces
 {
-    internal interface IModImportService
+    public interface IModImportService
     {
         /// <summary>
         /// Imports modifications from zip files, extracts them, and updates the profile.

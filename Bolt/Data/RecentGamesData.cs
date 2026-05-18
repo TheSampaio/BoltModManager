@@ -26,7 +26,7 @@ namespace Bolt.Data
             list.Insert(0, gamePath);
 
             if (list.Count > MaxRecentGames)
-                list = list.Take(MaxRecentGames).ToList();
+                list = [.. list.Take(MaxRecentGames)];
 
             Json.Write(_KEY, string.Join('|', list), AppData.PreferencesFile);
         }

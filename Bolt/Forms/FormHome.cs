@@ -4,6 +4,7 @@ using Bolt.Interfaces;
 using Bolt.Models;
 using Bolt.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Bolt.Forms
 {
@@ -13,19 +14,22 @@ namespace Bolt.Forms
         private readonly IGameProcessService _gameProcess;
         private readonly IModImportService _modImportService;
         private readonly IModDeploymentService _modDeployment;
+        private readonly AppConfig _appConfig;
 
         private bool _isLoadingMods = false;
 
-        internal FrmHome(
+        public FrmHome(
             IGameSessionService gameSession,
             IGameProcessService gameProcess,
             IModImportService modImportService,
-            IModDeploymentService modDeployment)
+            IModDeploymentService modDeployment,
+            IOptions<AppConfig> appConfigOptions)
         {
             _gameSession = gameSession;
             _gameProcess = gameProcess;
             _modImportService = modImportService;
             _modDeployment = modDeployment;
+            _appConfig = appConfigOptions.Value;
 
             InitializeComponent();
         }
@@ -426,9 +430,14 @@ namespace Bolt.Forms
 
         private void FrmHome_Load(object sender, EventArgs e)
         {
+            label2.Text = _appConfig.Version;
+
             string? gamesPath = ModificationsData.Load();
 
-            if (!string.IsNullOrEmpty(gamesPath) && AppData.GamesPath != gamesPath)
+            if (string.IsNullOrEmpty(gamesPath))
+                gamesPath = _appConfig.DefaultGamesPath;
+
+            if (AppData.GamesPath != gamesPath)
                 AppData.GamesPath = gamesPath;
 
             UpdateRecentMenu();

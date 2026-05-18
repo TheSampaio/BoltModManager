@@ -1,6 +1,6 @@
 ﻿namespace Bolt.Interfaces
 {
-    internal interface IGameProcessService : IDisposable
+    public interface IGameProcessService : IDisposable
     {
         bool IsRunning { get; }
         event Action? GameStarted;

@@ -8,7 +8,7 @@ namespace Bolt.Forms
     {
         private readonly IGameSessionService _gameSession;
 
-        internal FrmNewGame(IGameSessionService gameSession)
+        public FrmNewGame(IGameSessionService gameSession)
         {
             _gameSession = gameSession;
             InitializeComponent();

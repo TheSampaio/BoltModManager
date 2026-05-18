@@ -1,6 +1,6 @@
 ﻿namespace Bolt.Models
 {
-    internal class ProfileModel
+    public class ProfileModel
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
