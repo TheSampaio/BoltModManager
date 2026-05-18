@@ -1,6 +1,6 @@
 ﻿namespace Bolt.Models
 {
-    internal class ModificationModel
+    public class ModificationModel
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;

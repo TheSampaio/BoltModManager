@@ -1,6 +1,8 @@
 using Bolt.Forms;
 using Bolt.Interfaces;
 using Bolt.Services;
+using Bolt.Utilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Bolt
@@ -8,6 +10,7 @@ namespace Bolt
     internal static class Program
     {
         public static IServiceProvider ServiceProvider { get; private set; } = null!;
+        public static IConfiguration Configuration { get; private set; } = null!;
 
         [STAThread]
         static void Main(string[] args)
@@ -20,6 +23,12 @@ namespace Bolt
 
             ApplicationConfiguration.Initialize();
 
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(System.IO.Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+            Configuration = builder.Build();
+
             var services = new ServiceCollection();
             ConfigureServices(services);
             ServiceProvider = services.BuildServiceProvider();
@@ -30,23 +39,17 @@ namespace Bolt
 
         private static void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(Configuration);
+            services.Configure<AppConfig>(Configuration.GetSection("AppConfig"));
+
             services.AddSingleton<IGameSessionService, GameSessionService>();
             services.AddSingleton<IGameProcessService, GameProcessService>();
             services.AddTransient<IModImportService, ModImportService>();
             services.AddTransient<IModDeploymentService, ModDeploymentService>();
             services.AddTransient<IElevatedOperationService, ElevatedOperationService>();
 
-            services.AddTransient<FrmHome>(provider => new FrmHome(
-                provider.GetRequiredService<IGameSessionService>(),
-                provider.GetRequiredService<IGameProcessService>(),
-                provider.GetRequiredService<IModImportService>(),
-                provider.GetRequiredService<IModDeploymentService>()
-            ));
-
-            services.AddTransient<FrmNewGame>(provider => new FrmNewGame(
-                provider.GetRequiredService<IGameSessionService>()
-            ));
-
+            services.AddTransient<FrmHome>();
+            services.AddTransient<FrmNewGame>();
             services.AddTransient<FrmPreferences>();
         }
     }

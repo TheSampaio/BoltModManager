@@ -2,7 +2,7 @@
 
 namespace Bolt.Interfaces
 {
-    internal interface IGameSessionService : IDisposable
+    public interface IGameSessionService : IDisposable
     {
         event Action<GameModel>? GameLoaded;
         event Action? GameUnloaded;

@@ -2,7 +2,7 @@
 
 namespace Bolt.Interfaces
 {
-    internal interface IModDeploymentService
+    public interface IModDeploymentService
     {
         bool DeployModification(GameModel game, ModificationModel modification);
         bool DeployModifications(GameModel game, IEnumerable<ModificationModel> modifications);

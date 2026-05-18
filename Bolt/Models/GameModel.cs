@@ -1,6 +1,6 @@
 ﻿namespace Bolt.Models
 {
-    internal class GameModel
+    public class GameModel
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
