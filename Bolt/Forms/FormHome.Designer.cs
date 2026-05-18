@@ -412,7 +412,7 @@
             splitContainer2.Panel2.Controls.Add(tabControl1);
             splitContainer2.Panel2MinSize = 200;
             splitContainer2.Size = new Size(454, 480);
-            splitContainer2.SplitterDistance = 186;
+            splitContainer2.SplitterDistance = 158;
             splitContainer2.SplitterWidth = 8;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
@@ -425,7 +425,7 @@
             TabPackages.Margin = new Padding(0);
             TabPackages.Name = "TabPackages";
             TabPackages.SelectedIndex = 0;
-            TabPackages.Size = new Size(454, 186);
+            TabPackages.Size = new Size(454, 158);
             TabPackages.TabIndex = 0;
             TabPackages.TabStop = false;
             // 
@@ -435,7 +435,7 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Margin = new Padding(0);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(446, 158);
+            tabPage1.Size = new Size(446, 130);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Packages";
             tabPage1.UseVisualStyleBackColor = true;
@@ -459,7 +459,7 @@
             // SplPackages.Panel2
             // 
             SplPackages.Panel2.Controls.Add(LvwModifications);
-            SplPackages.Size = new Size(446, 158);
+            SplPackages.Size = new Size(446, 130);
             SplPackages.SplitterDistance = 32;
             SplPackages.SplitterWidth = 8;
             SplPackages.TabIndex = 0;
@@ -503,7 +503,7 @@
             LvwModifications.Location = new Point(0, 0);
             LvwModifications.Margin = new Padding(0);
             LvwModifications.Name = "LvwModifications";
-            LvwModifications.Size = new Size(446, 118);
+            LvwModifications.Size = new Size(446, 90);
             LvwModifications.TabIndex = 0;
             LvwModifications.UseCompatibleStateImageBehavior = false;
             LvwModifications.View = View.Details;
@@ -573,7 +573,7 @@
             tabControl1.Margin = new Padding(0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(454, 286);
+            tabControl1.Size = new Size(454, 314);
             tabControl1.TabIndex = 0;
             tabControl1.TabStop = false;
             // 
@@ -583,7 +583,7 @@
             tabPage4.Location = new Point(4, 24);
             tabPage4.Margin = new Padding(0);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(446, 258);
+            tabPage4.Size = new Size(446, 286);
             tabPage4.TabIndex = 0;
             tabPage4.Text = "About";
             tabPage4.UseVisualStyleBackColor = true;
@@ -595,7 +595,7 @@
             listView1.Location = new Point(0, 0);
             listView1.Margin = new Padding(0);
             listView1.Name = "listView1";
-            listView1.Size = new Size(446, 258);
+            listView1.Size = new Size(446, 286);
             listView1.TabIndex = 0;
             listView1.TabStop = false;
             listView1.UseCompatibleStateImageBehavior = false;
@@ -605,7 +605,7 @@
             tabPage5.Location = new Point(4, 24);
             tabPage5.Name = "tabPage5";
             tabPage5.Padding = new Padding(3);
-            tabPage5.Size = new Size(446, 258);
+            tabPage5.Size = new Size(446, 286);
             tabPage5.TabIndex = 1;
             tabPage5.Text = "Files";
             tabPage5.UseVisualStyleBackColor = true;
@@ -635,15 +635,14 @@
             // label2
             // 
             label2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 10F);
             label2.ForeColor = SystemColors.WindowFrame;
-            label2.Location = new Point(734, 6);
+            label2.Location = new Point(642, 6);
             label2.Name = "label2";
-            label2.Size = new Size(39, 19);
+            label2.Size = new Size(131, 19);
             label2.TabIndex = 0;
-            label2.Text = "0.1.0";
-            label2.TextAlign = ContentAlignment.MiddleLeft;
+            label2.Text = "YYY.MM.DD.NUM.L";
+            label2.TextAlign = ContentAlignment.MiddleRight;
             // 
             // LblStatus
             // 
