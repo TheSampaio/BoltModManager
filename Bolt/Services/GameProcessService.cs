@@ -1,65 +1,110 @@
-﻿using System.Diagnostics;
-using Bolt.Interfaces;
+using System.ComponentModel;
+using System.Diagnostics;
+using Bolt.Core;
+using Bolt.Core.Abstractions;
 
-namespace Bolt.Services
+namespace Bolt.Services;
+
+/// <summary>
+/// Starts the game executable and reports when it exits.
+/// </summary>
+/// <remarks>
+/// The process is only observed, never terminated: closing Bolt must not close a game the user is
+/// still playing. The exit handler is detached and the process disposed to avoid leaking handles
+/// across launches.
+/// </remarks>
+internal sealed class GameProcessService : IGameProcessService
 {
-    internal class GameProcessService : IGameProcessService
+    private readonly object _gate = new();
+
+    private Process? _process;
+
+    public event Action? GameStarted;
+    public event Action? GameExited;
+
+    public bool IsRunning
     {
-        public bool IsRunning => _process is not null && !_process.HasExited;
-
-        public event Action? GameStarted;
-        public event Action? GameExited;
-        private Process? _process;
-
-        public void RunGame(string executablePath)
+        get
         {
-            if (IsRunning)
-                throw new InvalidOperationException("A game is already running. Please close it before starting another instance.");
+            lock (_gate)
+                return _process is { HasExited: false };
+        }
+    }
 
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = executablePath,
-                WorkingDirectory = Path.GetDirectoryName(executablePath),
-                UseShellExecute = true
-            };
+    public OperationResult Run(string executablePath)
+    {
+        if (string.IsNullOrWhiteSpace(executablePath))
+            return OperationResult.Failure("This game has no executable configured.");
 
-            _process = Process.Start(startInfo);
+        if (!File.Exists(executablePath))
+            return OperationResult.Failure($"The executable \"{executablePath}\" was not found.");
 
-            if (_process is null)
-                throw new InvalidOperationException("Failed to start the game process. Please check the executable path.");
+        if (IsRunning)
+            return OperationResult.Failure("The game is already running.");
 
-            _process.EnableRaisingEvents = true;
-            _process.Exited += (s, e) =>
-            {
-                _process = null;
-                GameExited?.Invoke();
-            };
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = executablePath,
+            WorkingDirectory = Path.GetDirectoryName(executablePath),
+            UseShellExecute = true
+        };
 
-            GameStarted?.Invoke();
+        Process? process;
+
+        try
+        {
+            process = Process.Start(startInfo);
+        }
+        catch (Win32Exception ex)
+        {
+            return OperationResult.Failure($"The game could not be started: {ex.Message}");
         }
 
-        public void CloseGame()
+        if (process is null)
+            return OperationResult.Failure("The game could not be started.");
+
+        lock (_gate)
         {
-            if (_process is null || _process.HasExited)
+            _process = process;
+            process.EnableRaisingEvents = true;
+            process.Exited += OnProcessExited;
+        }
+
+        GameStarted?.Invoke();
+
+        return OperationResult.Success();
+    }
+
+    private void OnProcessExited(object? sender, EventArgs e)
+    {
+        lock (_gate)
+        {
+            if (sender is not Process process || !ReferenceEquals(process, _process))
                 return;
 
-            try
-            {
-                _process.Kill();
-                _process.WaitForExit();
-            }
-            finally
-            {
-                _process = null;
-                GameExited?.Invoke();
-            }
+            Detach();
         }
 
-        public void Dispose()
-        {
-            CloseGame();
-            GameStarted = null;
-            GameExited = null;
-        }
+        GameExited?.Invoke();
+    }
+
+    /// <summary>Releases the tracked process. Must be called while holding <see cref="_gate"/>.</summary>
+    private void Detach()
+    {
+        if (_process is null)
+            return;
+
+        _process.Exited -= OnProcessExited;
+        _process.Dispose();
+        _process = null;
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+            Detach();
+
+        GameStarted = null;
+        GameExited = null;
     }
 }
