@@ -1,128 +1,141 @@
-﻿// ==== D:\DevelopmentLibrary\Apps\BoltModManager\Bolt\Services\ModDeploymentService.cs ====
-using Bolt.Interfaces;
-using Bolt.Models;
-using Bolt.Utilities;
+using Bolt.Core;
+using Bolt.Core.Abstractions;
+using Bolt.Core.Models;
+using Bolt.Infrastructure.Native;
 
-namespace Bolt.Services
+namespace Bolt.Services;
+
+/// <summary>
+/// Turns the desired state of a profile into file system operations and applies them.
+/// </summary>
+/// <remarks>
+/// A single planner builds every batch, so enabling, disabling, deleting and re-importing all
+/// follow the exact same rules and need at most one elevation prompt. Operations that would not
+/// change anything are dropped, which makes an unnecessary synchronisation completely free.
+/// </remarks>
+internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IModDeploymentService
 {
-    internal class ModDeploymentService : IModDeploymentService
+    private readonly ILinkOperationExecutor _executor = executor;
+
+    public OperationResult Synchronize(GameSession session, IReadOnlyCollection<Modification>? removed = null)
     {
-        public bool DeployModification(GameModel game, ModificationModel modification)
-        {
-            return DeployModifications(game, [modification]);
-        }
+        ArgumentNullException.ThrowIfNull(session);
 
-        public bool DeployModifications(GameModel game, IEnumerable<ModificationModel> modifications)
-        {
-            var operations = new List<LinkOperationModel>();
+        var modifications = session.ActiveProfile.Modifications;
 
-            foreach (var modification in modifications)
+        var reverted = modifications.Where(m => !m.IsEnabled);
+
+        if (removed is { Count: > 0 })
+            reverted = reverted.Concat(removed);
+
+        return _executor.Apply(BuildPlan(session, modifications.Where(m => m.IsEnabled), reverted));
+    }
+
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> FindConflicts(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        var owners = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var modification in session.ActiveProfile.Modifications.Where(m => m.IsEnabled))
+        {
+            foreach (var relativePath in modification.Content)
             {
-                string modBasePath = Path.Combine(game.ModificationsPath, modification.Name);
+                if (!owners.TryGetValue(relativePath, out var claimants))
+                    owners[relativePath] = claimants = [];
 
-                foreach (var sourcePath in modification.Content)
-                {
-                    if (System.IO.Directory.Exists(sourcePath))
-                        continue;
-
-                    string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-                    string destinationPath = Path.Combine(game.TargetPath, relativePath);
-
-                    if (IsSymbolicLink(destinationPath))
-                        continue;
-
-                    operations.Add(new LinkOperationModel
-                    {
-                        Action = "Link",
-                        SourcePath = sourcePath,
-                        DestinationPath = destinationPath,
-                        BackupPath = Path.Combine(game.BackupsPath, relativePath)
-                    });
-                }
+                claimants.Add(modification.Name);
             }
-
-            return ExecuteElevatedHelper(operations);
         }
 
-        public bool RevertModification(GameModel game, ModificationModel modification)
+        return owners
+            .Where(pair => pair.Value.Count > 1)
+            .ToDictionary(pair => pair.Key, pair => (IReadOnlyList<string>)pair.Value, StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Builds the operations that make the game folder match the requested state.
+    /// </summary>
+    /// <param name="enabled">Modifications whose files must be linked. Later entries win.</param>
+    /// <param name="reverted">
+    /// Modifications whose files must be unlinked, except where <paramref name="enabled"/> still
+    /// claims them.
+    /// </param>
+    private static List<LinkOperation> BuildPlan(
+        GameSession session,
+        IEnumerable<Modification> enabled,
+        IEnumerable<Modification> reverted)
+    {
+        // Relative path -> owning modification. Overwriting keeps the last modification in profile
+        // order as the winner, matching the conflict report shown to the user.
+        var links = new Dictionary<string, Modification>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var modification in enabled)
         {
-            return RevertModifications(game, [modification]);
+            foreach (var relativePath in modification.Content)
+                links[relativePath] = modification;
         }
 
-        public bool RevertModifications(GameModel game, IEnumerable<ModificationModel> modifications)
-        {
-            var operations = new List<LinkOperationModel>();
+        var restores = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var modification in modifications)
+        foreach (var modification in reverted)
+        {
+            foreach (var relativePath in modification.Content)
             {
-                string modBasePath = Path.Combine(game.ModificationsPath, modification.Name);
-
-                foreach (var sourcePath in modification.Content)
-                {
-                    if (System.IO.Directory.Exists(sourcePath))
-                        continue;
-
-                    string relativePath = Path.GetRelativePath(modBasePath, sourcePath);
-                    string destinationPath = Path.Combine(game.TargetPath, relativePath);
-                    string backupPath = Path.Combine(game.BackupsPath, relativePath);
-
-                    if (!IsSymbolicLink(destinationPath) && !File.Exists(backupPath))
-                        continue;
-
-                    operations.Add(new LinkOperationModel
-                    {
-                        Action = "Restore",
-                        DestinationPath = destinationPath,
-                        BackupPath = backupPath
-                    });
-                }
+                if (!links.ContainsKey(relativePath))
+                    restores.Add(relativePath);
             }
-
-            return ExecuteElevatedHelper(operations);
         }
 
-        private static bool IsSymbolicLink(string path)
-        {
-            if (!File.Exists(path) && !System.IO.Directory.Exists(path))
-                return false;
+        var operations = new List<LinkOperation>(links.Count + restores.Count);
 
-            var attributes = File.GetAttributes(path);
-            return attributes.HasFlag(FileAttributes.ReparsePoint);
+        foreach (var relativePath in restores)
+        {
+            var destinationPath = Path.Combine(session.Game.TargetPath, relativePath);
+            var backupPath = Path.Combine(session.BackupsPath, relativePath);
+
+            if (!SymbolicLink.IsLink(destinationPath) && !File.Exists(backupPath))
+                continue;
+
+            operations.Add(new LinkOperation
+            {
+                Action = LinkAction.Restore,
+                DestinationPath = destinationPath,
+                BackupPath = backupPath
+            });
         }
 
-        private static bool ExecuteElevatedHelper(List<LinkOperationModel> operations)
+        foreach (var (relativePath, modification) in links)
         {
-            if (operations.Count == 0)
-                return true;
+            var sourcePath = Path.Combine(session.GetModificationPath(modification), relativePath);
+            var destinationPath = Path.Combine(session.Game.TargetPath, relativePath);
 
-            string manifestPath = Path.Combine(Path.GetTempPath(), $"BoltManifest_{Guid.NewGuid():N}.json");
-            Json.Serialize(operations, manifestPath);
+            if (IsLinkedTo(destinationPath, sourcePath))
+                continue;
 
-            try
+            operations.Add(new LinkOperation
             {
-                var psi = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = Environment.ProcessPath,
-                    Arguments = $"--elevated-helper \"{manifestPath}\"",
-                    UseShellExecute = true,
-                    Verb = "runas",
-                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
-                };
+                Action = LinkAction.Link,
+                SourcePath = sourcePath,
+                DestinationPath = destinationPath,
+                BackupPath = Path.Combine(session.BackupsPath, relativePath)
+            });
+        }
 
-                using var process = System.Diagnostics.Process.Start(psi);
-                process?.WaitForExit();
+        return operations;
+    }
 
-                return true;
-            }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                MessageBox.Show("Privilege elevation was canceled by the user. The modifications were not applied.", "Operation Canceled", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-
-                if (File.Exists(manifestPath))
-                    File.Delete(manifestPath);
-
-                return false;
-            }
+    /// <summary>True when <paramref name="path"/> already links to <paramref name="target"/>.</summary>
+    private static bool IsLinkedTo(string path, string target)
+    {
+        try
+        {
+            return File.ResolveLinkTarget(path, returnFinalTarget: false) is { } linkTarget
+                && Path.GetFullPath(linkTarget.FullName).Equals(Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
         }
     }
 }
