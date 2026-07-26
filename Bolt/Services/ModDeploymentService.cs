@@ -128,6 +128,12 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
     /// <summary>True when <paramref name="path"/> already links to <paramref name="target"/>.</summary>
     private static bool IsLinkedTo(string path, string target)
     {
+        // ResolveLinkTarget throws FileNotFoundException for every destination which has not been
+        // deployed yet. Check the reparse-point attribute first so enabling a modification does
+        // not use exceptions as the normal path for each new file.
+        if (!SymbolicLink.IsLink(path))
+            return false;
+
         try
         {
             return File.ResolveLinkTarget(path, returnFinalTarget: false) is { } linkTarget

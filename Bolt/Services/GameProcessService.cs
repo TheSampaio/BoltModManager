@@ -66,11 +66,18 @@ internal sealed class GameProcessService : IGameProcessService
         lock (_gate)
         {
             _process = process;
-            process.EnableRaisingEvents = true;
             process.Exited += OnProcessExited;
         }
 
         GameStarted?.Invoke();
+
+        // Start observing only after subscribers know that the game started. Otherwise a process
+        // which exits immediately can publish GameExited before GameStarted and leave the UI locked.
+        lock (_gate)
+        {
+            if (ReferenceEquals(process, _process))
+                process.EnableRaisingEvents = true;
+        }
 
         return OperationResult.Success();
     }

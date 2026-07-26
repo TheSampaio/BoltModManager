@@ -26,6 +26,7 @@ internal sealed partial class MainForm
 
     private readonly ToolTip _toolTip = new();
 
+    private Panel _content = null!;
     private MenuStrip _menu = null!;
     private ToolStripMenuItem _recentMenuItem = null!;
     private ToolStripMenuItem _closeGameMenuItem = null!;
@@ -77,19 +78,19 @@ internal sealed partial class MainForm
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = AppTheme.Colors.Background;
 
-        var content = new Panel
+        _content = new Panel
         {
             Dock = DockStyle.Fill,
             BackColor = AppTheme.Colors.Background,
             Padding = new Padding(AppTheme.Spacing.Large)
         };
 
-        content.Controls.Add(BuildWorkspace());
-        content.Controls.Add(BuildSidebar());
+        _content.Controls.Add(BuildWorkspace());
+        _content.Controls.Add(BuildSidebar());
 
         // Docked children are laid out from the last to the first, so the filling panel is added
         // first and the menu last to keep it pinned to the top edge.
-        Controls.AddRange([content, BuildStatusBar(), BuildMenu()]);
+        Controls.AddRange([_content, BuildStatusBar(), BuildMenu()]);
 
         MainMenuStrip = _menu;
 
