@@ -5,7 +5,6 @@ using System.Windows.Forms;
 using Bolt.Core;
 using Bolt.Core.Abstractions;
 using Bolt.Core.Models;
-using Bolt.Infrastructure.Native;
 using Bolt.UI.Theme;
 
 namespace Bolt.UI.Forms;
@@ -90,9 +89,7 @@ internal sealed partial class MainForm : ThemedForm
     {
         base.OnLoad(e);
 
-        _versionLabel.Text = SymbolicLink.CanCreateWithoutElevation
-            ? $"v{_version}  ·  direct linking"
-            : $"v{_version}  ·  elevation required";
+        _versionLabel.Text = $"v{_version}";
 
         RefreshRecentMenu();
         ShowNoGameState();
@@ -403,7 +400,7 @@ internal sealed partial class MainForm : ThemedForm
 
     private void OnGameStarted()
     {
-        _playButton.Enabled = false;
+        SetGameRunning(true);
         SetStatus(Current is null ? "Running" : $"Running · {Current.Game.Name}");
     }
 
@@ -415,8 +412,18 @@ internal sealed partial class MainForm : ThemedForm
             return;
         }
 
-        _playButton.Enabled = Current is not null;
+        SetGameRunning(false);
         SetStatus(Current is null ? string.Empty : BuildIdleStatus(Current));
+    }
+
+    /// <summary>
+    /// Prevents changes to the loaded game while its process is running. The status bar deliberately
+    /// stays enabled so Bolt can continue to report which game owns the locked session.
+    /// </summary>
+    private void SetGameRunning(bool running)
+    {
+        _menu.Enabled = !running && !_isBusy;
+        _content.Enabled = !running;
     }
 
     // ---------------------------------------------------------------- profiles
@@ -812,7 +819,7 @@ internal sealed partial class MainForm : ThemedForm
     {
         _isBusy = busy;
 
-        _menu.Enabled = !busy;
+        _menu.Enabled = !busy && !_process.IsRunning;
         _importButton.Enabled = !busy && Current is not null;
         _syncButton.Enabled = !busy && Current is not null;
         _playButton.Enabled = !busy && Current is not null && !_process.IsRunning;

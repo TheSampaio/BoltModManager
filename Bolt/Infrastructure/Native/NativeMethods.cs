@@ -16,6 +16,9 @@ internal static partial class NativeMethods
     public const int ErrorAccessDenied = 5;
     public const int ErrorCancelled = 1223;
 
+    public const uint InvalidFileAttributes = 0xFFFFFFFF;
+    public const uint FileAttributeReparsePoint = 0x00000400;
+
     /// <summary>Enables the dark window frame introduced in Windows 10 20H1.</summary>
     public const int DwmwaUseImmersiveDarkMode = 20;
 
@@ -25,6 +28,9 @@ internal static partial class NativeMethods
     [LibraryImport("kernel32.dll", EntryPoint = "CreateSymbolicLinkW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static partial bool CreateSymbolicLink(string symlinkFileName, string targetFileName, int flags);
+
+    [LibraryImport("kernel32.dll", EntryPoint = "GetFileAttributesW", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial uint GetFileAttributes(string fileName);
 
     [LibraryImport("dwmapi.dll")]
     public static partial int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);

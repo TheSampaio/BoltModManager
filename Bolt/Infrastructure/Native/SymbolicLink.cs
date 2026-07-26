@@ -37,15 +37,10 @@ internal static class SymbolicLink
     /// <summary>True when the path exists and is a reparse point (symbolic link or junction).</summary>
     public static bool IsLink(string path)
     {
-        try
-        {
-            var attributes = File.GetAttributes(path);
-            return attributes.HasFlag(FileAttributes.ReparsePoint);
-        }
-        catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException or IOException)
-        {
-            return false;
-        }
+        var attributes = NativeMethods.GetFileAttributes(path);
+
+        return attributes != NativeMethods.InvalidFileAttributes
+            && (attributes & NativeMethods.FileAttributeReparsePoint) != 0;
     }
 
     private static bool TryCreate(string linkPath, string targetPath, int flags, out int error)
