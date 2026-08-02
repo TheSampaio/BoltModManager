@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Text;
 using Bolt.Infrastructure.Archives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SharpCompress.Archives;
 using SharpCompress.Common;
 using SharpCompress.Writers.SevenZip;
 
@@ -37,9 +38,11 @@ public sealed class ArchiveReaderTests
 
         var reader = new ArchiveReader();
         var entries = reader.ListEntries(archivePath);
+        var entryCount = reader.CountEntries(archivePath);
         var extracted = reader.Extract(archivePath, destination);
 
         Assert.HasCount(1, entries);
+        Assert.AreEqual(1, entryCount);
         Assert.HasCount(1, extracted);
         Assert.AreEqual(Content.Length, entries[0].Length);
         CollectionAssert.AreEqual(Content, File.ReadAllBytes(directory.GetPath("extracted", "Data", "file.txt")));
@@ -62,6 +65,28 @@ public sealed class ArchiveReaderTests
 
         Assert.IsEmpty(extracted);
         Assert.IsFalse(File.Exists(directory.GetPath("outside.txt")));
+    }
+
+    [TestMethod]
+    public void ExtractSolidArchiveProcessesManyEntriesInOneSequentialPass()
+    {
+        using var directory = new TestDirectory();
+        var archivePath = directory.GetPath("solid.rar");
+        var destination = directory.GetPath("extracted");
+        var content = new byte[32 * 1024];
+        var entries = Enumerable.Range(0, 64)
+            .Select(index => ($"Data\\file-{index:D2}.bin", content))
+            .ToArray();
+
+        CreateStoredRar(archivePath, entries, solid: true);
+
+        using (var archive = ArchiveFactory.OpenArchive(new FileInfo(archivePath)))
+            Assert.IsTrue(archive.IsSolid);
+
+        var extracted = new ArchiveReader().Extract(archivePath, destination);
+
+        Assert.HasCount(64, extracted);
+        Assert.IsTrue(File.Exists(directory.GetPath("extracted", "Data", "file-63.bin")));
     }
 
     private static void CreateArchive(string path, string format, string entryName, byte[] content)
@@ -94,30 +119,44 @@ public sealed class ArchiveReaderTests
     /// <summary>Creates a minimal RAR 4 archive containing one uncompressed file.</summary>
     private static void CreateStoredRar(string path, string entryName, byte[] content)
     {
+        CreateStoredRar(path, [(entryName, content)], solid: false);
+    }
+
+    /// <summary>Creates a minimal RAR 4 archive containing uncompressed files.</summary>
+    private static void CreateStoredRar(
+        string path,
+        IReadOnlyList<(string EntryName, byte[] Content)> entries,
+        bool solid)
+    {
         using var output = File.Create(path);
         using var writer = new BinaryWriter(output, Encoding.UTF8, leaveOpen: false);
 
         writer.Write(new byte[] { 0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00 });
-        WriteRarHeader(writer, 0x73, 0, new byte[6]);
+        WriteRarHeader(writer, 0x73, solid ? (ushort)0x0008 : (ushort)0, new byte[6]);
 
-        var name = Encoding.UTF8.GetBytes(entryName);
-        using var bodyStream = new MemoryStream();
-        using (var body = new BinaryWriter(bodyStream, Encoding.UTF8, leaveOpen: true))
+        foreach (var (entryName, content) in entries)
         {
-            body.Write((uint)content.Length);
-            body.Write((uint)content.Length);
-            body.Write((byte)2);
-            body.Write(CalculateCrc32(content));
-            body.Write(0u);
-            body.Write((byte)20);
-            body.Write((byte)0x30);
-            body.Write((ushort)name.Length);
-            body.Write(0x20u);
-            body.Write(name);
+            var name = Encoding.UTF8.GetBytes(entryName);
+            using var bodyStream = new MemoryStream();
+            using (var body = new BinaryWriter(bodyStream, Encoding.UTF8, leaveOpen: true))
+            {
+                body.Write((uint)content.Length);
+                body.Write((uint)content.Length);
+                body.Write((byte)2);
+                body.Write(CalculateCrc32(content));
+                body.Write(0u);
+                body.Write((byte)20);
+                body.Write((byte)0x30);
+                body.Write((ushort)name.Length);
+                body.Write(0x20u);
+                body.Write(name);
+            }
+
+            var flags = solid ? (ushort)0x8010 : (ushort)0x8000;
+            WriteRarHeader(writer, 0x74, flags, bodyStream.ToArray());
+            writer.Write(content);
         }
 
-        WriteRarHeader(writer, 0x74, 0x8000, bodyStream.ToArray());
-        writer.Write(content);
         WriteRarHeader(writer, 0x7B, 0, []);
     }
 

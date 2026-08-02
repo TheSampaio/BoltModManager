@@ -50,6 +50,11 @@ internal sealed class NewGameForm : ThemedForm
         _locationField = CreateField("Bolt data folder", "Created automatically");
         _locationField.ReadOnly = true;
 
+        _targetField.TabIndex = 0;
+        _nameField.TabIndex = 1;
+        _executableField.TabIndex = 2;
+        _locationField.TabIndex = 3;
+
         _targetField.ValueChanged += OnTargetChanged;
         _nameField.ValueChanged += OnNameChanged;
 
@@ -57,6 +62,7 @@ internal sealed class NewGameForm : ThemedForm
         {
             Dock = DockStyle.Right,
             Text = "Create game",
+            TabIndex = 1,
             Variant = ButtonVariant.Primary,
             Width = 130
         };
@@ -66,6 +72,7 @@ internal sealed class NewGameForm : ThemedForm
             Dock = DockStyle.Right,
             Margin = new Padding(0, 0, AppTheme.Spacing.Small, 0),
             Text = "Cancel",
+            TabIndex = 0,
             Variant = ButtonVariant.AccentOutline,
             Width = 100
         };
@@ -78,7 +85,8 @@ internal sealed class NewGameForm : ThemedForm
             BackColor = Color.Transparent,
             Dock = DockStyle.Bottom,
             Height = 40,
-            Padding = new Padding(0, AppTheme.Spacing.Small, 0, 0)
+            Padding = new Padding(0, AppTheme.Spacing.Small, 0, 0),
+            TabIndex = 4
         };
 
         buttons.Controls.AddRange([cancel, create]);
@@ -106,6 +114,12 @@ internal sealed class NewGameForm : ThemedForm
     {
         base.OnLoad(e);
         UpdateLocation();
+    }
+
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        _targetField.Focus();
     }
 
     private static AppTextField CreateField(string label, string placeholder, IconKind actionIcon = IconKind.None, EventHandler? onAction = null)

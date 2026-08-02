@@ -14,6 +14,9 @@ internal interface IArchiveReader
     /// <summary>Lists the file entries of the archive, skipping directory entries.</summary>
     IReadOnlyList<ArchiveEntry> ListEntries(string archivePath);
 
+    /// <summary>Counts file entries without reading their decompressed contents.</summary>
+    int CountEntries(string archivePath, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Extracts <paramref name="archivePath"/> into <paramref name="destinationRoot"/> and returns
     /// the extracted files as paths relative to that root.

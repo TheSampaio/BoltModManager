@@ -397,6 +397,8 @@ internal sealed partial class MainForm
         _enableButton = CreateIconButton(IconKind.Check, "Enable the selected modifications", OnEnableSelectedClicked);
         _disableButton = CreateIconButton(IconKind.Ban, "Disable the selected modifications", OnDisableSelectedClicked);
         _deleteButton = CreateIconButton(IconKind.Trash, "Delete the selected modifications", OnDeleteSelectedClicked);
+        _enableButton.IconColor = AppTheme.Colors.AccentText;
+        _disableButton.IconColor = AppTheme.Colors.AccentText;
         _deleteButton.Variant = ButtonVariant.Danger;
 
         _importButton.Click += OnImportClicked;
@@ -462,7 +464,7 @@ internal sealed partial class MainForm
         return _progressPanel;
     }
 
-    private Card BuildList()
+    private GridFrame BuildList()
     {
         _editMenuItem = CreateMenuItem("Edit…", OnEditSelectedClicked);
         _enableMenuItem = CreateMenuItem("Enable", OnEnableSelectedClicked);
@@ -497,16 +499,14 @@ internal sealed partial class MainForm
             Dock = DockStyle.Fill
         };
 
-        var card = new Card
+        var frame = new GridFrame
         {
-            CornerRadius = AppTheme.Radius.Large,
-            Dock = DockStyle.Fill,
-            Padding = new Padding(1)
+            Dock = DockStyle.Fill
         };
 
-        card.Controls.Add(_list);
+        frame.Controls.Add(_list);
 
-        return card;
+        return frame;
     }
 
     private Panel BuildStatusBar()

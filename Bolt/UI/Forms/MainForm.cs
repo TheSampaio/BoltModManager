@@ -798,22 +798,31 @@ internal sealed partial class MainForm : ThemedForm
             : $"Reading {archivePaths.Length} archives…";
 
         var stopwatch = Stopwatch.StartNew();
+        var importStopwatch = Stopwatch.StartNew();
 
         var progress = new Progress<ImportProgress>(report =>
         {
             // Thousands of entries would otherwise flood the UI thread with paint requests.
-            if (report.Completed < report.Total && stopwatch.ElapsedMilliseconds < 60)
+            if ((report.Total <= 0 || report.Completed < report.Total)
+                && stopwatch.ElapsedMilliseconds < 60)
                 return;
 
             stopwatch.Restart();
 
+            if (report.Total <= 0)
+            {
+                _progressBar.IsIndeterminate = true;
+                _progressLabel.Text = $"Extracting {report.CurrentItem}  —  {report.Completed} files completed";
+                return;
+            }
+
             _progressBar.IsIndeterminate = false;
-            _progressBar.Maximum = Math.Max(report.Total, 1);
+            _progressBar.Maximum = report.Total;
             _progressBar.Value = report.Completed;
 
-            var percentage = report.Total == 0 ? 0 : report.Completed * 100 / report.Total;
-
-            _progressLabel.Text = $"Extracting {report.CurrentItem}  —  {report.Completed} of {report.Total} files ({percentage}%)";
+            var percentage = report.Completed * 100 / report.Total;
+            var remaining = Math.Max(report.Total - report.Completed, 0);
+            _progressLabel.Text = $"Extracting {report.CurrentItem}  —  {report.Completed} of {report.Total} files ({remaining} remaining, {percentage}%)";
         });
 
         try
@@ -821,6 +830,10 @@ internal sealed partial class MainForm : ThemedForm
             var imported = await _import
                 .ImportAsync(archivePaths, session, session.ActiveProfile, progress)
                 .ConfigureAwait(true);
+
+            importStopwatch.Stop();
+            _progressBar.IsIndeterminate = true;
+            _progressLabel.Text = $"Archives processed in {importStopwatch.Elapsed.TotalSeconds:0.0}s. Deploying modifications…";
 
             // Saving before deploying keeps the imported list even if the deployment is refused.
             _session.Save();

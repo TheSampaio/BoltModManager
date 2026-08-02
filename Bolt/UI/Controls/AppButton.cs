@@ -68,6 +68,9 @@ internal sealed class AppButton : Control
     /// <summary>Size of the icon in pixels. Defaults to a size proportional to the button.</summary>
     public int IconSize { get; set; } = 16;
 
+    /// <summary>Optional colour used by the icon while the button is enabled.</summary>
+    public Color? IconColor { get; set; }
+
     public int CornerRadius
     {
         get => _cornerRadius;
@@ -173,6 +176,7 @@ internal sealed class AppButton : Control
     {
         var hasText = !string.IsNullOrEmpty(Text);
         var hasIcon = Icon != IconKind.None;
+        var iconColor = Enabled ? IconColor ?? foreground : foreground;
 
         if (!hasIcon)
         {
@@ -184,7 +188,7 @@ internal sealed class AppButton : Control
 
         if (!hasText)
         {
-            Icons.Draw(graphics, Icon, ToSquare(bounds, IconSize), foreground);
+            Icons.Draw(graphics, Icon, ToSquare(bounds, IconSize), iconColor);
             return;
         }
 
@@ -198,7 +202,7 @@ internal sealed class AppButton : Control
             graphics,
             Icon,
             new RectangleF(left, bounds.Y + ((bounds.Height - IconSize) / 2f), IconSize, IconSize),
-            foreground);
+            iconColor);
 
         TextRenderer.DrawText(
             graphics,

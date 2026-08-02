@@ -40,6 +40,37 @@ internal static class PathUtility
         relativePath.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
 
     /// <summary>
+    /// Moves a file together with its selected source folder to a new parent while preserving the
+    /// folder name and every descendant directory.
+    /// </summary>
+    public static string RebaseFolderFile(
+        string filePath,
+        string folderPath,
+        string destinationParent)
+    {
+        var normalizedFile = NormalizeRelative(filePath);
+        var normalizedFolder = Path.TrimEndingDirectorySeparator(NormalizeRelative(folderPath));
+
+        if (normalizedFolder.Length == 0
+            || !normalizedFile.StartsWith(
+                normalizedFolder + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException($"\"{filePath}\" is not inside \"{folderPath}\".", nameof(filePath));
+        }
+
+        var folderParent = Path.GetDirectoryName(normalizedFolder) ?? string.Empty;
+        var pathIncludingFolder = folderParent.Length == 0
+            ? normalizedFile
+            : normalizedFile[(folderParent.Length + 1)..];
+        var normalizedDestination = NormalizeRelative(destinationParent);
+
+        return normalizedDestination.Length == 0
+            ? pathIncludingFolder
+            : Path.Combine(normalizedDestination, pathIncludingFolder);
+    }
+
+    /// <summary>
     /// Removes <paramref name="directory"/> and every parent containing no files up to (but
     /// excluding) <paramref name="stopAt"/>. Empty descendant folders are removed with the tree.
     /// </summary>

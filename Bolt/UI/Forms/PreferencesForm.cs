@@ -37,6 +37,7 @@ internal sealed class PreferencesForm : ThemedForm
             Margin = new Padding(0, 0, 0, AppTheme.Spacing.Medium),
             Placeholder = "Where Bolt stores the data of new games",
             ShowAction = true,
+            TabIndex = 0,
             Text = "Games folder",
             Value = preferences.Current.GamesRoot
         };
@@ -50,13 +51,14 @@ internal sealed class PreferencesForm : ThemedForm
             Margin = new Padding(0, 0, 0, AppTheme.Spacing.Medium),
             Placeholder = "notepad.exe (Windows default)",
             ShowAction = true,
+            TabIndex = 1,
             Text = "Text editor",
             Value = preferences.Current.TextEditorPath
         };
 
         _textEditorField.ActionClick += OnBrowseTextEditor;
 
-        _themeSelector = new AppDropdown { Dock = DockStyle.Top, Height = 34 };
+        _themeSelector = new AppDropdown { Dock = DockStyle.Top, Height = 34, TabIndex = 0 };
         _themeSelector.SetItems(
             [ThemeMode.Dark, ThemeMode.Light, ThemeMode.System],
             preferences.Current.Theme);
@@ -65,6 +67,7 @@ internal sealed class PreferencesForm : ThemedForm
         {
             Dock = DockStyle.Right,
             Text = "Save",
+            TabIndex = 1,
             Variant = ButtonVariant.Primary,
             Width = 110
         };
@@ -74,6 +77,7 @@ internal sealed class PreferencesForm : ThemedForm
             Dock = DockStyle.Right,
             Margin = new Padding(0, 0, AppTheme.Spacing.Small, 0),
             Text = "Cancel",
+            TabIndex = 0,
             Variant = ButtonVariant.AccentOutline,
             Width = 100
         };
@@ -86,7 +90,8 @@ internal sealed class PreferencesForm : ThemedForm
             BackColor = Color.Transparent,
             Dock = DockStyle.Bottom,
             Height = 40,
-            Padding = new Padding(0, AppTheme.Spacing.Small, 0, 0)
+            Padding = new Padding(0, AppTheme.Spacing.Small, 0, 0),
+            TabIndex = 3
         };
 
         buttons.Controls.AddRange([cancel, save]);
@@ -95,7 +100,8 @@ internal sealed class PreferencesForm : ThemedForm
         {
             BackColor = Color.Transparent,
             Dock = DockStyle.Top,
-            Height = 60
+            Height = 60,
+            TabIndex = 2
         };
 
         themeSection.Controls.Add(_themeSelector);
@@ -126,6 +132,12 @@ internal sealed class PreferencesForm : ThemedForm
         Text = text,
         TextAlign = ContentAlignment.MiddleLeft
     };
+
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        _gamesRootField.Focus();
+    }
 
     private void OnBrowseGamesRoot(object? sender, EventArgs e)
     {

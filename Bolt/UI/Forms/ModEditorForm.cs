@@ -74,8 +74,14 @@ internal sealed class ModEditorForm : ThemedForm
         {
             Dock = DockStyle.Fill,
             Placeholder = "Optional notes about this modification",
-            Text = "Description"
+            Text = "Description",
+            UseSectionLabelStyle = true
         };
+
+        _nameField.TabIndex = 0;
+        _versionField.TabIndex = 1;
+        _categoryField.TabIndex = 2;
+        _descriptionField.TabIndex = 3;
 
         _filesLabel = CreateFilesLabel();
         _filesGrid = CreateFilesGrid();
@@ -85,7 +91,9 @@ internal sealed class ModEditorForm : ThemedForm
         _filesGrid.CellMouseClick += OnFileCellMouseClick;
         _filesGrid.CellMouseDown += OnFileCellMouseDown;
         _filesGrid.ColumnHeaderMouseClick += OnFileColumnHeaderMouseClick;
+        _filesGrid.CellPainting += OnFileCellPainting;
         _filesGrid.KeyDown += OnFileGridKeyDown;
+        _filesGrid.Paint += OnFilesGridPaint;
         _filesGrid.RowPostPaint += OnFileRowPostPaint;
         _filesGrid.SelectionChanged += (_, _) => UpdateFileActions();
         _fileMenu.Opening += OnFileMenuOpening;
@@ -113,6 +121,12 @@ internal sealed class ModEditorForm : ThemedForm
         return ShowDialog(owner);
     }
 
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        _nameField.Focus();
+    }
+
     private TableLayoutPanel BuildLayout()
     {
         var layout = new TableLayoutPanel
@@ -133,7 +147,10 @@ internal sealed class ModEditorForm : ThemedForm
         layout.Controls.Add(CreateIntroduction(), 0, 0);
         layout.Controls.Add(BuildMetadata(), 0, 1);
         layout.Controls.Add(BuildFileToolbar(), 0, 2);
-        layout.Controls.Add(_filesGrid, 0, 3);
+        var filesFrame = new GridFrame { Dock = DockStyle.Fill };
+        filesFrame.Controls.Add(_filesGrid);
+
+        layout.Controls.Add(filesFrame, 0, 3);
         layout.Controls.Add(BuildActions(), 0, 4);
 
         foreach (Control child in layout.Controls)
@@ -194,6 +211,13 @@ internal sealed class ModEditorForm : ThemedForm
             OnRemoveSelected,
             ButtonVariant.Danger);
 
+        _openButton.IconColor = AppTheme.Colors.AccentText;
+        _resetButton.IconColor = AppTheme.Colors.AccentText;
+        _resetButton.TabIndex = 0;
+        _openButton.TabIndex = 1;
+        _removeButton.TabIndex = 2;
+        _moveButton.TabIndex = 3;
+
         _toolTip.SetToolTip(_openButton, "Open the selected text file in the configured editor");
         _toolTip.SetToolTip(_moveButton, "Choose a game folder for the selected files");
         _toolTip.SetToolTip(_resetButton, "Reset the selected files to their original paths");
@@ -235,6 +259,7 @@ internal sealed class ModEditorForm : ThemedForm
         {
             Dock = DockStyle.Right,
             Text = "Save changes",
+            TabIndex = 1,
             Variant = ButtonVariant.Primary,
             Width = 132
         };
@@ -244,6 +269,7 @@ internal sealed class ModEditorForm : ThemedForm
             Dock = DockStyle.Right,
             Margin = new Padding(0, 0, AppTheme.Spacing.Small, 0),
             Text = "Cancel",
+            TabIndex = 0,
             Variant = ButtonVariant.AccentOutline,
             Width = 100
         };
@@ -315,6 +341,7 @@ internal sealed class ModEditorForm : ThemedForm
 
     private void OnMoveSelected(object? sender, EventArgs e)
     {
+        var rows = SelectedRows();
         var files = SelectedFiles();
 
         if (files.Count == 0)
@@ -330,11 +357,19 @@ internal sealed class ModEditorForm : ThemedForm
         }
 
         var gameRoot = Path.GetFullPath(_session.Game.TargetPath);
-        var initialDirectory = ResolveInitialDirectory(gameRoot, files[0]);
+        var selectedFolder = rows
+            .Select(row => row.Tag)
+            .OfType<FileTreeRow>()
+            .FirstOrDefault(node => node.Folder is not null)
+            ?.Folder;
+        var initialDirectory = ResolveInitialDirectory(gameRoot, files[0], selectedFolder);
+        var hasFolderSelection = selectedFolder is not null;
 
         using var dialog = new FolderBrowserDialog
         {
-            Description = "Select or create the destination inside the game folder",
+            Description = hasFolderSelection
+                ? "Select or create the parent destination for the selected folder(s)"
+                : "Select or create the destination inside the game folder",
             InitialDirectory = initialDirectory,
             RootFolder = Environment.SpecialFolder.MyComputer,
             SelectedPath = initialDirectory,
@@ -358,15 +393,50 @@ internal sealed class ModEditorForm : ThemedForm
         if (relativeDirectory == ".")
             relativeDirectory = string.Empty;
 
-        foreach (var file in files)
-        {
-            var fileName = Path.GetFileName(file.DestinationPath);
-            file.DestinationPath = relativeDirectory.Length == 0
-                ? fileName
-                : Path.Combine(relativeDirectory, fileName);
-        }
+        MoveSelectedRows(rows, relativeDirectory);
 
         RefreshFileTree();
+    }
+
+    private static void MoveSelectedRows(IReadOnlyList<DataGridViewRow> rows, string destinationDirectory)
+    {
+        var moved = new HashSet<EditableFile>();
+        var nodes = rows
+            .Select(row => row.Tag)
+            .OfType<FileTreeRow>()
+            .ToList();
+
+        foreach (var node in nodes.Where(node => node.Folder is not null).OrderBy(node => node.Depth))
+        {
+            var folder = node.Folder!;
+            var useSourceTree = folder.SourcePath.Length > 0;
+            var folderPath = useSourceTree ? folder.SourcePath : folder.DestinationPath;
+
+            foreach (var file in folder.DescendantFiles)
+            {
+                if (!moved.Add(file))
+                    continue;
+
+                var filePath = useSourceTree ? file.SourcePath : file.DestinationPath;
+                file.DestinationPath = PathUtility.RebaseFolderFile(
+                    filePath,
+                    folderPath,
+                    destinationDirectory);
+            }
+        }
+
+        foreach (var node in nodes.Where(node => node.File is not null))
+        {
+            var file = node.File!;
+
+            if (!moved.Add(file))
+                continue;
+
+            var fileName = Path.GetFileName(file.DestinationPath);
+            file.DestinationPath = destinationDirectory.Length == 0
+                ? fileName
+                : Path.Combine(destinationDirectory, fileName);
+        }
     }
 
     private void OnResetSelected(object? sender, EventArgs e)
@@ -458,14 +528,15 @@ internal sealed class ModEditorForm : ThemedForm
     {
         if (e.Button != MouseButtons.Left
             || e.RowIndex < 0
-            || e.ColumnIndex != 1
-            || _filesGrid.Rows[e.RowIndex].Tag is not FileTreeRow { FolderPath: not null } node
+            || e.ColumnIndex < 0
+            || _filesGrid.Rows[e.RowIndex].Tag is not FileTreeRow { Folder: not null } node
+            || GetFolderName(node.Folder, e.ColumnIndex).Length == 0
             || e.X > GetTreeGlyphRight(node.Depth))
         {
             return;
         }
 
-        ToggleFolder(node.FolderPath);
+        ToggleFolder(node.Folder.Key);
     }
 
     private void ToggleFolder(string folderPath)
@@ -477,6 +548,9 @@ internal sealed class ModEditorForm : ThemedForm
     }
 
     private static int GetTreeGlyphRight(int depth) => AppTheme.Spacing.Small + (depth * 18) + 28;
+
+    private static string GetFolderName(MappingFolder folder, int columnIndex) =>
+        columnIndex == 0 ? folder.SourceName : folder.DestinationName;
 
     private void OnFileGridKeyDown(object? sender, KeyEventArgs e)
     {
@@ -495,6 +569,147 @@ internal sealed class ModEditorForm : ThemedForm
 
         using var accent = new SolidBrush(AppTheme.Colors.Accent);
         e.Graphics.FillRectangle(accent, e.RowBounds.Left, e.RowBounds.Top, 3, e.RowBounds.Height);
+    }
+
+    private void OnFileCellPainting(object? sender, DataGridViewCellPaintingEventArgs e)
+    {
+        if (e.RowIndex < 0
+            || e.ColumnIndex < 0
+            || _filesGrid.Rows[e.RowIndex].Tag is not FileTreeRow node)
+        {
+            return;
+        }
+
+        e.PaintBackground(e.CellBounds, true);
+
+        if (node.Folder is not null)
+            PaintFolderCell(e, node);
+        else if (node.File is not null)
+            PaintFileCell(e, node);
+
+        e.Handled = true;
+    }
+
+    private void PaintFolderCell(DataGridViewCellPaintingEventArgs e, FileTreeRow node)
+    {
+        var folder = node.Folder!;
+        var name = GetFolderName(folder, e.ColumnIndex);
+
+        if (name.Length == 0)
+            return;
+
+        var left = e.CellBounds.Left + AppTheme.Spacing.Small + (node.Depth * 18);
+        var centerY = e.CellBounds.Top + (e.CellBounds.Height / 2f);
+        var collapsed = _collapsedFolders.Contains(folder.Key);
+
+        DrawChevron(e.Graphics!, new PointF(left + 5, centerY), collapsed);
+        Icons.Draw(
+            e.Graphics!,
+            IconKind.Folder,
+            new RectangleF(left + 16, centerY - 7, 14, 14),
+            AppTheme.Colors.TextSecondary,
+            1.7f);
+
+        var textLeft = left + 36;
+        var textBounds = new Rectangle(
+            textLeft,
+            e.CellBounds.Top,
+            Math.Max(e.CellBounds.Right - textLeft - AppTheme.Spacing.Small, 0),
+            e.CellBounds.Height);
+        var nameSize = TextRenderer.MeasureText(
+            name,
+            AppTheme.Fonts.BodyStrong,
+            Size.Empty,
+            TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+
+        TextRenderer.DrawText(
+            e.Graphics!,
+            name,
+            AppTheme.Fonts.BodyStrong,
+            textBounds,
+            AppTheme.Colors.TextPrimary,
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+
+        var countLeft = textLeft + nameSize.Width + AppTheme.Spacing.Small;
+
+        if (countLeft < e.CellBounds.Right - 32)
+        {
+            var count = folder.DescendantFiles.Count == 1
+                ? "1 file"
+                : $"{folder.DescendantFiles.Count} files";
+
+            TextRenderer.DrawText(
+                e.Graphics!,
+                count,
+                AppTheme.Fonts.Caption,
+                new Rectangle(countLeft, e.CellBounds.Top, e.CellBounds.Right - countLeft, e.CellBounds.Height),
+                AppTheme.Colors.TextMuted,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+        }
+    }
+
+    private static void PaintFileCell(DataGridViewCellPaintingEventArgs e, FileTreeRow node)
+    {
+        var file = node.File!;
+        var name = e.ColumnIndex == 0
+            ? Path.GetFileName(file.SourcePath)
+            : Path.GetFileName(file.DestinationPath);
+        var left = e.CellBounds.Left + AppTheme.Spacing.Small + (node.Depth * 18) + 16;
+        var centerY = e.CellBounds.Top + (e.CellBounds.Height / 2f);
+        var changed = e.ColumnIndex == 1
+            && !file.SourcePath.Equals(file.DestinationPath, StringComparison.OrdinalIgnoreCase);
+
+        Icons.Draw(
+            e.Graphics!,
+            IconKind.Document,
+            new RectangleF(left, centerY - 7, 14, 14),
+            changed ? AppTheme.Colors.AccentText : AppTheme.Colors.TextMuted,
+            1.6f);
+
+        TextRenderer.DrawText(
+            e.Graphics!,
+            name,
+            AppTheme.Fonts.Body,
+            new Rectangle(left + 21, e.CellBounds.Top, Math.Max(e.CellBounds.Right - left - 27, 0), e.CellBounds.Height),
+            changed ? AppTheme.Colors.AccentText : AppTheme.Colors.TextSecondary,
+            TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+    }
+
+    private static void DrawChevron(Graphics graphics, PointF center, bool collapsed)
+    {
+        graphics.UseHighQuality();
+
+        using var pen = new Pen(AppTheme.Colors.TextMuted, 1.5f)
+        {
+            StartCap = System.Drawing.Drawing2D.LineCap.Round,
+            EndCap = System.Drawing.Drawing2D.LineCap.Round,
+            LineJoin = System.Drawing.Drawing2D.LineJoin.Round
+        };
+
+        if (collapsed)
+        {
+            graphics.DrawLines(pen, [
+                new PointF(center.X - 2, center.Y - 4),
+                new PointF(center.X + 2, center.Y),
+                new PointF(center.X - 2, center.Y + 4)]);
+        }
+        else
+        {
+            graphics.DrawLines(pen, [
+                new PointF(center.X - 4, center.Y - 2),
+                new PointF(center.X, center.Y + 2),
+                new PointF(center.X + 4, center.Y - 2)]);
+        }
+    }
+
+    private static void OnFilesGridPaint(object? sender, PaintEventArgs e)
+    {
+        if (sender is not DataGridView { Columns.Count: > 1 } grid)
+            return;
+
+        var dividerX = grid.Columns[0].Width - grid.HorizontalScrollingOffset;
+        using var divider = new Pen(GridFrame.BorderColor);
+        e.Graphics.DrawLine(divider, dividerX, 0, dividerX, grid.ClientSize.Height);
     }
 
     private void OnFileColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
@@ -550,7 +765,17 @@ internal sealed class ModEditorForm : ThemedForm
         foreach (var file in files)
             _files.Add(new EditableFile(file, file));
 
+        CollapseAllFolders(BuildFileTree());
         RefreshFileTree();
+    }
+
+    private void CollapseAllFolders(MappingFolder folder)
+    {
+        foreach (var child in folder.Folders.Values)
+        {
+            _collapsedFolders.Add(child.Key);
+            CollapseAllFolders(child);
+        }
     }
 
     private void RefreshFileTree()
@@ -575,66 +800,85 @@ internal sealed class ModEditorForm : ThemedForm
         UpdateFileActions();
     }
 
-    private TreeFolder BuildFileTree()
+    private MappingFolder BuildFileTree()
     {
-        var root = new TreeFolder(string.Empty, string.Empty);
+        var root = new MappingFolder(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
 
         foreach (var file in _files)
         {
-            var directory = Path.GetDirectoryName(file.DestinationPath) ?? string.Empty;
+            var sourceSegments = GetDirectorySegments(file.SourcePath);
+            var destinationSegments = GetDirectorySegments(file.DestinationPath);
             var current = root;
-            var currentPath = string.Empty;
+            var sourcePath = string.Empty;
+            var destinationPath = string.Empty;
+            var depth = Math.Max(sourceSegments.Length, destinationSegments.Length);
+            var sourceOffset = depth - sourceSegments.Length;
+            var destinationOffset = depth - destinationSegments.Length;
 
-            foreach (var segment in directory.Split(
-                [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
-                StringSplitOptions.RemoveEmptyEntries))
+            for (var index = 0; index < depth; index++)
             {
-                currentPath = currentPath.Length == 0 ? segment : Path.Combine(currentPath, segment);
+                var sourceIndex = index - sourceOffset;
+                var destinationIndex = index - destinationOffset;
+                var sourceName = sourceIndex >= 0 ? sourceSegments[sourceIndex] : string.Empty;
+                var destinationName = destinationIndex >= 0 ? destinationSegments[destinationIndex] : string.Empty;
+                sourcePath = AppendPath(sourcePath, sourceName);
+                destinationPath = AppendPath(destinationPath, destinationName);
+                var localKey = $"{sourceName}\u001F{destinationName}";
 
-                if (!current.Folders.TryGetValue(segment, out var child))
+                if (!current.Folders.TryGetValue(localKey, out var child))
                 {
-                    child = new TreeFolder(segment, currentPath);
-                    current.Folders.Add(segment, child);
+                    child = new MappingFolder(
+                        $"{current.Key}\u001E{localKey}",
+                        sourceName,
+                        destinationName,
+                        sourcePath,
+                        destinationPath);
+                    current.Folders.Add(localKey, child);
                 }
 
                 current = child;
+                current.DescendantFiles.Add(file);
             }
 
-            current.Files.Add(file);
+            current.DirectFiles.Add(file);
         }
 
         return root;
     }
 
-    private void AddFolderChildren(TreeFolder folder, int depth)
+    private void AddFolderChildren(MappingFolder folder, int depth)
     {
-        var folders = Order(folder.Folders.Values, child => child.Name);
+        var folders = Order(
+            folder.Folders.Values,
+            child => _sortColumnIndex == 0
+                ? FirstNonEmpty(child.SourceName, child.DestinationName)
+                : FirstNonEmpty(child.DestinationName, child.SourceName));
 
         foreach (var child in folders)
         {
-            var collapsed = _collapsedFolders.Contains(child.Path);
-            var marker = collapsed ? "▸" : "▾";
-            var displayPath = $"{Indent(depth)}{marker}  {child.Name}";
-            var index = _filesGrid.Rows.Add(string.Empty, displayPath);
+            var collapsed = _collapsedFolders.Contains(child.Key);
+            var index = _filesGrid.Rows.Add(child.SourceName, child.DestinationName);
             var row = _filesGrid.Rows[index];
 
-            row.Tag = new FileTreeRow(child.Path, depth, null);
-            row.DefaultCellStyle.Font = AppTheme.Fonts.BodyStrong;
-            row.DefaultCellStyle.ForeColor = AppTheme.Colors.TextPrimary;
-            row.Cells[1].ToolTipText = child.Path;
+            row.Tag = new FileTreeRow(child, depth, null);
+            row.Cells[0].ToolTipText = child.SourcePath;
+            row.Cells[1].ToolTipText = child.DestinationPath;
 
             if (!collapsed)
                 AddFolderChildren(child, depth + 1);
         }
 
         var files = Order(
-            folder.Files,
-            file => _sortColumnIndex == 0 ? file.SourcePath : Path.GetFileName(file.DestinationPath));
+            folder.DirectFiles,
+            file => _sortColumnIndex == 0
+                ? Path.GetFileName(file.SourcePath)
+                : Path.GetFileName(file.DestinationPath));
 
         foreach (var file in files)
         {
-            var displayPath = $"{Indent(depth)}    {Path.GetFileName(file.DestinationPath)}";
-            var index = _filesGrid.Rows.Add(file.SourcePath, displayPath);
+            var index = _filesGrid.Rows.Add(
+                Path.GetFileName(file.SourcePath),
+                Path.GetFileName(file.DestinationPath));
             var row = _filesGrid.Rows[index];
 
             row.Tag = new FileTreeRow(null, depth, file);
@@ -643,15 +887,25 @@ internal sealed class ModEditorForm : ThemedForm
         }
     }
 
+    private static string[] GetDirectorySegments(string filePath) =>
+        (Path.GetDirectoryName(filePath) ?? string.Empty).Split(
+            [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
+            StringSplitOptions.RemoveEmptyEntries);
+
+    private static string AppendPath(string path, string segment) => segment.Length == 0
+        ? path
+        : path.Length == 0 ? segment : Path.Combine(path, segment);
+
+    private static string FirstNonEmpty(string preferred, string fallback) =>
+        preferred.Length > 0 ? preferred : fallback;
+
     private IEnumerable<T> Order<T>(IEnumerable<T> values, Func<T, string> keySelector)
     {
         var ordered = values.OrderBy(keySelector, StringComparer.OrdinalIgnoreCase);
         return _sortDirection == ListSortDirection.Ascending ? ordered : ordered.Reverse();
     }
 
-    private static string Indent(int depth) => new(' ', depth * 4);
-
-    private void UpdateFileCount() => _filesLabel.Text = $"Files ({_files.Count})";
+    private void UpdateFileCount() => _filesLabel.Text = $"FILES ({_files.Count})";
 
     private void UpdateFileActions()
     {
@@ -681,11 +935,8 @@ internal sealed class ModEditorForm : ThemedForm
                 continue;
             }
 
-            if (node.FolderPath is not null)
-            {
-                foreach (var file in _files.Where(file => IsInFolder(file.DestinationPath, node.FolderPath)))
-                    selected.Add(file);
-            }
+            if (node.Folder is not null)
+                selected.UnionWith(node.Folder.DescendantFiles);
         }
 
         return [.. selected];
@@ -703,16 +954,14 @@ internal sealed class ModEditorForm : ThemedForm
             : null;
     }
 
-    private static bool IsInFolder(string filePath, string folderPath)
+    private static string ResolveInitialDirectory(
+        string gameRoot,
+        EditableFile file,
+        MappingFolder? selectedFolder)
     {
-        var directory = Path.GetDirectoryName(filePath) ?? string.Empty;
-        return directory.Equals(folderPath, StringComparison.OrdinalIgnoreCase)
-            || directory.StartsWith(folderPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string ResolveInitialDirectory(string gameRoot, EditableFile file)
-    {
-        var relativeDirectory = Path.GetDirectoryName(file.DestinationPath);
+        var relativeDirectory = selectedFolder is null
+            ? Path.GetDirectoryName(file.DestinationPath)
+            : Path.GetDirectoryName(selectedFolder.DestinationPath);
 
         if (string.IsNullOrEmpty(relativeDirectory))
             return gameRoot;
@@ -728,17 +977,18 @@ internal sealed class ModEditorForm : ThemedForm
     {
         Dock = DockStyle.Fill,
         Placeholder = placeholder,
-        Text = label
+        Text = label,
+        UseSectionLabelStyle = true
     };
 
     private static Label CreateFilesLabel() => new()
     {
         BackColor = Color.Transparent,
         Dock = DockStyle.Fill,
-        Font = AppTheme.Fonts.Heading,
-        ForeColor = AppTheme.Colors.TextPrimary,
-        Text = "Files",
-        TextAlign = ContentAlignment.MiddleLeft
+        Font = AppTheme.Fonts.Overline,
+        ForeColor = AppTheme.Colors.TextMuted,
+        Text = "FILES",
+        TextAlign = ContentAlignment.BottomLeft
     };
 
     private static DataGridView CreateFilesGrid()
@@ -761,7 +1011,8 @@ internal sealed class ModEditorForm : ThemedForm
             MultiSelect = true,
             RowHeadersVisible = false,
             RowTemplate = { Height = 34 },
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            TabIndex = 0
         };
 
         grid.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
@@ -793,17 +1044,19 @@ internal sealed class ModEditorForm : ThemedForm
 
         grid.Columns.Add(new DataGridViewTextBoxColumn
         {
-            HeaderText = "CURRENT PATH",
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+            FillWeight = 50f,
+            HeaderText = "Current Path (source)",
             Name = "SourcePath",
             ReadOnly = true,
-            SortMode = DataGridViewColumnSortMode.Programmatic,
-            Width = 330
+            SortMode = DataGridViewColumnSortMode.Programmatic
         });
 
         grid.Columns.Add(new DataGridViewTextBoxColumn
         {
             AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-            HeaderText = "MOD LAYOUT",
+            FillWeight = 50f,
+            HeaderText = "Mod Layout (destination in game folder)",
             Name = "DestinationPath",
             ReadOnly = true,
             SortMode = DataGridViewColumnSortMode.Programmatic
@@ -857,16 +1110,29 @@ internal sealed class ModEditorForm : ThemedForm
         public string DestinationPath { get; set; } = destinationPath;
     }
 
-    private sealed class TreeFolder(string name, string path)
+    private sealed class MappingFolder(
+        string key,
+        string sourceName,
+        string destinationName,
+        string sourcePath,
+        string destinationPath)
     {
-        public string Name { get; } = name;
+        public string Key { get; } = key;
 
-        public string Path { get; } = path;
+        public string SourceName { get; } = sourceName;
 
-        public Dictionary<string, TreeFolder> Folders { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public string DestinationName { get; } = destinationName;
 
-        public List<EditableFile> Files { get; } = [];
+        public string SourcePath { get; } = sourcePath;
+
+        public string DestinationPath { get; } = destinationPath;
+
+        public Dictionary<string, MappingFolder> Folders { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public List<EditableFile> DirectFiles { get; } = [];
+
+        public List<EditableFile> DescendantFiles { get; } = [];
     }
 
-    private sealed record FileTreeRow(string? FolderPath, int Depth, EditableFile? File);
+    private sealed record FileTreeRow(MappingFolder? Folder, int Depth, EditableFile? File);
 }

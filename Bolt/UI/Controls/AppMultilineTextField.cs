@@ -12,6 +12,7 @@ internal sealed class AppMultilineTextField : Control
 
     private readonly Label _label;
     private readonly TextBox _input;
+    private bool _useSectionLabelStyle;
 
     public AppMultilineTextField()
     {
@@ -23,6 +24,7 @@ internal sealed class AppMultilineTextField : Control
             true);
 
         BackColor = Color.Transparent;
+        TabStop = false;
 
         _label = new Label
         {
@@ -58,7 +60,25 @@ internal sealed class AppMultilineTextField : Control
     public override string Text
     {
         get => _label.Text;
-        set => _label.Text = value ?? string.Empty;
+        set => _label.Text = FormatLabel(value);
+    }
+
+    /// <summary>Uses the uppercase overline treatment shared by section labels.</summary>
+    public bool UseSectionLabelStyle
+    {
+        get => _useSectionLabelStyle;
+        set
+        {
+            if (_useSectionLabelStyle == value)
+                return;
+
+            var label = _label.Text;
+            _useSectionLabelStyle = value;
+            _label.Font = value ? AppTheme.Fonts.Overline : AppTheme.Fonts.Body;
+            _label.ForeColor = value ? AppTheme.Colors.TextMuted : AppTheme.Colors.TextSecondary;
+            _label.TextAlign = value ? ContentAlignment.BottomLeft : ContentAlignment.MiddleLeft;
+            _label.Text = FormatLabel(label);
+        }
     }
 
     /// <summary>Content of the multiline input.</summary>
@@ -109,4 +129,7 @@ internal sealed class AppMultilineTextField : Control
 
         base.OnPaint(e);
     }
+
+    private string FormatLabel(string? value) =>
+        _useSectionLabelStyle ? (value ?? string.Empty).ToUpperInvariant() : value ?? string.Empty;
 }

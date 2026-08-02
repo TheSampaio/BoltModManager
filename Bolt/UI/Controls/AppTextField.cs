@@ -23,12 +23,14 @@ internal sealed class AppTextField : Control
     private readonly AppButton _action;
 
     private bool _showAction;
+    private bool _useSectionLabelStyle;
 
     public AppTextField()
     {
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw | ControlStyles.SupportsTransparentBackColor, true);
 
         BackColor = Color.Transparent;
+        TabStop = false;
 
         _label = new Label
         {
@@ -79,7 +81,25 @@ internal sealed class AppTextField : Control
     public override string Text
     {
         get => _label.Text;
-        set => _label.Text = value ?? string.Empty;
+        set => _label.Text = FormatLabel(value);
+    }
+
+    /// <summary>Uses the uppercase overline treatment shared by section labels.</summary>
+    public bool UseSectionLabelStyle
+    {
+        get => _useSectionLabelStyle;
+        set
+        {
+            if (_useSectionLabelStyle == value)
+                return;
+
+            var label = _label.Text;
+            _useSectionLabelStyle = value;
+            _label.Font = value ? AppTheme.Fonts.Overline : AppTheme.Fonts.Body;
+            _label.ForeColor = value ? AppTheme.Colors.TextMuted : AppTheme.Colors.TextSecondary;
+            _label.TextAlign = value ? ContentAlignment.BottomLeft : ContentAlignment.MiddleLeft;
+            _label.Text = FormatLabel(label);
+        }
     }
 
     /// <summary>Content of the input.</summary>
@@ -101,6 +121,7 @@ internal sealed class AppTextField : Control
         set
         {
             _input.ReadOnly = value;
+            _input.TabStop = !value;
             _input.BackColor = value ? AppTheme.Colors.Background : AppTheme.Colors.SurfaceAlt;
             _input.ForeColor = value ? AppTheme.Colors.TextSecondary : AppTheme.Colors.TextPrimary;
         }
@@ -135,15 +156,16 @@ internal sealed class AppTextField : Control
         _label.SetBounds(0, 0, Width, LabelHeight);
 
         var fieldTop = LabelHeight + AppTheme.Spacing.Tiny;
+        var fieldHeight = GetFieldHeight(fieldTop);
         var actionSpace = _showAction ? ActionWidth : 0;
 
         _input.SetBounds(
             AppTheme.Spacing.Medium,
-            fieldTop + ((FieldHeight - _input.PreferredHeight) / 2),
+            fieldTop + Math.Max((fieldHeight - _input.PreferredHeight) / 2, 0),
             Math.Max(Width - actionSpace - (AppTheme.Spacing.Medium * 2), 10),
             _input.PreferredHeight);
 
-        _action.SetBounds(Width - ActionWidth, fieldTop, ActionWidth, FieldHeight);
+        _action.SetBounds(Width - ActionWidth, fieldTop, ActionWidth, fieldHeight);
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -152,7 +174,7 @@ internal sealed class AppTextField : Control
         graphics.UseHighQuality();
 
         var fieldTop = LabelHeight + AppTheme.Spacing.Tiny;
-        var bounds = new Rectangle(0, fieldTop, Width - 1, FieldHeight - 1);
+        var bounds = new Rectangle(0, fieldTop, Width - 1, Math.Max(GetFieldHeight(fieldTop) - 1, 1));
 
         graphics.FillRoundedRectangle(_input.BackColor, bounds, AppTheme.Radius.Small);
         graphics.DrawRoundedBorder(
@@ -165,4 +187,9 @@ internal sealed class AppTextField : Control
     }
 
     private void OnValueChanged(EventArgs e) => ValueChanged?.Invoke(this, e);
+
+    private string FormatLabel(string? value) =>
+        _useSectionLabelStyle ? (value ?? string.Empty).ToUpperInvariant() : value ?? string.Empty;
+
+    private int GetFieldHeight(int fieldTop) => Math.Max(Math.Min(FieldHeight, Height - fieldTop), 1);
 }

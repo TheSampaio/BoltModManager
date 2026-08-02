@@ -26,8 +26,8 @@ The status bar shows which mode is in effect.
 
 - Any game: point Bolt at a folder and an executable
 - Multiple profiles per game, switched in one click
-- Import `.zip`, `.7z`, and `.rar` packages, processing up to three archives in parallel with
-  progress and cancellation-safe extraction
+- Import `.zip`, `.7z`, and `.rar` packages through a single-pass extractor, processing up to two
+  archives concurrently with total, remaining, and cancellation-safe progress reporting
 - Edit a modification's name, description, version, category, and deployed file layout without
   rebuilding its archive
 - Browse the modification as an expandable file tree, move or exclude whole selections, and open

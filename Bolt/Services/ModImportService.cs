@@ -13,32 +13,11 @@ namespace Bolt.Services;
 /// </remarks>
 internal sealed class ModImportService(IArchiveReader archiveReader) : IModImportService
 {
-    private const int MaxConcurrentArchives = 3;
+    private const int MaxConcurrentArchives = 2;
 
     private readonly IArchiveReader _archiveReader = archiveReader;
 
     public IReadOnlyCollection<string> SupportedExtensions => _archiveReader.SupportedExtensions;
-
-    public async Task<int> CountEntriesAsync(
-        IReadOnlyList<string> archivePaths,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(archivePaths);
-
-        var total = 0;
-        var options = CreateParallelOptions(cancellationToken);
-
-        await Parallel.ForEachAsync(
-            archivePaths.Where(_archiveReader.CanRead),
-            options,
-            (archivePath, _) =>
-            {
-                Interlocked.Add(ref total, _archiveReader.ListEntries(archivePath).Count);
-                return ValueTask.CompletedTask;
-            }).ConfigureAwait(false);
-
-        return total;
-    }
 
     public async Task<IReadOnlyList<ImportedMod>> ImportAsync(
         IReadOnlyList<string> archivePaths,
@@ -51,13 +30,12 @@ internal sealed class ModImportService(IArchiveReader archiveReader) : IModImpor
         ArgumentNullException.ThrowIfNull(session);
         ArgumentNullException.ThrowIfNull(profile);
 
-        var total = await CountEntriesAsync(archivePaths, cancellationToken).ConfigureAwait(false);
-
         var workItems = archivePaths
             .Where(_archiveReader.CanRead)
             .Select((archivePath, index) => CreateWorkItem(archivePath, session.ModificationsPath, index))
             .ToList();
 
+        var total = await CountEntriesAsync(workItems, cancellationToken).ConfigureAwait(false);
         var completed = 0;
 
         try
@@ -87,6 +65,28 @@ internal sealed class ModImportService(IArchiveReader archiveReader) : IModImpor
             foreach (var workItem in workItems)
                 DeleteTemporaryFolder(workItem.TemporaryPath);
         }
+    }
+
+    /// <summary>
+    /// Reads only archive metadata so the UI can provide determinate progress without
+    /// decompressing any file twice.
+    /// </summary>
+    private async Task<int> CountEntriesAsync(
+        IReadOnlyList<ImportWorkItem> workItems,
+        CancellationToken cancellationToken)
+    {
+        var total = 0;
+
+        await Parallel.ForEachAsync(
+            workItems,
+            CreateParallelOptions(cancellationToken),
+            (workItem, token) =>
+            {
+                Interlocked.Add(ref total, _archiveReader.CountEntries(workItem.ArchivePath, token));
+                return ValueTask.CompletedTask;
+            }).ConfigureAwait(false);
+
+        return total;
     }
 
     private static List<ImportedMod> CommitImports(
