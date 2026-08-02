@@ -31,6 +31,7 @@ internal sealed partial class MainForm
     private ToolStripMenuItem _recentMenuItem = null!;
     private ToolStripMenuItem _closeGameMenuItem = null!;
     private ToolStripMenuItem _restoreGameMenuItem = null!;
+    private ToolStripMenuItem _manageConflictsMenuItem = null!;
 
     private PictureBox _gameIcon = null!;
     private Label _gameName = null!;
@@ -118,9 +119,13 @@ internal sealed partial class MainForm
 
         _restoreGameMenuItem = CreateMenuItem("Restore Game Defaults…", OnRestoreGameClicked);
         _restoreGameMenuItem.Enabled = false;
+        _manageConflictsMenuItem = CreateMenuItem("Manage Conflicts\u2026", OnManageConflictsClicked);
+        _manageConflictsMenuItem.Enabled = false;
 
         var edit = new ToolStripMenuItem("Edit");
         edit.DropDownItems.AddRange([
+            _manageConflictsMenuItem,
+            new ToolStripSeparator(),
             _restoreGameMenuItem,
             new ToolStripSeparator(),
             CreateMenuItem("Preferences…", OnPreferencesClicked, Keys.Control | Keys.P)
@@ -282,7 +287,21 @@ internal sealed partial class MainForm
             Padding = new Padding(AppTheme.Spacing.Large, AppTheme.Spacing.Medium, AppTheme.Spacing.Large, AppTheme.Spacing.Medium)
         };
 
-        card.Controls.Add(CreateStatRow("Conflicts", out _conflictsValue));
+        var conflictsRow = CreateStatRow("Conflicts", out _conflictsValue);
+
+        conflictsRow.Cursor = Cursors.Hand;
+        conflictsRow.Click += OnManageConflictsClicked;
+
+        foreach (Control child in conflictsRow.Controls)
+        {
+            child.Cursor = Cursors.Hand;
+            child.Click += OnManageConflictsClicked;
+            _toolTip.SetToolTip(child, "Review file conflicts and choose mod precedence");
+        }
+
+        _toolTip.SetToolTip(conflictsRow, "Review file conflicts and choose mod precedence");
+
+        card.Controls.Add(conflictsRow);
         card.Controls.Add(CreateStatRow("Enabled", out _enabledValue));
         card.Controls.Add(CreateStatRow("Modifications", out _totalValue));
 

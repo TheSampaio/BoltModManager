@@ -26,4 +26,11 @@ internal interface IModDeploymentService
     /// modifications claiming them. The last one in profile order wins on disk.
     /// </summary>
     IReadOnlyDictionary<string, IReadOnlyList<string>> FindConflicts(GameSession session);
+
+    /// <summary>
+    /// Enabled modifications grouped in stable pairs with every destination path they both claim.
+    /// Profile order is deliberately not used to choose the left and right sides, so changing
+    /// precedence does not make the mods swap columns when the manager is opened again.
+    /// </summary>
+    IReadOnlyList<ModificationConflict> FindConflictPairs(GameSession session);
 }

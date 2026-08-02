@@ -180,6 +180,8 @@ public sealed class ModEditorServiceTests
 
         public IReadOnlyDictionary<string, IReadOnlyList<string>> FindConflicts(GameSession session) =>
             new Dictionary<string, IReadOnlyList<string>>();
+
+        public IReadOnlyList<ModificationConflict> FindConflictPairs(GameSession session) => [];
     }
 
     private sealed record DeploymentCall(

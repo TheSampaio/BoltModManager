@@ -64,7 +64,9 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
 
         foreach (var modification in session.ActiveProfile.Modifications.Where(m => m.IsEnabled))
         {
-            foreach (var relativePath in modification.Content)
+            foreach (var relativePath in modification.Content
+                .Select(PathUtility.NormalizeRelative)
+                .Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 if (!owners.TryGetValue(relativePath, out var claimants))
                     owners[relativePath] = claimants = [];
@@ -76,6 +78,52 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
         return owners
             .Where(pair => pair.Value.Count > 1)
             .ToDictionary(pair => pair.Key, pair => (IReadOnlyList<string>)pair.Value, StringComparer.OrdinalIgnoreCase);
+    }
+
+    public IReadOnlyList<ModificationConflict> FindConflictPairs(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        // Installation identity, rather than mutable profile precedence, keeps each mod on the
+        // same side of the dialog after the user changes Before/After and opens it again.
+        var modifications = session.ActiveProfile.Modifications
+            .Where(modification => modification.IsEnabled)
+            .OrderBy(modification => modification.InstalledAt)
+            .ThenBy(modification => modification.Id)
+            .ToList();
+        var indexedContent = modifications.ToDictionary(
+            modification => modification.Id,
+            modification => modification.Content
+                .Select(PathUtility.NormalizeRelative)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase));
+        var conflicts = new List<ModificationConflict>();
+
+        for (var leftIndex = 0; leftIndex < modifications.Count; leftIndex++)
+        {
+            var left = modifications[leftIndex];
+
+            for (var rightIndex = leftIndex + 1; rightIndex < modifications.Count; rightIndex++)
+            {
+                var right = modifications[rightIndex];
+                var files = indexedContent[left.Id]
+                    .Intersect(indexedContent[right.Id], StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                if (files.Count == 0)
+                    continue;
+
+                conflicts.Add(new ModificationConflict(
+                    left.Id,
+                    left.Name,
+                    right.Id,
+                    right.Name,
+                    files));
+            }
+        }
+
+        return conflicts;
     }
 
     /// <summary>
@@ -123,6 +171,7 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
             .SelectMany(candidate => candidate.Files)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var restoredByDirectory = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var directoryPathsToRestore = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var desiredDirectoryPaths = directoryCandidates.ToDictionary(
             candidate => candidate.RelativePath,
             StringComparer.OrdinalIgnoreCase);
@@ -130,32 +179,26 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
         // Remove directory links created for an older desired state before planning their files.
         // This covers disabling a mod and splitting a previously isolated directory after a new
         // conflict appears.
-        foreach (var modification in enabledList.Concat(revertedList).DistinctBy(item => item.Id))
+        foreach (var existing in FindExistingDirectoryLinks(
+            session,
+            enabledList.Concat(revertedList).DistinctBy(item => item.Id)))
         {
-            foreach (var existing in FindSourceDirectoryMatches(
-                session,
-                modification,
-                modification.Content.Select(PathUtility.NormalizeRelative)))
+            var destinationPath = Path.Combine(session.Game.TargetPath, existing.RelativePath);
+
+            if (desiredDirectoryPaths.TryGetValue(existing.RelativePath, out var desired)
+                && desired.SourcePath.Equals(existing.SourcePath, StringComparison.OrdinalIgnoreCase))
             {
-                var destinationPath = Path.Combine(session.Game.TargetPath, existing.RelativePath);
-
-                if (!IsDirectoryLinkedTo(destinationPath, existing.SourcePath))
-                    continue;
-
-                if (desiredDirectoryPaths.TryGetValue(existing.RelativePath, out var desired)
-                    && desired.SourcePath.Equals(existing.SourcePath, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                operations.Add(new LinkOperation
-                {
-                    Action = LinkAction.RestoreDirectory,
-                    DestinationPath = destinationPath,
-                    CleanupRootPath = session.Game.TargetPath
-                });
-                restoredByDirectory.UnionWith(existing.Files);
+                continue;
             }
+
+            operations.Add(new LinkOperation
+            {
+                Action = LinkAction.RestoreDirectory,
+                DestinationPath = destinationPath,
+                CleanupRootPath = session.Game.TargetPath
+            });
+            directoryPathsToRestore.Add(existing.RelativePath);
+            restoredByDirectory.UnionWith(existing.Files);
         }
 
         foreach (var candidate in directoryCandidates)
@@ -240,9 +283,15 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
             var sourcePath = Path.Combine(session.GetModificationPath(modification), relativePath);
             var destinationPath = Path.Combine(session.Game.TargetPath, relativePath);
             var statePath = GetMaterializationStatePath(session, relativePath);
+            var parentDirectoryWillBeRestored = directoryPathsToRestore.Any(directory =>
+                relativePath.Equals(directory, StringComparison.OrdinalIgnoreCase)
+                || IsBelow(directory, relativePath));
 
-            if (IsMaterializedFrom(destinationPath, sourcePath, statePath))
+            if (!parentDirectoryWillBeRestored
+                && IsMaterializedFrom(destinationPath, sourcePath, statePath))
+            {
                 continue;
+            }
 
             operations.Add(new LinkOperation
             {
@@ -280,7 +329,13 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
                 .OrderBy(match => GetPathDepth(match.RelativePath))
                 .ThenBy(match => match.RelativePath, StringComparer.OrdinalIgnoreCase))
             {
+                var containsAnotherDeployment = links.Keys.Any(path =>
+                    !match.Files.Contains(path)
+                    && (path.Equals(match.RelativePath, StringComparison.OrdinalIgnoreCase)
+                        || IsBelow(match.RelativePath, path)));
+
                 if (match.Files.Any(covered.Contains)
+                    || containsAnotherDeployment
                     || !CanReplaceDestinationDirectory(session, match))
                 {
                     continue;
@@ -292,6 +347,51 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
         }
 
         return candidates;
+    }
+
+    /// <summary>
+    /// Discovers junctions from the declared modification paths and their actual targets instead
+    /// of relying on the current source file set. This remains reliable if an interrupted older
+    /// deployment left extra or missing files inside the target directory.
+    /// </summary>
+    private static IEnumerable<DirectoryCandidate> FindExistingDirectoryLinks(
+        GameSession session,
+        IEnumerable<Modification> modifications)
+    {
+        var seenDestinations = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var modification in modifications)
+        {
+            var modificationPath = session.GetModificationPath(modification);
+            var content = modification.Content
+                .Select(PathUtility.NormalizeRelative)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var directories = content
+                .SelectMany(GetParentDirectories)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(GetPathDepth);
+
+            foreach (var relativeDirectory in directories)
+            {
+                var destinationPath = Path.Combine(session.Game.TargetPath, relativeDirectory);
+
+                if (seenDestinations.Contains(destinationPath))
+                    continue;
+
+                var sourcePath = Path.Combine(modificationPath, relativeDirectory);
+
+                if (!IsDirectoryLinkedTo(destinationPath, sourcePath))
+                    continue;
+
+                seenDestinations.Add(destinationPath);
+
+                yield return new DirectoryCandidate(
+                    relativeDirectory,
+                    sourcePath,
+                    content.Where(path => IsBelow(relativeDirectory, path))
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase));
+            }
+        }
     }
 
     private static IEnumerable<DirectoryCandidate> FindSourceDirectoryMatches(
