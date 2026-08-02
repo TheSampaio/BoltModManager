@@ -217,6 +217,7 @@ internal sealed partial class MainForm
         };
 
         _playButton.Click += OnPlayClicked;
+        _toolTip.SetToolTip(_playButton, "Launch the configured game");
 
         var card = new Card
         {
@@ -402,6 +403,7 @@ internal sealed partial class MainForm
         _deleteButton.Variant = ButtonVariant.Danger;
 
         _importButton.Click += OnImportClicked;
+        _toolTip.SetToolTip(_importButton, "Import modification archives");
         _syncButton.Click += OnSyncClicked;
         _toolTip.SetToolTip(_syncButton, "Deploy the active profile to the game folder");
         _editButton.Click += OnEditSelectedClicked;
@@ -443,10 +445,9 @@ internal sealed partial class MainForm
         {
             AutoEllipsis = true,
             BackColor = Color.Transparent,
-            Dock = DockStyle.Top,
+            Dock = DockStyle.Fill,
             Font = AppTheme.Fonts.Caption,
             ForeColor = AppTheme.Colors.TextMuted,
-            Height = 20,
             TextAlign = ContentAlignment.MiddleLeft
         };
 
@@ -458,8 +459,7 @@ internal sealed partial class MainForm
             Visible = false
         };
 
-        _progressPanel.Controls.Add(_progressLabel);
-        _progressPanel.Controls.Add(_progressBar);
+        _progressPanel.Controls.AddRange([_progressLabel, _progressBar]);
 
         return _progressPanel;
     }

@@ -58,7 +58,10 @@ internal sealed class ModImportService(IArchiveReader archiveReader) : IModImpor
                     return ValueTask.CompletedTask;
                 }).ConfigureAwait(false);
 
-            return CommitImports(workItems, profile, cancellationToken);
+            // Committing consists only of local folder moves. Cancellation is accepted before the
+            // first move so an import can never leave a partially updated profile.
+            cancellationToken.ThrowIfCancellationRequested();
+            return CommitImports(workItems, profile);
         }
         finally
         {
@@ -91,15 +94,12 @@ internal sealed class ModImportService(IArchiveReader archiveReader) : IModImpor
 
     private static List<ImportedMod> CommitImports(
         IEnumerable<ImportWorkItem> workItems,
-        Profile profile,
-        CancellationToken cancellationToken)
+        Profile profile)
     {
         var imported = new List<ImportedMod>();
 
         foreach (var workItem in workItems.OrderBy(item => item.Index))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var replaced = TakeExisting(profile, workItem.Name, workItem.FolderName);
             ReplaceFolder(workItem.TemporaryPath, workItem.DestinationPath);
 

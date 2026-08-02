@@ -67,6 +67,10 @@ internal static class Icons
                 g.FillPolygon(brush, [new PointF(7f, 4.5f), new PointF(19.5f, 12f), new PointF(7f, 19.5f)]);
                 break;
 
+            case IconKind.Stop:
+                g.FillRectangle(brush, 5f, 5f, 14f, 14f);
+                break;
+
             case IconKind.Plus:
                 g.DrawLine(pen, 12f, 5f, 12f, 19f);
                 g.DrawLine(pen, 5f, 12f, 19f, 12f);

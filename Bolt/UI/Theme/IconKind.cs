@@ -6,6 +6,7 @@ internal enum IconKind
     None,
     Bolt,
     Play,
+    Stop,
     Plus,
     Trash,
     Download,

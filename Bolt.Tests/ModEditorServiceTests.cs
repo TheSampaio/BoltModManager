@@ -72,7 +72,7 @@ public sealed class ModEditorServiceTests
     }
 
     [TestMethod]
-    public void ApplyRemovedFileKeepsManagedSourceAndUpdatesContent()
+    public void ApplyRemovedFileDeletesManagedSourceAndEmptyDirectories()
     {
         using var directory = new TestDirectory();
         var (session, modification) = CreateSession(directory);
@@ -89,8 +89,9 @@ public sealed class ModEditorServiceTests
         Assert.IsTrue(result.Succeeded, result.Error);
         CollectionAssert.AreEqual(RemainingPaths, modification.Content);
         Assert.IsTrue(File.Exists(directory.GetPath("Modifications", "Sample", "first.txt")));
-        Assert.IsTrue(File.Exists(directory.GetPath("Modifications", "Sample", "old", "second.txt")));
-        Assert.IsTrue(Directory.Exists(directory.GetPath("Modifications", "Sample", "old")));
+        Assert.IsFalse(File.Exists(directory.GetPath("Modifications", "Sample", "old", "second.txt")));
+        Assert.IsFalse(Directory.Exists(directory.GetPath("Modifications", "Sample", "old")));
+        Assert.IsFalse(Directory.EnumerateDirectories(session.ModificationsPath, ".bolt-edit-*").Any());
         Assert.HasCount(2, deployment.Calls);
     }
 

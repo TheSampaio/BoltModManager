@@ -167,7 +167,13 @@ internal sealed class AppButton : Control
             graphics.DrawRoundedBorder(border, bounds, CornerRadius, 1.2f);
 
         if (Focused && Enabled)
-            graphics.DrawRoundedBorder(AppTheme.Colors.AccentText, Rectangle.Inflate(bounds, -2, -2), Math.Max(CornerRadius - 2, 0), 1.2f);
+        {
+            var focusColor = Variant == ButtonVariant.Danger
+                ? AppTheme.Colors.Danger
+                : AppTheme.Colors.AccentText;
+
+            graphics.DrawRoundedBorder(focusColor, Rectangle.Inflate(bounds, -2, -2), Math.Max(CornerRadius - 2, 0), 1.2f);
+        }
 
         PaintContent(graphics, bounds, foreground);
     }

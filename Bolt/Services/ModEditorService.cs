@@ -63,7 +63,8 @@ internal sealed class ModEditorService(IModDeploymentService deployment, IGameRe
         var transaction = new FileMoveTransaction(
             session.GetModificationPath(modification),
             session.ModificationsPath,
-            moves);
+            moves,
+            validation.RemovedFiles);
 
         try
         {
@@ -284,20 +285,26 @@ internal sealed class ModEditorService(IModDeploymentService deployment, IGameRe
         private readonly List<Move> _moves;
         private readonly List<Move> _staged = [];
         private readonly List<Move> _placed = [];
+        private readonly List<Removal> _removals;
+        private readonly List<Removal> _stagedRemovals = [];
 
         private bool _wasApplied;
 
         public FileMoveTransaction(
             string modificationRoot,
             string modificationsRoot,
-            IReadOnlyList<ModFileEdit> files)
+            IReadOnlyList<ModFileEdit> files,
+            IReadOnlyList<string> removedFiles)
         {
             _modificationRoot = Path.GetFullPath(modificationRoot);
             _stagingRoot = Path.Combine(modificationsRoot, $".bolt-edit-{Guid.NewGuid():N}");
             _moves = [.. files.Select((file, index) => new Move(
                 Path.Combine(_modificationRoot, file.SourcePath),
                 Path.Combine(_modificationRoot, file.DestinationPath),
-                Path.Combine(_stagingRoot, index.ToString(System.Globalization.CultureInfo.InvariantCulture))))];
+                Path.Combine(_stagingRoot, $"move-{index.ToString(System.Globalization.CultureInfo.InvariantCulture)}")))];
+            _removals = [.. removedFiles.Select((file, index) => new Removal(
+                Path.Combine(_modificationRoot, file),
+                Path.Combine(_stagingRoot, $"remove-{index.ToString(System.Globalization.CultureInfo.InvariantCulture)}")))];
         }
 
         public void Apply()
@@ -308,6 +315,12 @@ internal sealed class ModEditorService(IModDeploymentService deployment, IGameRe
             {
                 File.Move(move.Source, move.Staging);
                 _staged.Add(move);
+            }
+
+            foreach (var removal in _removals)
+            {
+                File.Move(removal.Source, removal.Staging);
+                _stagedRemovals.Add(removal);
             }
 
             foreach (var move in _moves)
@@ -337,8 +350,15 @@ internal sealed class ModEditorService(IModDeploymentService deployment, IGameRe
                 File.Move(move.Staging, move.Source);
             }
 
+            foreach (var removal in _stagedRemovals.AsEnumerable().Reverse())
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(removal.Source)!);
+                File.Move(removal.Staging, removal.Source);
+            }
+
             _placed.Clear();
             _staged.Clear();
+            _stagedRemovals.Clear();
 
             foreach (var destinationDirectory in _moves
                 .Select(move => Path.GetDirectoryName(move.Destination)!)
@@ -359,6 +379,7 @@ internal sealed class ModEditorService(IModDeploymentService deployment, IGameRe
             {
                 foreach (var sourceDirectory in _moves
                     .Select(move => Path.GetDirectoryName(move.Source)!)
+                    .Concat(_removals.Select(removal => Path.GetDirectoryName(removal.Source)!))
                     .Distinct(StringComparer.OrdinalIgnoreCase))
                 {
                     PathUtility.DeleteEmptyDirectories(sourceDirectory, _modificationRoot);
@@ -380,5 +401,7 @@ internal sealed class ModEditorService(IModDeploymentService deployment, IGameRe
         }
 
         private sealed record Move(string Source, string Destination, string Staging);
+
+        private sealed record Removal(string Source, string Staging);
     }
 }

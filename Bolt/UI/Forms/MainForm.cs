@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Bolt.Core;
 using Bolt.Core.Abstractions;
 using Bolt.Core.Models;
+using Bolt.UI.Controls;
 using Bolt.UI.Theme;
 
 namespace Bolt.UI.Forms;
@@ -26,6 +27,7 @@ internal sealed partial class MainForm : ThemedForm
     private readonly Func<ModEditorForm> _modEditorFormFactory;
     private readonly string _version;
 
+    private CancellationTokenSource? _importCancellation;
     private bool _isBusy;
 
     public MainForm(
@@ -112,6 +114,7 @@ internal sealed partial class MainForm : ThemedForm
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
+        _importCancellation?.Cancel();
         _gameIcon.Image?.Dispose();
         _toolTip.Dispose();
 
@@ -285,17 +288,19 @@ internal sealed partial class MainForm : ThemedForm
 
     private void SetGameControlsEnabled(bool enabled)
     {
-        _playButton.Enabled = enabled && !_process.IsRunning;
-        _profileSelector.Enabled = enabled;
-        _addProfileButton.Enabled = enabled;
-        _removeProfileButton.Enabled = enabled;
-        _openGameFolderButton.Enabled = enabled;
-        _openModsFolderButton.Enabled = enabled;
-        _search.Enabled = enabled;
-        _importButton.Enabled = enabled;
-        _syncButton.Enabled = enabled;
-        _closeGameMenuItem.Enabled = enabled;
-        _restoreGameMenuItem.Enabled = enabled;
+        var allowChanges = enabled && !_isBusy && !_process.IsRunning;
+
+        _playButton.Enabled = enabled && !_isBusy;
+        _profileSelector.Enabled = allowChanges;
+        _addProfileButton.Enabled = allowChanges;
+        _removeProfileButton.Enabled = allowChanges;
+        _openGameFolderButton.Enabled = allowChanges;
+        _openModsFolderButton.Enabled = allowChanges;
+        _search.Enabled = allowChanges;
+        _importButton.Enabled = allowChanges;
+        _syncButton.Enabled = allowChanges;
+        _closeGameMenuItem.Enabled = allowChanges;
+        _restoreGameMenuItem.Enabled = allowChanges;
 
         OnListSelectionChanged(this, EventArgs.Empty);
     }
@@ -396,10 +401,37 @@ internal sealed partial class MainForm : ThemedForm
         if (Current is null)
             return;
 
+        if (_process.IsRunning)
+        {
+            StopGame();
+            return;
+        }
+
         var result = _process.Run(Current.Game.ExecutablePath);
 
         if (result.Failed)
             _dialogs.Error(result.Error!, "Launch Game");
+    }
+
+    private void StopGame()
+    {
+        _playButton.Enabled = false;
+        SetStatus(Current is null ? "Stopping game…" : $"Stopping · {Current.Game.Name}…");
+        var result = _process.Terminate();
+
+        if (result.Failed)
+        {
+            // The process may have exited naturally between the click and Terminate acquiring the
+            // service lock. In that case the exit notification restores the idle UI; no error is
+            // useful to the user.
+            if (!_process.IsRunning)
+                return;
+
+            _playButton.Enabled = _process.IsRunning;
+            SetStatus(Current is null ? "Running" : $"Running · {Current.Game.Name}");
+            _dialogs.Error(result.Error!, "Stop Game");
+            return;
+        }
     }
 
     private void OnGameStarted()
@@ -421,13 +453,22 @@ internal sealed partial class MainForm : ThemedForm
     }
 
     /// <summary>
-    /// Prevents changes to the loaded game while its process is running. The status bar deliberately
-    /// stays enabled so Bolt can continue to report which game owns the locked session.
+    /// Prevents changes to the loaded game while its process is running, leaving the process button
+    /// available so the user can force-stop an unresponsive game.
     /// </summary>
     private void SetGameRunning(bool running)
     {
         _menu.Enabled = !running && !_isBusy;
-        _content.Enabled = !running;
+        _workspace.Enabled = !running;
+
+        _playButton.Icon = running ? IconKind.Stop : IconKind.Play;
+        _playButton.Text = running ? "Stop" : "Play";
+        _playButton.Variant = running ? ButtonVariant.Danger : ButtonVariant.Primary;
+        _toolTip.SetToolTip(
+            _playButton,
+            running ? "Forcefully terminate the running game process" : "Launch the configured game");
+
+        SetGameControlsEnabled(Current is not null);
     }
 
     // ---------------------------------------------------------------- profiles
@@ -760,6 +801,12 @@ internal sealed partial class MainForm : ThemedForm
 
     private async void OnImportClicked(object? sender, EventArgs e)
     {
+        if (_importCancellation is { IsCancellationRequested: false })
+        {
+            CancelImport();
+            return;
+        }
+
         if (Current is null || _isBusy)
             return;
 
@@ -789,6 +836,10 @@ internal sealed partial class MainForm : ThemedForm
         SetBusy(true);
         SetProgressVisible(true);
         _progressBar.Reset();
+
+        using var cancellation = new CancellationTokenSource();
+        _importCancellation = cancellation;
+        SetImportCancellationMode(true);
 
         // Reading the archives happens before the first entry is extracted and can take a while on
         // a large package, so the indicator starts moving right away instead of after the fact.
@@ -828,9 +879,10 @@ internal sealed partial class MainForm : ThemedForm
         try
         {
             var imported = await _import
-                .ImportAsync(archivePaths, session, session.ActiveProfile, progress)
+                .ImportAsync(archivePaths, session, session.ActiveProfile, progress, cancellation.Token)
                 .ConfigureAwait(true);
 
+            _importButton.Enabled = false;
             importStopwatch.Stop();
             _progressBar.IsIndeterminate = true;
             _progressLabel.Text = $"Archives processed in {importStopwatch.Elapsed.TotalSeconds:0.0}s. Deploying modifications…";
@@ -854,6 +906,10 @@ internal sealed partial class MainForm : ThemedForm
 
             WarnAboutConflicts();
         }
+        catch (OperationCanceledException)
+        {
+            SetStatus("Modification import canceled. No modifications were added.");
+        }
         catch (Exception ex) when (ex is IOException
             or UnauthorizedAccessException
             or InvalidDataException
@@ -864,11 +920,38 @@ internal sealed partial class MainForm : ThemedForm
         }
         finally
         {
+            if (ReferenceEquals(_importCancellation, cancellation))
+                _importCancellation = null;
+
+            SetImportCancellationMode(false);
             _progressBar.IsIndeterminate = false;
             SetProgressVisible(false);
             _progressLabel.Text = string.Empty;
             SetBusy(false);
         }
+    }
+
+    private void CancelImport()
+    {
+        if (_importCancellation is not { IsCancellationRequested: false } cancellation)
+            return;
+
+        cancellation.Cancel();
+        _importButton.Enabled = false;
+        _progressBar.IsIndeterminate = true;
+        _progressLabel.Text = "Canceling import and cleaning temporary files…";
+    }
+
+    private void SetImportCancellationMode(bool canceling)
+    {
+        _importButton.Icon = canceling ? IconKind.Close : IconKind.Download;
+        _importButton.IconColor = canceling ? AppTheme.Colors.Accent : null;
+        _importButton.Text = canceling ? "Cancel" : "Import";
+        _importButton.Variant = canceling ? ButtonVariant.AccentOutline : ButtonVariant.Primary;
+        _importButton.Enabled = canceling || (!_isBusy && Current is not null);
+        _toolTip.SetToolTip(
+            _importButton,
+            canceling ? "Cancel the current modification import" : "Import modification archives");
     }
 
     // ---------------------------------------------------------------- shortcuts
