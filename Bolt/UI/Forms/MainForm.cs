@@ -25,6 +25,7 @@ internal sealed partial class MainForm : ThemedForm
     private readonly Func<NewGameForm> _newGameFormFactory;
     private readonly Func<PreferencesForm> _preferencesFormFactory;
     private readonly Func<ModEditorForm> _modEditorFormFactory;
+    private readonly Func<ConflictManagerForm> _conflictManagerFormFactory;
     private readonly string _version;
 
     private CancellationTokenSource? _importCancellation;
@@ -41,6 +42,7 @@ internal sealed partial class MainForm : ThemedForm
         Func<NewGameForm> newGameFormFactory,
         Func<PreferencesForm> preferencesFormFactory,
         Func<ModEditorForm> modEditorFormFactory,
+        Func<ConflictManagerForm> conflictManagerFormFactory,
         AppSettings settings)
     {
         _session = session;
@@ -53,6 +55,7 @@ internal sealed partial class MainForm : ThemedForm
         _newGameFormFactory = newGameFormFactory;
         _preferencesFormFactory = preferencesFormFactory;
         _modEditorFormFactory = modEditorFormFactory;
+        _conflictManagerFormFactory = conflictManagerFormFactory;
         _version = settings.Version;
 
         BuildLayout();
@@ -301,6 +304,7 @@ internal sealed partial class MainForm : ThemedForm
         _syncButton.Enabled = allowChanges;
         _closeGameMenuItem.Enabled = allowChanges;
         _restoreGameMenuItem.Enabled = allowChanges;
+        _manageConflictsMenuItem.Enabled = allowChanges;
 
         OnListSelectionChanged(this, EventArgs.Empty);
     }
@@ -795,6 +799,104 @@ internal sealed partial class MainForm : ThemedForm
             return;
 
         SetStatus($"{BuildIdleStatus(Current)} · {conflicts.Count} file(s) provided by more than one modification");
+    }
+
+    private void OnManageConflictsClicked(object? sender, EventArgs e)
+    {
+        if (Current is null || _isBusy || _process.IsRunning)
+            return;
+
+        var conflicts = _deployment.FindConflictPairs(Current);
+
+        if (conflicts.Count == 0)
+        {
+            _dialogs.Info(
+                "The enabled modifications do not currently share any destination files.",
+                "Manage Conflicts");
+            return;
+        }
+
+        using var form = _conflictManagerFormFactory();
+
+        if (form.ShowManager(this, Current.ActiveProfile, conflicts) != DialogResult.OK)
+            return;
+
+        ApplyConflictOrder(form.OrderedModificationIds);
+    }
+
+    private void ApplyConflictOrder(IReadOnlyList<Guid> orderedModificationIds)
+    {
+        if (Current is null)
+            return;
+
+        var profile = Current.ActiveProfile;
+        var previousOrder = profile.Modifications.ToList();
+        var modificationsById = previousOrder.ToDictionary(modification => modification.Id);
+
+        if (orderedModificationIds.Count != previousOrder.Count
+            || orderedModificationIds.Distinct().Count() != previousOrder.Count
+            || orderedModificationIds.Any(id => !modificationsById.ContainsKey(id)))
+        {
+            _dialogs.Error(
+                "The conflict order no longer matches the active profile. Reopen the manager and try again.",
+                "Manage Conflicts");
+            return;
+        }
+
+        if (orderedModificationIds.SequenceEqual(previousOrder.Select(modification => modification.Id)))
+        {
+            SetStatus($"{BuildIdleStatus(Current)} - conflict precedence unchanged");
+            return;
+        }
+
+        profile.Modifications.Clear();
+        profile.Modifications.AddRange(orderedModificationIds.Select(id => modificationsById[id]));
+
+        var deployment = _deployment.Synchronize(Current);
+
+        if (deployment.Failed)
+        {
+            RestoreModificationOrder(profile, previousOrder);
+            var rollback = _deployment.Synchronize(Current);
+            RefreshList();
+            ReportConflictOrderFailure(
+                deployment.Error ?? "The new precedence could not be deployed.",
+                rollback);
+            return;
+        }
+
+        var save = _session.Save();
+
+        if (save.Failed)
+        {
+            RestoreModificationOrder(profile, previousOrder);
+            var rollback = _deployment.Synchronize(Current);
+            RefreshList();
+            ReportConflictOrderFailure(
+                save.Error ?? "The new precedence could not be saved.",
+                rollback);
+            return;
+        }
+
+        RefreshList();
+        SetStatus($"{BuildIdleStatus(Current)} - conflict precedence applied");
+    }
+
+    private void ReportConflictOrderFailure(string message, OperationResult rollback)
+    {
+        if (rollback.Failed)
+        {
+            message += $"{Environment.NewLine}{Environment.NewLine}"
+                + $"Restoring the previous precedence also failed: {rollback.Error}";
+        }
+
+        _dialogs.Error(message, "Manage Conflicts");
+    }
+
+    private static void RestoreModificationOrder(Profile profile, IEnumerable<Modification> order)
+    {
+        profile.Modifications.Clear();
+        profile.Modifications.AddRange(order);
     }
 
     // ---------------------------------------------------------------- import

@@ -22,6 +22,10 @@ Enabling a modification deploys its files into the game folder and moves the fil
 modification and backup folders are derived from the location of `Game.bltg`, a game folder can be
 moved or renamed without breaking anything.
 
+When enabled modifications provide the same destination file, **Manage Conflicts** shows the files
+and both owning mods. A mod set to **Before** is deployed first; the mod set to **After** is deployed
+last and wins the shared file. Applying the rules stores that precedence in the profile order.
+
 Elevation is only requested when Windows actually refuses an operation. With **Developer Mode**
 enabled — or when the game lives outside a protected folder — everything runs without a UAC prompt.
 The status bar shows which mode is in effect.

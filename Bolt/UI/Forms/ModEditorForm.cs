@@ -362,7 +362,7 @@ internal sealed class ModEditorForm : ThemedForm
             .OfType<FileTreeRow>()
             .FirstOrDefault(node => node.Folder is not null)
             ?.Folder;
-        var initialDirectory = ResolveInitialDirectory(gameRoot, files[0], selectedFolder);
+        var initialDirectory = gameRoot;
         var hasFolderSelection = selectedFolder is not null;
 
         using var dialog = new FolderBrowserDialog
@@ -952,25 +952,6 @@ internal sealed class ModEditorForm : ThemedForm
         return TextFileExtensions.Contains(Path.GetExtension(node.File.DestinationPath))
             ? node.File
             : null;
-    }
-
-    private static string ResolveInitialDirectory(
-        string gameRoot,
-        EditableFile file,
-        MappingFolder? selectedFolder)
-    {
-        var relativeDirectory = selectedFolder is null
-            ? Path.GetDirectoryName(file.DestinationPath)
-            : Path.GetDirectoryName(selectedFolder.DestinationPath);
-
-        if (string.IsNullOrEmpty(relativeDirectory))
-            return gameRoot;
-
-        var candidate = Path.GetFullPath(Path.Combine(gameRoot, relativeDirectory));
-
-        return PathUtility.IsInside(gameRoot, candidate) && Directory.Exists(candidate)
-            ? candidate
-            : gameRoot;
     }
 
     private static AppTextField CreateField(string label, string placeholder) => new()

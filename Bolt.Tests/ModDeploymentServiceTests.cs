@@ -11,6 +11,84 @@ namespace Bolt.Tests;
 public sealed class ModDeploymentServiceTests
 {
     [TestMethod]
+    public void FindConflictPairsGroupsSharedFilesByStableModificationPair()
+    {
+        using var directory = new TestDirectory();
+        var first = new Modification
+        {
+            Name = "First",
+            FolderName = "First",
+            InstalledAt = new DateTime(2026, 1, 1),
+            IsEnabled = true,
+            Content = ["unique-first.txt", "shared.txt", "folder/shared.bin"]
+        };
+        var second = new Modification
+        {
+            Name = "Second",
+            FolderName = "Second",
+            InstalledAt = new DateTime(2026, 1, 2),
+            IsEnabled = true,
+            Content = ["unique-second.txt", "SHARED.txt", "folder/shared.bin"]
+        };
+        var disabled = CreateModification("Disabled", "shared.txt");
+        disabled.IsEnabled = false;
+        var profile = new Profile { Name = "Main", Modifications = [second, disabled, first] };
+        var game = new Game
+        {
+            Name = "Test Game",
+            TargetPath = directory.GetPath("Game"),
+            ActiveProfileId = profile.Id,
+            Profiles = [profile]
+        };
+        var session = new GameSession(game, directory.GetPath("Managed", "Game.bltg"));
+        var service = new ModDeploymentService(new CapturingExecutor(OperationResult.Success()));
+
+        var conflicts = service.FindConflictPairs(session);
+
+        Assert.HasCount(1, conflicts);
+        Assert.AreEqual(first.Id, conflicts[0].LeftModificationId);
+        Assert.AreEqual(second.Id, conflicts[0].RightModificationId);
+        CollectionAssert.AreEquivalent(
+            new[] { "shared.txt", Path.Combine("folder", "shared.bin") },
+            conflicts[0].Files.ToArray());
+    }
+
+    [TestMethod]
+    public void ProfileOrderDeterminesWhichConflictingModificationWinsDeployment()
+    {
+        using var directory = new TestDirectory();
+        var first = CreateModification("First", "shared.txt");
+        var second = CreateModification("Second", "shared.txt");
+        var profile = new Profile { Name = "Main", Modifications = [first, second] };
+        var game = new Game
+        {
+            Name = "Test Game",
+            TargetPath = directory.GetPath("Game"),
+            ActiveProfileId = profile.Id,
+            Profiles = [profile]
+        };
+        var session = new GameSession(game, directory.GetPath("Managed", "Game.bltg"));
+        var capture = new CapturingExecutor(OperationResult.Success());
+        var service = new ModDeploymentService(capture);
+
+        service.Synchronize(session);
+
+        Assert.HasCount(1, capture.Operations);
+        Assert.AreEqual(
+            Path.Combine(session.GetModificationPath(second), "shared.txt"),
+            capture.Operations[0].SourcePath);
+
+        profile.Modifications.Clear();
+        profile.Modifications.AddRange([second, first]);
+        service.Synchronize(session);
+
+        Assert.HasCount(1, capture.Operations);
+        Assert.AreEqual(
+            Path.Combine(session.GetModificationPath(first), "shared.txt"),
+            capture.Operations[0].SourcePath);
+    }
+
+    [TestMethod]
     public void SynchronizeMaterializesFilesThatCannotUseDirectoryLink()
     {
         using var directory = new TestDirectory();
@@ -312,6 +390,127 @@ public sealed class ModDeploymentServiceTests
         Assert.HasCount(3, capture.Operations);
         Assert.HasCount(2, capture.Operations.Where(operation => operation.Action == LinkAction.RestoreMaterialized));
         Assert.AreEqual(LinkAction.LinkDirectory, capture.Operations[^1].Action);
+    }
+
+    [TestMethod]
+    public void SynchronizeDoesNotMountDirectoryContainingAnotherModDeployment()
+    {
+        using var directory = new TestDirectory();
+        var gameRoot = directory.GetPath("Game");
+        var essentials = CreateModification("Essentials", "CLEO", "engine.cleo");
+        var urbanize = CreateModification("Urbanize", "CLEO", "Urbanize", "script.cs");
+        var profile = new Profile { Name = "Main", Modifications = [essentials, urbanize] };
+        var game = new Game
+        {
+            Name = "Test Game",
+            TargetPath = gameRoot,
+            ActiveProfileId = profile.Id,
+            Profiles = [profile]
+        };
+        var session = new GameSession(game, directory.GetPath("Managed", "Game.bltg"));
+
+        foreach (var modification in profile.Modifications)
+        {
+            foreach (var relativePath in modification.Content)
+            {
+                var sourcePath = Path.Combine(session.GetModificationPath(modification), relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(sourcePath)!);
+                File.WriteAllText(sourcePath, modification.Name);
+            }
+        }
+
+        var capture = new CapturingExecutor(OperationResult.Success());
+        var result = new ModDeploymentService(capture).Synchronize(session);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.IsFalse(capture.Operations.Any(operation =>
+            operation.Action == LinkAction.LinkDirectory
+            && operation.DestinationPath.Equals(
+                Path.Combine(gameRoot, "CLEO"),
+                StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(capture.Operations.Any(operation =>
+            operation.Action == LinkAction.Materialize
+            && operation.DestinationPath.EndsWith("engine.cleo", StringComparison.Ordinal)));
+        Assert.IsTrue(capture.Operations.Any(operation =>
+            operation.Action == LinkAction.LinkDirectory
+            && operation.DestinationPath.Equals(
+                Path.Combine(gameRoot, "CLEO", "Urbanize"),
+                StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [TestMethod]
+    public void SynchronizeRestoresConflictingParentJunctionBeforeWritingFiles()
+    {
+        using var directory = new TestDirectory();
+        var gameRoot = directory.GetPath("Game");
+        var urbanize = CreateModification("Urbanize", "CLEO", "Urbanize", "script.cs");
+        var essentials = CreateModification("Essentials", "CLEO", "engine.cleo");
+        var profile = new Profile { Name = "Main", Modifications = [urbanize, essentials] };
+        var game = new Game
+        {
+            Name = "Test Game",
+            TargetPath = gameRoot,
+            ActiveProfileId = profile.Id,
+            Profiles = [profile]
+        };
+        var session = new GameSession(game, directory.GetPath("Managed", "Game.bltg"));
+        var essentialsDirectory = Path.Combine(session.GetModificationPath(essentials), "CLEO");
+        var essentialsFile = Path.Combine(essentialsDirectory, "engine.cleo");
+        var leakedFile = Path.Combine(essentialsDirectory, "Urbanize", "leaked.cs");
+        var urbanizeFile = Path.Combine(
+            session.GetModificationPath(urbanize),
+            "CLEO",
+            "Urbanize",
+            "script.cs");
+        Directory.CreateDirectory(Path.GetDirectoryName(leakedFile)!);
+        Directory.CreateDirectory(Path.GetDirectoryName(urbanizeFile)!);
+        File.WriteAllText(essentialsFile, "engine");
+        File.WriteAllText(leakedFile, "left by interrupted deployment");
+        File.WriteAllText(urbanizeFile, "urbanize");
+        var essentialsState = Path.Combine(
+            session.BackupsPath,
+            ".bolt-state",
+            "CLEO",
+            "engine.cleo.materialized");
+        Directory.CreateDirectory(Path.GetDirectoryName(essentialsState)!);
+        File.WriteAllText(essentialsState, string.Empty);
+
+        var existingLink = LinkOperationRunner.Run(
+        [
+            new LinkOperation
+            {
+                Action = LinkAction.LinkDirectory,
+                SourcePath = essentialsDirectory,
+                DestinationPath = Path.Combine(gameRoot, "CLEO"),
+                CleanupRootPath = gameRoot
+            }
+        ]);
+        Assert.IsTrue(existingLink.Succeeded, string.Join(Environment.NewLine, existingLink.Errors));
+
+        var capture = new CapturingExecutor(OperationResult.Success());
+        var result = new ModDeploymentService(capture).Synchronize(session);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual(LinkAction.RestoreDirectory, capture.Operations[0].Action);
+        Assert.AreEqual(Path.Combine(gameRoot, "CLEO"), capture.Operations[0].DestinationPath);
+        Assert.IsFalse(capture.Operations.Any(operation =>
+            operation.Action == LinkAction.LinkDirectory
+            && operation.DestinationPath.Equals(
+                Path.Combine(gameRoot, "CLEO"),
+                StringComparison.OrdinalIgnoreCase)));
+        Assert.IsTrue(capture.Operations.Any(operation =>
+            operation.Action == LinkAction.Materialize
+            && operation.DestinationPath.EndsWith("engine.cleo", StringComparison.Ordinal)));
+
+        var deployment = LinkOperationRunner.Run(capture.Operations);
+
+        Assert.IsTrue(deployment.Succeeded, string.Join(Environment.NewLine, deployment.Errors));
+        Assert.AreEqual("engine", File.ReadAllText(essentialsFile));
+        Assert.AreEqual("left by interrupted deployment", File.ReadAllText(leakedFile));
+        Assert.AreEqual("engine", File.ReadAllText(Path.Combine(gameRoot, "CLEO", "engine.cleo")));
+        Assert.AreEqual(
+            "urbanize",
+            File.ReadAllText(Path.Combine(gameRoot, "CLEO", "Urbanize", "script.cs")));
     }
 
     [TestMethod]
