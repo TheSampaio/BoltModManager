@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace Bolt.Infrastructure.Native;
 
@@ -19,6 +20,13 @@ internal static partial class NativeMethods
     public const uint InvalidFileAttributes = 0xFFFFFFFF;
     public const uint FileAttributeReparsePoint = 0x00000400;
 
+    public const uint GenericWrite = 0x40000000;
+    public const uint OpenExisting = 3;
+    public const uint FileFlagOpenReparsePoint = 0x00200000;
+    public const uint FileFlagBackupSemantics = 0x02000000;
+    public const uint FsctlSetReparsePoint = 0x000900A4;
+    public const uint IoReparseTagMountPoint = 0xA0000003;
+
     /// <summary>Enables the dark window frame introduced in Windows 10 20H1.</summary>
     public const int DwmwaUseImmersiveDarkMode = 20;
 
@@ -31,6 +39,28 @@ internal static partial class NativeMethods
 
     [LibraryImport("kernel32.dll", EntryPoint = "GetFileAttributesW", StringMarshalling = StringMarshalling.Utf16)]
     public static partial uint GetFileAttributes(string fileName);
+
+    [LibraryImport("kernel32.dll", EntryPoint = "CreateFileW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+    public static partial SafeFileHandle CreateFile(
+        string fileName,
+        uint desiredAccess,
+        uint shareMode,
+        IntPtr securityAttributes,
+        uint creationDisposition,
+        uint flagsAndAttributes,
+        IntPtr templateFile);
+
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool DeviceIoControl(
+        SafeFileHandle device,
+        uint controlCode,
+        IntPtr inputBuffer,
+        uint inputBufferSize,
+        IntPtr outputBuffer,
+        uint outputBufferSize,
+        out uint bytesReturned,
+        IntPtr overlapped);
 
     [LibraryImport("dwmapi.dll")]
     public static partial int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);

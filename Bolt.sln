@@ -5,6 +5,8 @@ VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bolt", "Bolt\Bolt.csproj", "{0922802D-149C-48FE-BF11-C3EF1FC46FA7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bolt.Tests", "Bolt.Tests\Bolt.Tests.csproj", "{F672B863-DA1B-4FAF-BEFB-B1F65D2F0E12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{0922802D-149C-48FE-BF11-C3EF1FC46FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0922802D-149C-48FE-BF11-C3EF1FC46FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0922802D-149C-48FE-BF11-C3EF1FC46FA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F672B863-DA1B-4FAF-BEFB-B1F65D2F0E12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F672B863-DA1B-4FAF-BEFB-B1F65D2F0E12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F672B863-DA1B-4FAF-BEFB-B1F65D2F0E12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F672B863-DA1B-4FAF-BEFB-B1F65D2F0E12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

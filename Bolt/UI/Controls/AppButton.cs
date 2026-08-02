@@ -14,6 +14,9 @@ internal enum ButtonVariant
     /// <summary>Outlined surface. The default for secondary actions.</summary>
     Secondary,
 
+    /// <summary>Outlined surface using the product accent, intended for dialog cancellation.</summary>
+    AccentOutline,
+
     /// <summary>Transparent until hovered. For toolbars and icon-only actions.</summary>
     Ghost,
 
@@ -64,6 +67,9 @@ internal sealed class AppButton : Control
 
     /// <summary>Size of the icon in pixels. Defaults to a size proportional to the button.</summary>
     public int IconSize { get; set; } = 16;
+
+    /// <summary>Optional colour used by the icon while the button is enabled.</summary>
+    public Color? IconColor { get; set; }
 
     public int CornerRadius
     {
@@ -161,7 +167,13 @@ internal sealed class AppButton : Control
             graphics.DrawRoundedBorder(border, bounds, CornerRadius, 1.2f);
 
         if (Focused && Enabled)
-            graphics.DrawRoundedBorder(AppTheme.Colors.AccentText, Rectangle.Inflate(bounds, -2, -2), Math.Max(CornerRadius - 2, 0), 1.2f);
+        {
+            var focusColor = Variant == ButtonVariant.Danger
+                ? AppTheme.Colors.Danger
+                : AppTheme.Colors.AccentText;
+
+            graphics.DrawRoundedBorder(focusColor, Rectangle.Inflate(bounds, -2, -2), Math.Max(CornerRadius - 2, 0), 1.2f);
+        }
 
         PaintContent(graphics, bounds, foreground);
     }
@@ -170,6 +182,7 @@ internal sealed class AppButton : Control
     {
         var hasText = !string.IsNullOrEmpty(Text);
         var hasIcon = Icon != IconKind.None;
+        var iconColor = Enabled ? IconColor ?? foreground : foreground;
 
         if (!hasIcon)
         {
@@ -181,7 +194,7 @@ internal sealed class AppButton : Control
 
         if (!hasText)
         {
-            Icons.Draw(graphics, Icon, ToSquare(bounds, IconSize), foreground);
+            Icons.Draw(graphics, Icon, ToSquare(bounds, IconSize), iconColor);
             return;
         }
 
@@ -195,7 +208,7 @@ internal sealed class AppButton : Control
             graphics,
             Icon,
             new RectangleF(left, bounds.Y + ((bounds.Height - IconSize) / 2f), IconSize, IconSize),
-            foreground);
+            iconColor);
 
         TextRenderer.DrawText(
             graphics,
@@ -243,6 +256,11 @@ internal sealed class AppButton : Control
                 _isPressed ? colors.AccentPressed : _isHovered ? colors.AccentHover : colors.Accent,
                 Color.Transparent,
                 colors.OnAccent),
+
+            ButtonVariant.AccentOutline => (
+                _isPressed ? colors.SurfaceActive : _isHovered ? colors.SurfaceHover : colors.Surface,
+                colors.Accent,
+                colors.TextPrimary),
 
             ButtonVariant.Danger => (
                 _isPressed ? colors.Danger : _isHovered ? colors.Danger.Blend(colors.Surface, 0.75f) : Color.Transparent,

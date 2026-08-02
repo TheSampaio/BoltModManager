@@ -24,6 +24,8 @@ internal sealed class ModificationListView : ListView
     private const int RowHeight = 34;
 
     private int _hoveredIndex = -1;
+    private int _sortColumnIndex = 5;
+    private ListSortDirection _sortDirection = ListSortDirection.Descending;
 
     public ModificationListView()
     {
@@ -31,7 +33,7 @@ internal sealed class ModificationListView : ListView
 
         View = View.Details;
         FullRowSelect = true;
-        HeaderStyle = ColumnHeaderStyle.Nonclickable;
+        HeaderStyle = ColumnHeaderStyle.Clickable;
         BorderStyle = BorderStyle.None;
         MultiSelect = true;
         OwnerDraw = true;
@@ -88,6 +90,30 @@ internal sealed class ModificationListView : ListView
             StretchLastColumn();
     }
 
+    protected override void OnColumnClick(ColumnClickEventArgs e)
+    {
+        base.OnColumnClick(e);
+
+        if (e.Column == _sortColumnIndex)
+        {
+            _sortDirection = _sortDirection == ListSortDirection.Ascending
+                ? ListSortDirection.Descending
+                : ListSortDirection.Ascending;
+        }
+        else
+        {
+            _sortColumnIndex = e.Column;
+            _sortDirection = ListSortDirection.Ascending;
+        }
+
+        var modifications = Items
+            .Cast<ListViewItem>()
+            .Select(item => (Modification)item.Tag!)
+            .ToList();
+
+        SetItems(modifications);
+    }
+
     /// <summary>Message shown when the list holds no rows.</summary>
     public string EmptyMessage { get; set; } = "No modifications imported yet.";
 
@@ -108,7 +134,7 @@ internal sealed class ModificationListView : ListView
         {
             Items.Clear();
 
-            foreach (var modification in modifications)
+            foreach (var modification in SortModifications(modifications))
             {
                 var item = new ListViewItem([
                     string.Empty,
@@ -151,14 +177,38 @@ internal sealed class ModificationListView : ListView
             ? TextFormatFlags.Right
             : TextFormatFlags.Left;
 
+        var headerText = e.Header.Text.ToUpperInvariant();
+
+        if (e.ColumnIndex == _sortColumnIndex)
+            headerText += _sortDirection == ListSortDirection.Ascending ? "  ▲" : "  ▼";
+
         TextRenderer.DrawText(
             graphics,
-            e.Header.Text.ToUpperInvariant(),
+            headerText,
             AppTheme.Fonts.Overline,
             Rectangle.Inflate(e.Bounds, -AppTheme.Spacing.Small, 0),
             AppTheme.Colors.TextMuted,
             alignment | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
     }
+
+    private IEnumerable<Modification> SortModifications(IEnumerable<Modification> modifications) =>
+        _sortColumnIndex switch
+        {
+            0 => OrderBy(modifications, modification => modification.IsEnabled),
+            1 => OrderBy(modifications, modification => modification.Name, StringComparer.OrdinalIgnoreCase),
+            2 => OrderBy(modifications, modification => modification.Version, StringComparer.OrdinalIgnoreCase),
+            3 => OrderBy(modifications, modification => modification.Category, StringComparer.OrdinalIgnoreCase),
+            4 => OrderBy(modifications, modification => modification.Content.Count),
+            _ => OrderBy(modifications, modification => modification.InstalledAt)
+        };
+
+    private IEnumerable<Modification> OrderBy<TKey>(
+        IEnumerable<Modification> modifications,
+        Func<Modification, TKey> keySelector,
+        IComparer<TKey>? comparer = null) =>
+        _sortDirection == ListSortDirection.Ascending
+            ? modifications.OrderBy(keySelector, comparer)
+            : modifications.OrderByDescending(keySelector, comparer);
 
     protected override void OnDrawItem(DrawListViewItemEventArgs e)
     {

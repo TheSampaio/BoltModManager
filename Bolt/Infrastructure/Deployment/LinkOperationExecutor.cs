@@ -27,7 +27,9 @@ internal sealed class LinkOperationExecutor : ILinkOperationExecutor
         if (operations.Count == 0)
             return OperationResult.Success();
 
-        if (SymbolicLink.CanCreateWithoutElevation)
+        var requiresFileSymbolicLink = operations.Any(operation => operation.Action == LinkAction.Link);
+
+        if (!requiresFileSymbolicLink || SymbolicLink.CanCreateWithoutElevation)
         {
             var result = LinkOperationRunner.Run(operations);
 

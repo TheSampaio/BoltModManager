@@ -39,7 +39,41 @@ internal static class PathUtility
     public static string NormalizeRelative(string relativePath) =>
         relativePath.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
 
-    /// <summary>Removes <paramref name="directory"/> and every empty parent up to (but excluding) <paramref name="stopAt"/>.</summary>
+    /// <summary>
+    /// Moves a file together with its selected source folder to a new parent while preserving the
+    /// folder name and every descendant directory.
+    /// </summary>
+    public static string RebaseFolderFile(
+        string filePath,
+        string folderPath,
+        string destinationParent)
+    {
+        var normalizedFile = NormalizeRelative(filePath);
+        var normalizedFolder = Path.TrimEndingDirectorySeparator(NormalizeRelative(folderPath));
+
+        if (normalizedFolder.Length == 0
+            || !normalizedFile.StartsWith(
+                normalizedFolder + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException($"\"{filePath}\" is not inside \"{folderPath}\".", nameof(filePath));
+        }
+
+        var folderParent = Path.GetDirectoryName(normalizedFolder) ?? string.Empty;
+        var pathIncludingFolder = folderParent.Length == 0
+            ? normalizedFile
+            : normalizedFile[(folderParent.Length + 1)..];
+        var normalizedDestination = NormalizeRelative(destinationParent);
+
+        return normalizedDestination.Length == 0
+            ? pathIncludingFolder
+            : Path.Combine(normalizedDestination, pathIncludingFolder);
+    }
+
+    /// <summary>
+    /// Removes <paramref name="directory"/> and every parent containing no files up to (but
+    /// excluding) <paramref name="stopAt"/>. Empty descendant folders are removed with the tree.
+    /// </summary>
     public static void DeleteEmptyDirectories(string directory, string stopAt)
     {
         var current = directory;
@@ -47,11 +81,46 @@ internal static class PathUtility
         while (!string.IsNullOrEmpty(current)
             && IsInside(stopAt, current)
             && !Path.GetFullPath(current).Equals(Path.GetFullPath(stopAt), StringComparison.OrdinalIgnoreCase)
-            && Directory.Exists(current)
-            && !Directory.EnumerateFileSystemEntries(current).Any())
+            && Directory.Exists(current))
         {
-            Directory.Delete(current);
+            if (!TryCollectEmptyDirectoryTree(current, out var emptyDirectories))
+                break;
+
+            foreach (var emptyDirectory in emptyDirectories.OrderByDescending(path => path.Length))
+                Directory.Delete(emptyDirectory);
+
             current = Path.GetDirectoryName(current);
         }
+    }
+
+    /// <summary>
+    /// Checks a directory tree without traversing reparse points. Unknown links and junctions are
+    /// treated as occupied so cleanup can never cross into a location Bolt does not own.
+    /// </summary>
+    private static bool TryCollectEmptyDirectoryTree(string root, out List<string> directories)
+    {
+        var pending = new Stack<string>();
+        directories = [];
+        pending.Push(root);
+
+        while (pending.TryPop(out var directory))
+        {
+            directories.Add(directory);
+
+            foreach (var entry in Directory.EnumerateFileSystemEntries(directory))
+            {
+                var attributes = File.GetAttributes(entry);
+
+                if ((attributes & FileAttributes.ReparsePoint) != 0)
+                    return false;
+
+                if ((attributes & FileAttributes.Directory) == 0)
+                    return false;
+
+                pending.Push(entry);
+            }
+        }
+
+        return true;
     }
 }

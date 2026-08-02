@@ -6,6 +6,7 @@ internal enum IconKind
     None,
     Bolt,
     Play,
+    Stop,
     Plus,
     Trash,
     Download,
@@ -16,9 +17,11 @@ internal enum IconKind
     Check,
     Ban,
     Refresh,
+    Reset,
     ChevronDown,
     Info,
     Close,
     Package,
+    Document,
     Warning
 }

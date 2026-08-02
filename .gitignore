@@ -3,6 +3,8 @@
 .vscode/
 Bolt/bin/
 Bolt/obj/
+Bolt.Tests/bin/
+Bolt.Tests/obj/
 
 # [Files]
 *.user

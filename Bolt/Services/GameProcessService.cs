@@ -6,18 +6,29 @@ using Bolt.Core.Abstractions;
 namespace Bolt.Services;
 
 /// <summary>
-/// Starts the game executable and reports when it exits.
+/// Starts the game executable, reports when it exits, and can terminate it on request.
 /// </summary>
 /// <remarks>
-/// The process is only observed, never terminated: closing Bolt must not close a game the user is
-/// still playing. The exit handler is detached and the process disposed to avoid leaking handles
-/// across launches.
+/// Closing Bolt does not terminate the game. Termination only happens after an explicit user
+/// action. The exit handler is detached and the process disposed to avoid leaking handles across
+/// launches.
 /// </remarks>
 internal sealed class GameProcessService : IGameProcessService
 {
     private readonly object _gate = new();
+    private readonly Func<ProcessStartInfo, Process?> _startProcess;
 
     private Process? _process;
+
+    public GameProcessService()
+        : this(Process.Start)
+    {
+    }
+
+    internal GameProcessService(Func<ProcessStartInfo, Process?> startProcess)
+    {
+        _startProcess = startProcess;
+    }
 
     public event Action? GameStarted;
     public event Action? GameExited;
@@ -53,7 +64,7 @@ internal sealed class GameProcessService : IGameProcessService
 
         try
         {
-            process = Process.Start(startInfo);
+            process = _startProcess(startInfo);
         }
         catch (Win32Exception ex)
         {
@@ -78,6 +89,39 @@ internal sealed class GameProcessService : IGameProcessService
             if (ReferenceEquals(process, _process))
                 process.EnableRaisingEvents = true;
         }
+
+        return OperationResult.Success();
+    }
+
+    public OperationResult Terminate()
+    {
+        var publishExit = false;
+
+        lock (_gate)
+        {
+            if (_process is null)
+                return OperationResult.Failure("No game process is currently running.");
+
+            try
+            {
+                if (_process.HasExited)
+                {
+                    Detach();
+                    publishExit = true;
+                }
+                else
+                {
+                    _process.Kill(entireProcessTree: true);
+                }
+            }
+            catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or NotSupportedException)
+            {
+                return OperationResult.Failure($"The game process could not be terminated: {ex.Message}");
+            }
+        }
+
+        if (publishExit)
+            GameExited?.Invoke();
 
         return OperationResult.Success();
     }

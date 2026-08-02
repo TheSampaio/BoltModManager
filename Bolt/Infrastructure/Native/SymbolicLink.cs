@@ -34,6 +34,13 @@ internal static class SymbolicLink
         throw new Win32Exception(error, DescribeError(error, linkPath));
     }
 
+    /// <summary>
+    /// Creates a directory junction. Files reached through the junction retain their real size
+    /// during directory enumeration, unlike individual file symbolic links.
+    /// </summary>
+    public static void CreateDirectoryLink(string linkPath, string targetPath) =>
+        DirectoryJunction.Create(linkPath, targetPath);
+
     /// <summary>True when the path exists and is a reparse point (symbolic link or junction).</summary>
     public static bool IsLink(string path)
     {
@@ -41,6 +48,16 @@ internal static class SymbolicLink
 
         return attributes != NativeMethods.InvalidFileAttributes
             && (attributes & NativeMethods.FileAttributeReparsePoint) != 0;
+    }
+
+    /// <summary>True when <paramref name="path"/> is a directory reparse point.</summary>
+    public static bool IsDirectoryLink(string path)
+    {
+        var attributes = NativeMethods.GetFileAttributes(path);
+
+        return attributes != NativeMethods.InvalidFileAttributes
+            && (attributes & NativeMethods.FileAttributeReparsePoint) != 0
+            && (attributes & (uint)FileAttributes.Directory) != 0;
     }
 
     private static bool TryCreate(string linkPath, string targetPath, int flags, out int error)

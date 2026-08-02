@@ -21,9 +21,6 @@ internal interface IModImportService
     /// <summary>Archive extensions accepted by <see cref="ImportAsync"/>, including the dot.</summary>
     IReadOnlyCollection<string> SupportedExtensions { get; }
 
-    /// <summary>Counts the entries of <paramref name="archivePaths"/> for progress reporting.</summary>
-    Task<int> CountEntriesAsync(IReadOnlyList<string> archivePaths, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// Extracts every archive into the modifications folder and adds the results to
     /// <paramref name="profile"/>. Files are only linked into the game when the caller

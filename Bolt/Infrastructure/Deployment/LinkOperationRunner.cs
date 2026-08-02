@@ -62,6 +62,22 @@ internal static class LinkOperationRunner
                 Restore(operation);
                 break;
 
+            case LinkAction.Materialize:
+                Materialize(operation);
+                break;
+
+            case LinkAction.RestoreMaterialized:
+                RestoreMaterialized(operation);
+                break;
+
+            case LinkAction.LinkDirectory:
+                LinkDirectory(operation);
+                break;
+
+            case LinkAction.RestoreDirectory:
+                RestoreDirectory(operation);
+                break;
+
             default:
                 throw new InvalidOperationException($"Unsupported link action \"{operation.Action}\".");
         }
@@ -88,21 +104,174 @@ internal static class LinkOperationRunner
         SymbolicLink.CreateFileLink(operation.DestinationPath, operation.SourcePath);
     }
 
+    /// <summary>
+    /// Deploys a managed local copy when a file cannot be grouped into a safe directory junction.
+    /// The state marker keeps the copy distinguishable from an original game file.
+    /// </summary>
+    private static void Materialize(LinkOperation operation)
+    {
+        if (!File.Exists(operation.SourcePath))
+            throw new FileNotFoundException($"The modification file \"{operation.SourcePath}\" is missing.");
+
+        if (string.IsNullOrWhiteSpace(operation.StatePath))
+            throw new InvalidOperationException("A materialized file requires a deployment state path.");
+
+        Directory.CreateDirectory(Path.GetDirectoryName(operation.DestinationPath)!);
+
+        var alreadyManaged = File.Exists(operation.StatePath);
+
+        if (SymbolicLink.IsLink(operation.DestinationPath))
+        {
+            // Migrating a file deployed as a link by an older Bolt version. Its original file has
+            // already been moved to Backups, so only the link itself must be removed.
+            File.Delete(operation.DestinationPath);
+        }
+        else if (!alreadyManaged && File.Exists(operation.DestinationPath) && !File.Exists(operation.BackupPath))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(operation.BackupPath)!);
+            File.Move(operation.DestinationPath, operation.BackupPath);
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(operation.StatePath)!);
+        File.WriteAllText(operation.StatePath, string.Empty);
+
+        var stagedPath = $"{operation.DestinationPath}.{Guid.NewGuid():N}.bolt.tmp";
+
+        try
+        {
+            File.Copy(operation.SourcePath, stagedPath);
+            File.Move(stagedPath, operation.DestinationPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(stagedPath))
+                File.Delete(stagedPath);
+        }
+    }
+
     private static void Restore(LinkOperation operation)
     {
         if (SymbolicLink.IsLink(operation.DestinationPath))
             File.Delete(operation.DestinationPath);
 
-        if (!File.Exists(operation.BackupPath))
-            return;
+        if (File.Exists(operation.BackupPath))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(operation.DestinationPath)!);
+            File.Move(operation.BackupPath, operation.DestinationPath, overwrite: true);
+
+            var backupRoot = FindBackupRoot(operation.BackupPath);
+
+            if (backupRoot is not null)
+                PathUtility.DeleteEmptyDirectories(Path.GetDirectoryName(operation.BackupPath)!, backupRoot);
+        }
+
+        PruneEmptyDestinationFolders(operation);
+    }
+
+    private static void RestoreMaterialized(LinkOperation operation)
+    {
+        var hasState = !string.IsNullOrWhiteSpace(operation.StatePath) && File.Exists(operation.StatePath);
+
+        if (SymbolicLink.IsLink(operation.DestinationPath)
+            || (hasState && File.Exists(operation.DestinationPath)))
+        {
+            File.Delete(operation.DestinationPath);
+        }
+
+        if (File.Exists(operation.BackupPath))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(operation.DestinationPath)!);
+            File.Move(operation.BackupPath, operation.DestinationPath, overwrite: true);
+
+            var backupRoot = FindBackupRoot(operation.BackupPath);
+
+            if (backupRoot is not null)
+                PathUtility.DeleteEmptyDirectories(Path.GetDirectoryName(operation.BackupPath)!, backupRoot);
+        }
+
+        if (hasState)
+            DeleteMaterializationState(operation.StatePath);
+
+        PruneEmptyDestinationFolders(operation);
+    }
+
+    private static void LinkDirectory(LinkOperation operation)
+    {
+        if (!Directory.Exists(operation.SourcePath))
+            throw new DirectoryNotFoundException($"The modification directory \"{operation.SourcePath}\" is missing.");
+
+        if (SymbolicLink.IsDirectoryLink(operation.DestinationPath))
+        {
+            if (IsDirectoryLinkedTo(operation.DestinationPath, operation.SourcePath))
+                return;
+
+            Directory.Delete(operation.DestinationPath);
+        }
+        else if (Directory.Exists(operation.DestinationPath))
+        {
+            if (Directory.EnumerateFileSystemEntries(operation.DestinationPath).Any())
+                throw new IOException($"The destination directory \"{operation.DestinationPath}\" is not empty.");
+
+            Directory.Delete(operation.DestinationPath);
+        }
 
         Directory.CreateDirectory(Path.GetDirectoryName(operation.DestinationPath)!);
-        File.Move(operation.BackupPath, operation.DestinationPath, overwrite: true);
+        SymbolicLink.CreateDirectoryLink(operation.DestinationPath, operation.SourcePath);
+    }
 
-        var backupRoot = FindBackupRoot(operation.BackupPath);
+    private static void RestoreDirectory(LinkOperation operation)
+    {
+        if (SymbolicLink.IsDirectoryLink(operation.DestinationPath))
+            Directory.Delete(operation.DestinationPath);
 
-        if (backupRoot is not null)
-            PathUtility.DeleteEmptyDirectories(Path.GetDirectoryName(operation.BackupPath)!, backupRoot);
+        PruneEmptyDestinationFolders(operation);
+    }
+
+    private static bool IsDirectoryLinkedTo(string path, string target)
+    {
+        try
+        {
+            return Directory.ResolveLinkTarget(path, returnFinalTarget: false) is { } linkTarget
+                && Path.GetFullPath(linkTarget.FullName).Equals(
+                    Path.GetFullPath(target),
+                    StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
+    private static void DeleteMaterializationState(string statePath)
+    {
+        File.Delete(statePath);
+
+        var stateRoot = Path.GetDirectoryName(statePath);
+
+        while (!string.IsNullOrEmpty(stateRoot)
+            && !Path.GetFileName(stateRoot).Equals(".bolt-state", StringComparison.OrdinalIgnoreCase))
+        {
+            stateRoot = Path.GetDirectoryName(stateRoot);
+        }
+
+        if (string.IsNullOrEmpty(stateRoot))
+            return;
+
+        PathUtility.DeleteEmptyDirectories(Path.GetDirectoryName(statePath)!, stateRoot);
+
+        if (!Directory.EnumerateFileSystemEntries(stateRoot).Any())
+            Directory.Delete(stateRoot);
+    }
+
+    private static void PruneEmptyDestinationFolders(LinkOperation operation)
+    {
+        if (string.IsNullOrWhiteSpace(operation.CleanupRootPath))
+            return;
+
+        var destinationFolder = Path.GetDirectoryName(operation.DestinationPath);
+
+        if (destinationFolder is not null && PathUtility.IsInside(operation.CleanupRootPath, destinationFolder))
+            PathUtility.DeleteEmptyDirectories(destinationFolder, operation.CleanupRootPath);
     }
 
     /// <summary>
