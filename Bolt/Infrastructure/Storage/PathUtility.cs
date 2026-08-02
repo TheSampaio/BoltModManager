@@ -39,7 +39,10 @@ internal static class PathUtility
     public static string NormalizeRelative(string relativePath) =>
         relativePath.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
 
-    /// <summary>Removes <paramref name="directory"/> and every empty parent up to (but excluding) <paramref name="stopAt"/>.</summary>
+    /// <summary>
+    /// Removes <paramref name="directory"/> and every parent containing no files up to (but
+    /// excluding) <paramref name="stopAt"/>. Empty descendant folders are removed with the tree.
+    /// </summary>
     public static void DeleteEmptyDirectories(string directory, string stopAt)
     {
         var current = directory;
@@ -47,11 +50,46 @@ internal static class PathUtility
         while (!string.IsNullOrEmpty(current)
             && IsInside(stopAt, current)
             && !Path.GetFullPath(current).Equals(Path.GetFullPath(stopAt), StringComparison.OrdinalIgnoreCase)
-            && Directory.Exists(current)
-            && !Directory.EnumerateFileSystemEntries(current).Any())
+            && Directory.Exists(current))
         {
-            Directory.Delete(current);
+            if (!TryCollectEmptyDirectoryTree(current, out var emptyDirectories))
+                break;
+
+            foreach (var emptyDirectory in emptyDirectories.OrderByDescending(path => path.Length))
+                Directory.Delete(emptyDirectory);
+
             current = Path.GetDirectoryName(current);
         }
+    }
+
+    /// <summary>
+    /// Checks a directory tree without traversing reparse points. Unknown links and junctions are
+    /// treated as occupied so cleanup can never cross into a location Bolt does not own.
+    /// </summary>
+    private static bool TryCollectEmptyDirectoryTree(string root, out List<string> directories)
+    {
+        var pending = new Stack<string>();
+        directories = [];
+        pending.Push(root);
+
+        while (pending.TryPop(out var directory))
+        {
+            directories.Add(directory);
+
+            foreach (var entry in Directory.EnumerateFileSystemEntries(directory))
+            {
+                var attributes = File.GetAttributes(entry);
+
+                if ((attributes & FileAttributes.ReparsePoint) != 0)
+                    return false;
+
+                if ((attributes & FileAttributes.Directory) == 0)
+                    return false;
+
+                pending.Push(entry);
+            }
+        }
+
+        return true;
     }
 }

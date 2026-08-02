@@ -26,8 +26,14 @@ The status bar shows which mode is in effect.
 
 - Any game: point Bolt at a folder and an executable
 - Multiple profiles per game, switched in one click
-- Import `.zip` packages, with progress and cancellation-safe extraction
+- Import `.zip`, `.7z`, and `.rar` packages, processing up to three archives in parallel with
+  progress and cancellation-safe extraction
+- Edit a modification's name, description, version, category, and deployed file layout without
+  rebuilding its archive
+- Browse the modification as an expandable file tree, move or exclude whole selections, and open
+  common text files in Notepad or a configured editor
 - Enable, disable and delete modifications in bulk
+- Restore every Bolt-managed game file and backup while leaving unknown game files untouched
 - Conflict detection when two enabled modifications provide the same file
 - Recent games, search, light and dark themes following the system
 

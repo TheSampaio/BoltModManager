@@ -66,6 +66,7 @@ internal sealed class NewGameForm : ThemedForm
             Dock = DockStyle.Right,
             Margin = new Padding(0, 0, AppTheme.Spacing.Small, 0),
             Text = "Cancel",
+            Variant = ButtonVariant.AccentOutline,
             Width = 100
         };
 

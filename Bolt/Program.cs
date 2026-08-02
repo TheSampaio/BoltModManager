@@ -55,7 +55,7 @@ internal static class Program
 
         services.AddSingleton<IUserPreferencesService>(_ => new UserPreferencesService(settings.DefaultGamesPath));
         services.AddSingleton<IGameRepository, GameRepository>();
-        services.AddSingleton<IArchiveReader, ZipArchiveReader>();
+        services.AddSingleton<IArchiveReader, ArchiveReader>();
         services.AddSingleton<ILinkOperationExecutor, LinkOperationExecutor>();
         services.AddSingleton<IDialogService, DialogService>();
 
@@ -63,15 +63,18 @@ internal static class Program
         services.AddSingleton<IGameProcessService, GameProcessService>();
         services.AddSingleton<IModDeploymentService, ModDeploymentService>();
         services.AddSingleton<IModImportService, ModImportService>();
+        services.AddSingleton<IModEditorService, ModEditorService>();
 
         services.AddTransient<MainForm>();
         services.AddTransient<NewGameForm>();
         services.AddTransient<PreferencesForm>();
+        services.AddTransient<ModEditorForm>();
 
         // Factories instead of handing the container to the forms: a window can create the dialogs
         // it owns without turning the service provider into a global service locator.
         services.AddSingleton<Func<NewGameForm>>(provider => provider.GetRequiredService<NewGameForm>);
         services.AddSingleton<Func<PreferencesForm>>(provider => provider.GetRequiredService<PreferencesForm>);
+        services.AddSingleton<Func<ModEditorForm>>(provider => provider.GetRequiredService<ModEditorForm>);
 
         return services.BuildServiceProvider();
     }

@@ -31,6 +31,29 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
         return _executor.Apply(BuildPlan(session, modifications.Where(m => m.IsEnabled), reverted));
     }
 
+    public OperationResult RestoreDefaults(GameSession session)
+    {
+        ArgumentNullException.ThrowIfNull(session);
+
+        var modifications = session.Game.Profiles
+            .SelectMany(profile => profile.Modifications)
+            .ToList();
+        var enabledStates = modifications.ToDictionary(modification => modification, modification => modification.IsEnabled);
+
+        foreach (var modification in modifications)
+            modification.IsEnabled = false;
+
+        var result = _executor.Apply(BuildPlan(session, [], modifications));
+
+        if (!result.Succeeded)
+        {
+            foreach (var (modification, wasEnabled) in enabledStates)
+                modification.IsEnabled = wasEnabled;
+        }
+
+        return result;
+    }
+
     public IReadOnlyDictionary<string, IReadOnlyList<string>> FindConflicts(GameSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
@@ -101,7 +124,8 @@ internal sealed class ModDeploymentService(ILinkOperationExecutor executor) : IM
             {
                 Action = LinkAction.Restore,
                 DestinationPath = destinationPath,
-                BackupPath = backupPath
+                BackupPath = backupPath,
+                CleanupRootPath = session.Game.TargetPath
             });
         }
 

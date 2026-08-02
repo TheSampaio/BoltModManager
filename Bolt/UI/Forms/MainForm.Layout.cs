@@ -30,6 +30,7 @@ internal sealed partial class MainForm
     private MenuStrip _menu = null!;
     private ToolStripMenuItem _recentMenuItem = null!;
     private ToolStripMenuItem _closeGameMenuItem = null!;
+    private ToolStripMenuItem _restoreGameMenuItem = null!;
 
     private PictureBox _gameIcon = null!;
     private Label _gameName = null!;
@@ -50,6 +51,7 @@ internal sealed partial class MainForm
     private SearchBox _search = null!;
     private AppButton _importButton = null!;
     private AppButton _syncButton = null!;
+    private AppButton _editButton = null!;
     private AppButton _enableButton = null!;
     private AppButton _disableButton = null!;
     private AppButton _deleteButton = null!;
@@ -63,6 +65,7 @@ internal sealed partial class MainForm
     private ContextMenuStrip _listMenu = null!;
     private ToolStripMenuItem _enableMenuItem = null!;
     private ToolStripMenuItem _disableMenuItem = null!;
+    private ToolStripMenuItem _editMenuItem = null!;
     private ToolStripMenuItem _deleteMenuItem = null!;
 
     private Label _statusLabel = null!;
@@ -113,8 +116,15 @@ internal sealed partial class MainForm
             CreateMenuItem("Exit", (_, _) => Close(), Keys.Control | Keys.Q)
         ]);
 
+        _restoreGameMenuItem = CreateMenuItem("Restore Game Defaults…", OnRestoreGameClicked);
+        _restoreGameMenuItem.Enabled = false;
+
         var edit = new ToolStripMenuItem("Edit");
-        edit.DropDownItems.Add(CreateMenuItem("Preferences…", OnPreferencesClicked, Keys.Control | Keys.P));
+        edit.DropDownItems.AddRange([
+            _restoreGameMenuItem,
+            new ToolStripSeparator(),
+            CreateMenuItem("Preferences…", OnPreferencesClicked, Keys.Control | Keys.P)
+        ]);
 
         var help = new ToolStripMenuItem("Help");
         help.DropDownItems.Add(CreateMenuItem("About Bolt", OnAboutClicked));
@@ -368,9 +378,20 @@ internal sealed partial class MainForm
             Height = 32,
             Icon = IconKind.Refresh,
             IconSize = 15,
-            Text = "Sync",
+            Text = "Deploy",
             Variant = ButtonVariant.Secondary,
-            Width = 96
+            Width = 108
+        };
+
+        _editButton = new AppButton
+        {
+            Enabled = false,
+            Height = 32,
+            Icon = IconKind.Sliders,
+            IconSize = 15,
+            Text = "Edit",
+            Variant = ButtonVariant.Secondary,
+            Width = 88
         };
 
         _enableButton = CreateIconButton(IconKind.Check, "Enable the selected modifications", OnEnableSelectedClicked);
@@ -380,6 +401,8 @@ internal sealed partial class MainForm
 
         _importButton.Click += OnImportClicked;
         _syncButton.Click += OnSyncClicked;
+        _toolTip.SetToolTip(_syncButton, "Deploy the active profile to the game folder");
+        _editButton.Click += OnEditSelectedClicked;
 
         var actions = new FlowLayoutPanel
         {
@@ -391,7 +414,7 @@ internal sealed partial class MainForm
             WrapContents = false
         };
 
-        foreach (var button in new Control[] { _enableButton, _disableButton, _deleteButton, _syncButton, _importButton })
+        foreach (var button in new Control[] { _enableButton, _disableButton, _deleteButton, _editButton, _syncButton, _importButton })
         {
             button.Margin = new Padding(AppTheme.Spacing.Small, 0, 0, 0);
             actions.Controls.Add(button);
@@ -441,6 +464,7 @@ internal sealed partial class MainForm
 
     private Card BuildList()
     {
+        _editMenuItem = CreateMenuItem("Edit…", OnEditSelectedClicked);
         _enableMenuItem = CreateMenuItem("Enable", OnEnableSelectedClicked);
         _disableMenuItem = CreateMenuItem("Disable", OnDisableSelectedClicked);
         _deleteMenuItem = CreateMenuItem("Delete", OnDeleteSelectedClicked);
@@ -458,7 +482,14 @@ internal sealed partial class MainForm
             ShowImageMargin = false
         };
 
-        _listMenu.Items.AddRange([_enableMenuItem, _disableMenuItem, new ToolStripSeparator(), _deleteMenuItem]);
+        _listMenu.Items.AddRange([
+            _editMenuItem,
+            new ToolStripSeparator(),
+            _enableMenuItem,
+            _disableMenuItem,
+            new ToolStripSeparator(),
+            _deleteMenuItem
+        ]);
 
         _list = new ModificationListView
         {

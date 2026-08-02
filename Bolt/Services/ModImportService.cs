@@ -13,26 +13,31 @@ namespace Bolt.Services;
 /// </remarks>
 internal sealed class ModImportService(IArchiveReader archiveReader) : IModImportService
 {
+    private const int MaxConcurrentArchives = 3;
+
     private readonly IArchiveReader _archiveReader = archiveReader;
 
     public IReadOnlyCollection<string> SupportedExtensions => _archiveReader.SupportedExtensions;
 
-    public Task<int> CountEntriesAsync(IReadOnlyList<string> archivePaths, CancellationToken cancellationToken = default)
+    public async Task<int> CountEntriesAsync(
+        IReadOnlyList<string> archivePaths,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(archivePaths);
 
-        return Task.Run(() =>
-        {
-            var total = 0;
+        var total = 0;
+        var options = CreateParallelOptions(cancellationToken);
 
-            foreach (var archivePath in archivePaths.Where(_archiveReader.CanRead))
+        await Parallel.ForEachAsync(
+            archivePaths.Where(_archiveReader.CanRead),
+            options,
+            (archivePath, _) =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                total += _archiveReader.ListEntries(archivePath).Count;
-            }
+                Interlocked.Add(ref total, _archiveReader.ListEntries(archivePath).Count);
+                return ValueTask.CompletedTask;
+            }).ConfigureAwait(false);
 
-            return total;
-        }, cancellationToken);
+        return total;
     }
 
     public async Task<IReadOnlyList<ImportedMod>> ImportAsync(
@@ -48,50 +53,73 @@ internal sealed class ModImportService(IArchiveReader archiveReader) : IModImpor
 
         var total = await CountEntriesAsync(archivePaths, cancellationToken).ConfigureAwait(false);
 
-        return await Task.Run(() =>
+        var workItems = archivePaths
+            .Where(_archiveReader.CanRead)
+            .Select((archivePath, index) => CreateWorkItem(archivePath, session.ModificationsPath, index))
+            .ToList();
+
+        var completed = 0;
+
+        try
         {
-            var imported = new List<ImportedMod>();
-            var completed = 0;
-
-            foreach (var archivePath in archivePaths.Where(_archiveReader.CanRead))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var name = Path.GetFileNameWithoutExtension(archivePath);
-                var folderName = PathUtility.ToSafeFolderName(name);
-                var destination = Path.Combine(session.ModificationsPath, folderName);
-
-                var replaced = TakeExisting(profile, name, folderName);
-
-                ResetFolder(destination);
-
-                var content = _archiveReader.Extract(
-                    archivePath,
-                    destination,
-                    entry =>
-                    {
-                        completed++;
-                        progress?.Report(new ImportProgress(completed, total, entry));
-                    },
-                    cancellationToken);
-
-                var modification = new Modification
+            await Parallel.ForEachAsync(
+                workItems,
+                CreateParallelOptions(cancellationToken),
+                (workItem, token) =>
                 {
-                    Name = name,
-                    FolderName = folderName,
-                    Version = replaced?.Version ?? string.Empty,
-                    Category = replaced?.Category ?? string.Empty,
-                    InstalledAt = DateTime.Now,
-                    IsEnabled = replaced?.IsEnabled ?? true,
-                    Content = [.. content]
-                };
+                    workItem.Content = _archiveReader.Extract(
+                        workItem.ArchivePath,
+                        workItem.TemporaryPath,
+                        entry =>
+                        {
+                            var current = Interlocked.Increment(ref completed);
+                            progress?.Report(new ImportProgress(current, total, entry));
+                        },
+                        token);
 
-                profile.Modifications.Add(modification);
-                imported.Add(new ImportedMod(modification, replaced));
-            }
+                    return ValueTask.CompletedTask;
+                }).ConfigureAwait(false);
 
-            return (IReadOnlyList<ImportedMod>)imported;
-        }, cancellationToken).ConfigureAwait(false);
+            return CommitImports(workItems, profile, cancellationToken);
+        }
+        finally
+        {
+            foreach (var workItem in workItems)
+                DeleteTemporaryFolder(workItem.TemporaryPath);
+        }
+    }
+
+    private static List<ImportedMod> CommitImports(
+        IEnumerable<ImportWorkItem> workItems,
+        Profile profile,
+        CancellationToken cancellationToken)
+    {
+        var imported = new List<ImportedMod>();
+
+        foreach (var workItem in workItems.OrderBy(item => item.Index))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var replaced = TakeExisting(profile, workItem.Name, workItem.FolderName);
+            ReplaceFolder(workItem.TemporaryPath, workItem.DestinationPath);
+
+            var modification = new Modification
+            {
+                Name = workItem.Name,
+                FolderName = workItem.FolderName,
+                Description = replaced?.Description ?? string.Empty,
+                Version = replaced?.Version ?? string.Empty,
+                Category = replaced?.Category ?? string.Empty,
+                InstalledAt = DateTime.Now,
+                IsEnabled = replaced?.IsEnabled ?? true,
+                Content = [.. workItem.Content]
+            };
+
+            profile.Modifications.Add(modification);
+            imported.Add(new ImportedMod(modification, replaced));
+        }
+
+        return imported;
     }
 
     /// <summary>Removes a previous version of the same modification and returns it.</summary>
@@ -110,11 +138,48 @@ internal sealed class ModImportService(IArchiveReader archiveReader) : IModImpor
         return existing;
     }
 
-    private static void ResetFolder(string path)
+    private static ParallelOptions CreateParallelOptions(CancellationToken cancellationToken) => new()
+    {
+        CancellationToken = cancellationToken,
+        MaxDegreeOfParallelism = MaxConcurrentArchives
+    };
+
+    private static ImportWorkItem CreateWorkItem(string archivePath, string modificationsPath, int index)
+    {
+        var name = Path.GetFileNameWithoutExtension(archivePath);
+        var folderName = PathUtility.ToSafeFolderName(name);
+
+        return new ImportWorkItem(
+            index,
+            archivePath,
+            name,
+            folderName,
+            Path.Combine(modificationsPath, folderName),
+            Path.Combine(modificationsPath, $".bolt-import-{Guid.NewGuid():N}"));
+    }
+
+    private static void ReplaceFolder(string sourcePath, string destinationPath)
+    {
+        if (Directory.Exists(destinationPath))
+            Directory.Delete(destinationPath, recursive: true);
+
+        Directory.Move(sourcePath, destinationPath);
+    }
+
+    private static void DeleteTemporaryFolder(string path)
     {
         if (Directory.Exists(path))
             Directory.Delete(path, recursive: true);
+    }
 
-        Directory.CreateDirectory(path);
+    private sealed record ImportWorkItem(
+        int Index,
+        string ArchivePath,
+        string Name,
+        string FolderName,
+        string DestinationPath,
+        string TemporaryPath)
+    {
+        public IReadOnlyList<string> Content { get; set; } = [];
     }
 }

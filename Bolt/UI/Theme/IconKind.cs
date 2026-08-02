@@ -16,9 +16,11 @@ internal enum IconKind
     Check,
     Ban,
     Refresh,
+    Reset,
     ChevronDown,
     Info,
     Close,
     Package,
+    Document,
     Warning
 }

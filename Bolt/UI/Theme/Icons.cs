@@ -123,6 +123,12 @@ internal static class Icons
                 g.DrawLines(pen, [new PointF(16f, 2.5f), new PointF(17.5f, 7.2f), new PointF(12.8f, 8.2f)]);
                 break;
 
+            case IconKind.Reset:
+                g.DrawLines(pen, [new PointF(8.5f, 5f), new PointF(4f, 9.5f), new PointF(8.5f, 14f)]);
+                g.DrawBezier(pen, 4.5f, 9.5f, 10f, 6.5f, 19.5f, 7.5f, 19.5f, 14f);
+                g.DrawLine(pen, 4f, 19f, 20f, 19f);
+                break;
+
             case IconKind.ChevronDown:
                 g.DrawLines(pen, [new PointF(6.5f, 9.5f), new PointF(12f, 15f), new PointF(17.5f, 9.5f)]);
                 break;
@@ -147,6 +153,15 @@ internal static class Icons
                 g.DrawLine(pen, 12f, 12f, 12f, 21.5f);
                 break;
 
+            case IconKind.Document:
+                g.DrawLines(pen, [
+                    new PointF(6f, 2.5f), new PointF(14f, 2.5f), new PointF(19f, 7.5f),
+                    new PointF(19f, 21.5f), new PointF(6f, 21.5f), new PointF(6f, 2.5f)]);
+                g.DrawLines(pen, [new PointF(14f, 2.5f), new PointF(14f, 7.5f), new PointF(19f, 7.5f)]);
+                g.DrawLine(pen, 9f, 12f, 16f, 12f);
+                g.DrawLine(pen, 9f, 16f, 16f, 16f);
+                break;
+
             case IconKind.Warning:
                 g.DrawLines(pen, [
                     new PointF(12f, 3.5f), new PointF(21.5f, 20f), new PointF(2.5f, 20f), new PointF(12f, 3.5f)]);
@@ -162,4 +177,5 @@ internal static class Icons
 
         g.DrawEllipse(pen, x - radius, y - radius, radius * 2, radius * 2);
     }
+
 }

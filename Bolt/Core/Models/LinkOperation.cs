@@ -23,4 +23,10 @@ internal sealed class LinkOperation
     public string DestinationPath { get; set; } = string.Empty;
 
     public string BackupPath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Boundary used when pruning empty destination folders after a restore. The boundary itself
+    /// is never removed.
+    /// </summary>
+    public string CleanupRootPath { get; set; } = string.Empty;
 }

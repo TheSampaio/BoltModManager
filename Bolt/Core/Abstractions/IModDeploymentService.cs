@@ -16,6 +16,12 @@ internal interface IModDeploymentService
     OperationResult Synchronize(GameSession session, IReadOnlyCollection<Modification>? removed = null);
 
     /// <summary>
+    /// Removes every Bolt-managed link, restores known backups, and disables all modifications.
+    /// Files which Bolt did not deploy are deliberately left untouched.
+    /// </summary>
+    OperationResult RestoreDefaults(GameSession session);
+
+    /// <summary>
     /// Relative paths provided by more than one enabled modification, mapped to the names of the
     /// modifications claiming them. The last one in profile order wins on disk.
     /// </summary>

@@ -23,6 +23,7 @@ internal sealed partial class MainForm : ThemedForm
     private readonly IDialogService _dialogs;
     private readonly Func<NewGameForm> _newGameFormFactory;
     private readonly Func<PreferencesForm> _preferencesFormFactory;
+    private readonly Func<ModEditorForm> _modEditorFormFactory;
     private readonly string _version;
 
     private bool _isBusy;
@@ -37,6 +38,7 @@ internal sealed partial class MainForm : ThemedForm
         IDialogService dialogs,
         Func<NewGameForm> newGameFormFactory,
         Func<PreferencesForm> preferencesFormFactory,
+        Func<ModEditorForm> modEditorFormFactory,
         AppSettings settings)
     {
         _session = session;
@@ -48,6 +50,7 @@ internal sealed partial class MainForm : ThemedForm
         _dialogs = dialogs;
         _newGameFormFactory = newGameFormFactory;
         _preferencesFormFactory = preferencesFormFactory;
+        _modEditorFormFactory = modEditorFormFactory;
         _version = settings.Version;
 
         BuildLayout();
@@ -292,6 +295,7 @@ internal sealed partial class MainForm : ThemedForm
         _importButton.Enabled = enabled;
         _syncButton.Enabled = enabled;
         _closeGameMenuItem.Enabled = enabled;
+        _restoreGameMenuItem.Enabled = enabled;
 
         OnListSelectionChanged(this, EventArgs.Empty);
     }
@@ -533,6 +537,7 @@ internal sealed partial class MainForm : ThemedForm
         _enableButton.Enabled = hasSelection;
         _disableButton.Enabled = hasSelection;
         _deleteButton.Enabled = hasSelection;
+        _editButton.Enabled = hasSelection && _list.SelectedIndices.Count == 1;
     }
 
     private void OnListMenuOpening(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -547,6 +552,7 @@ internal sealed partial class MainForm : ThemedForm
 
         _enableMenuItem.Enabled = selection.Any(m => !m.IsEnabled);
         _disableMenuItem.Enabled = selection.Any(m => m.IsEnabled);
+        _editMenuItem.Enabled = selection.Count == 1;
     }
 
     private void OnListKeyDown(object? sender, KeyEventArgs e)
@@ -559,6 +565,23 @@ internal sealed partial class MainForm : ThemedForm
     }
 
     private void OnToggleRequested(Modification modification) => SetEnabled([modification], !modification.IsEnabled);
+
+    private void OnEditSelectedClicked(object? sender, EventArgs e)
+    {
+        if (Current is null || _isBusy || _list.SelectedModifications is not [var modification])
+            return;
+
+        using var form = _modEditorFormFactory();
+
+        if (form.ShowEditor(this, Current, modification) != DialogResult.OK)
+            return;
+
+        RefreshList();
+
+        SetStatus($"Updated {modification.Name} · {BuildIdleStatus(Current)}");
+
+        WarnAboutConflicts();
+    }
 
     private void OnEnableSelectedClicked(object? sender, EventArgs e) => SetEnabled(_list.SelectedModifications, enabled: true);
 
@@ -670,12 +693,54 @@ internal sealed partial class MainForm : ThemedForm
 
         if (result.Failed)
         {
-            ReportFailure(result, "Synchronize");
+            ReportFailure(result, "Deploy Modifications");
             return;
         }
 
-        SetStatus($"{BuildIdleStatus(Current)} · synchronized");
+        SetStatus($"{BuildIdleStatus(Current)} · deployed");
         WarnAboutConflicts();
+    }
+
+    private async void OnRestoreGameClicked(object? sender, EventArgs e)
+    {
+        if (Current is null || _isBusy)
+            return;
+
+        const string message =
+            "Restore the game files managed by Bolt to their original state?\n\n"
+            + "All modifications will be disabled. Bolt will remove its links, restore known backups, "
+            + "and remove only folders that are completely empty. Unknown files will not be deleted.";
+
+        if (!_dialogs.Confirm(message, "Restore Game Defaults", destructive: true))
+            return;
+
+        var session = Current;
+        SetBusy(true);
+        SetStatus($"Restoring {session.Game.Name}…");
+
+        try
+        {
+            var result = await Task.Run(() => _deployment.RestoreDefaults(session)).ConfigureAwait(true);
+
+            if (result.Failed)
+            {
+                ReportFailure(result, "Restore Game Defaults");
+                return;
+            }
+
+            _session.Save();
+            RefreshList();
+            SetStatus($"{BuildIdleStatus(session)} · restored to the Bolt-managed default state");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            _dialogs.Error($"The game could not be restored:\n{ex.Message}", "Restore Game Defaults");
+        }
+        finally
+        {
+            if (!IsDisposed)
+                SetBusy(false);
+        }
     }
 
     private void WarnAboutConflicts()
@@ -776,7 +841,11 @@ internal sealed partial class MainForm : ThemedForm
 
             WarnAboutConflicts();
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+        catch (Exception ex) when (ex is IOException
+            or UnauthorizedAccessException
+            or InvalidDataException
+            or NotSupportedException
+            or System.Security.Cryptography.CryptographicException)
         {
             _dialogs.Error($"The modifications could not be imported:\n{ex.Message}", "Import Modifications");
         }

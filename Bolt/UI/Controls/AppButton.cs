@@ -14,6 +14,9 @@ internal enum ButtonVariant
     /// <summary>Outlined surface. The default for secondary actions.</summary>
     Secondary,
 
+    /// <summary>Outlined surface using the product accent, intended for dialog cancellation.</summary>
+    AccentOutline,
+
     /// <summary>Transparent until hovered. For toolbars and icon-only actions.</summary>
     Ghost,
 
@@ -243,6 +246,11 @@ internal sealed class AppButton : Control
                 _isPressed ? colors.AccentPressed : _isHovered ? colors.AccentHover : colors.Accent,
                 Color.Transparent,
                 colors.OnAccent),
+
+            ButtonVariant.AccentOutline => (
+                _isPressed ? colors.SurfaceActive : _isHovered ? colors.SurfaceHover : colors.Surface,
+                colors.Accent,
+                colors.TextPrimary),
 
             ButtonVariant.Danger => (
                 _isPressed ? colors.Danger : _isHovered ? colors.Danger.Blend(colors.Surface, 0.75f) : Color.Transparent,

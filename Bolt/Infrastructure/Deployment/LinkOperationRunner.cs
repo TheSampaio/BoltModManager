@@ -93,16 +93,29 @@ internal static class LinkOperationRunner
         if (SymbolicLink.IsLink(operation.DestinationPath))
             File.Delete(operation.DestinationPath);
 
-        if (!File.Exists(operation.BackupPath))
+        if (File.Exists(operation.BackupPath))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(operation.DestinationPath)!);
+            File.Move(operation.BackupPath, operation.DestinationPath, overwrite: true);
+
+            var backupRoot = FindBackupRoot(operation.BackupPath);
+
+            if (backupRoot is not null)
+                PathUtility.DeleteEmptyDirectories(Path.GetDirectoryName(operation.BackupPath)!, backupRoot);
+        }
+
+        PruneEmptyDestinationFolders(operation);
+    }
+
+    private static void PruneEmptyDestinationFolders(LinkOperation operation)
+    {
+        if (string.IsNullOrWhiteSpace(operation.CleanupRootPath))
             return;
 
-        Directory.CreateDirectory(Path.GetDirectoryName(operation.DestinationPath)!);
-        File.Move(operation.BackupPath, operation.DestinationPath, overwrite: true);
+        var destinationFolder = Path.GetDirectoryName(operation.DestinationPath);
 
-        var backupRoot = FindBackupRoot(operation.BackupPath);
-
-        if (backupRoot is not null)
-            PathUtility.DeleteEmptyDirectories(Path.GetDirectoryName(operation.BackupPath)!, backupRoot);
+        if (destinationFolder is not null && PathUtility.IsInside(operation.CleanupRootPath, destinationFolder))
+            PathUtility.DeleteEmptyDirectories(destinationFolder, operation.CleanupRootPath);
     }
 
     /// <summary>
